@@ -1,0 +1,26 @@
+{
+  "name": "game-studios",
+  "owner": {
+    "name": "Cannon Kingdom Dev"
+  },
+  "plugins": [
+    {
+      "name": "claude-code-game-studios",
+      "source": "./",
+      "description": "Full game development studio for Claude Code: 34 specialist agents, 72 workflow skills, and production hooks covering pre-production through live-ops.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Cannon Kingdom Dev"
+      },
+      "license": "MIT",
+      "keywords": [
+        "game-development",
+        "game-design",
+        "gamedev",
+        "orchestration",
+        "agents",
+        "workflows"
+      ]
+    }
+  ]
+}
