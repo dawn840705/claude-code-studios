@@ -1,7 +1,7 @@
 {
   "name": "claude-code-game-studios",
-  "version": "0.1.0",
-  "description": "Full game development studio for Claude Code: 34 specialist agents, 72 workflow skills, and production hooks covering pre-production through live-ops.",
+  "version": "0.2.0",
+  "description": "Full game development studio for Claude Code: 34 specialist agents, 72 workflow skills, and production hooks covering pre-production through live-ops. v0.2.0 adds opt-in Unity safeguards.",
   "author": {
     "name": "Cannon Kingdom Dev"
   },
@@ -65,6 +65,16 @@
           {
             "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/validate-skill-change.sh",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/unity-meta-check.sh",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/unity-animator-string-lint.sh",
             "timeout": 5
           }
         ]

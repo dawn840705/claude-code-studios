@@ -36,9 +36,20 @@ Organized by development phase:
 
 - `SessionStart`: loads project context + detects missing documentation
 - `PreToolUse` (Bash): validates git commit/push (Korean convention by default — override in your project)
-- `PostToolUse` (Write/Edit): validates asset naming, detects skill file changes
+- `PostToolUse` (Write/Edit): validates asset naming, detects skill file changes, **Unity-specific safeguards (auto-opt-in)**
 - `Notification/PreCompact/PostCompact/Stop`: context compaction and session logging
 - `SubagentStart/Stop`: agent activity logging
+
+#### Unity opt-in (v0.2.0+)
+
+The plugin auto-detects Unity projects (presence of `Assets/` + `ProjectSettings/`) and activates two advisory hooks:
+
+- `unity-meta-check.sh` — warns when a `.cs`/`.shader`/`.prefab`/etc. is written without its paired `.meta` file (prevents GUID corruption on other machines)
+- `unity-animator-string-lint.sh` — warns when `Animator.SetBool("name", ...)` style string lookups are detected (recommends `StringToHash` caching)
+
+Plus a manual git pre-commit template (`templates/githooks/unity-pre-commit`) that *blocks* commits with missing `.meta`. See [docs/engine/unity-setup.md](docs/engine/unity-setup.md) for activation.
+
+In non-Unity projects all three exit silently — zero impact.
 
 ## Install
 
