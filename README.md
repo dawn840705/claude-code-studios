@@ -258,6 +258,7 @@ skill 들이 진행에 따라 자동으로 폴더를 생성합니다.
 
 자세한 버전별 변경 사항은 [CHANGELOG.md](CHANGELOG.md) 참고.
 
+- **v0.3.0** (2026-05-17) — Unity UI/UX 영구 룰 5건 + `UIAutoSelectGuardian.cs` helper (`docs/engine/unity-ui-guidelines.md`, `templates/unity/`) + Unity scene-loading anti-pattern (`docs/engine/unity-scene-loading-patterns.md`) + Unity MCP workflow 패턴 (`docs/engine/unity-mcp-workflow.md`) + 서브 에이전트 병행 호출 룰 (`rules/subagent-collaboration.md`, `docs/templates/subagent-meeting-template.md`)
 - **v0.2.0** (2026-05-04) — Unity opt-in 안전장치 + 메타 감사 skill (sot-audit, legacy-purge) + 거버넌스/워크플로우 자산 (governance-bible-init, api-cost-gate, 회의록/API CLI 템플릿, token-efficiency/artifact-organization 룰)
 - **v0.1.0** (2026-04-22) — 초기 릴리스. 34 에이전트 + 72 skill + production hooks.
 
