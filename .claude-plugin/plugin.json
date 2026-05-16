@@ -1,7 +1,7 @@
 {
   "name": "claude-code-game-studios",
-  "version": "0.2.0",
-  "description": "Full game development studio for Claude Code: 34 specialist agents, 72 workflow skills, and production hooks covering pre-production through live-ops. v0.2.0 adds opt-in Unity safeguards.",
+  "version": "0.3.0",
+  "description": "Full game development studio for Claude Code: 34 specialist agents, 72 workflow skills, and production hooks covering pre-production through live-ops. v0.3.0 adds Unity UI/UX guidelines (5 permanent rules + UIAutoSelectGuardian.cs helper), Unity MCP workflow patterns, scene-loading anti-patterns, and subagent parallel collaboration rules.",
   "author": {
     "name": "Cannon Kingdom Dev"
   },
