@@ -1,8 +1,10 @@
 # Claude Code Game Studios
 
-Claude Code 플러그인 형태로 패키징된 *완전한* 게임 개발 스튜디오.
+Claude Code 플러그인 형태로 패키징된 *완전한* 소프트웨어 스튜디오. **게임은 물론 앱/웹/서비스 개발까지** 커버 (v0.4.0+).
 
-**전문 에이전트 34종** · **워크플로우 skill 76종** · **production hooks** · **거버넌스/워크플로우 자산 (v0.2.0+)** — 프리프로덕션 → 프로덕션 → QA → 릴리스 → 라이브 옵스 전 단계 커버.
+**전문 에이전트 41종** · **워크플로우 skill 76종** · **production hooks** · **거버넌스/워크플로우 자산 (v0.2.0+)** · **도메인 팩 + 프로젝트 타입 자동 감지 (v0.4.0+)** — 프리프로덕션 → 프로덕션 → QA → 릴리스 → 라이브 옵스 전 단계 커버.
+
+> **v0.4.0 신규:** 에이전트가 `core` / `game` / `product` 3개 팩으로 분리됩니다. SessionStart 훅(`detect-project-type.sh`)이 프로젝트를 자동 감지(`game` / `web` / `mobile` / `service`)해 **해당 팩만 활성화** — 게임 프로젝트엔 게임 에이전트, 앱/웹 프로젝트엔 제품 에이전트(`product-manager`, `frontend/backend/mobile/data/growth-engineer`, `technical-writer`)만 라우팅됩니다. 분류 기준: [docs/agent-packs.yaml](docs/agent-packs.yaml). 설계 배경: [docs/design/v0.4.0-product-domain-pack.md](docs/design/v0.4.0-product-domain-pack.md).
 
 실제 게임 스튜디오 구조를 그대로 모사: 디렉터(creative / technical / producer)가 부서장(design / programming / art / audio / narrative / QA)을 조율하고, 부서장이 다시 스페셜리스트(gameplay programmer / level designer / economy designer 등)를 조율합니다. 모든 디자인 에이전트와 템플릿은 검증된 게임 디자인 이론(MDA, Self-Determination Theory, Flow State, Bartle Player Types)에 기반합니다.
 
@@ -22,9 +24,13 @@ Claude Code 플러그인 형태로 패키징된 *완전한* 게임 개발 스튜
 
 ## 무엇이 들어있나
 
-### 에이전트 (34종)
+### 에이전트 (41종)
 
-디렉터 · 부서장 · 스페셜리스트 — 실제 게임 스튜디오 조직도 그대로:
+디렉터 · 부서장 · 스페셜리스트 — 실제 스튜디오 조직도 그대로. **core**(전 도메인 공통) + **game**(게임 전용) + **product**(앱/웹/서비스 전용) 3팩:
+
+- **product 팩 (v0.4.0 신규)**: `product-manager`, `frontend-engineer`, `backend-engineer`, `mobile-engineer`, `data-engineer`, `growth-engineer`, `technical-writer`
+
+아래는 game/core 로스터:
 
 - **디렉터 (Opus급)**: `creative-director`, `technical-director`, `producer`
 - **디자인**: `game-designer`, `systems-designer`, `economy-designer`, `level-designer`, `narrative-director`, `world-builder`, `writer`, `live-ops-designer`

@@ -1,5 +1,28 @@
 # Changelog
 
+## v0.4.0 — 2026-06-19
+
+### Added — Product pack (app / web / service expansion)
+
+The studio is no longer game-only. A **domain-pack architecture** splits agents into `core` (always active), `game`, and `product`, so only the relevant pack activates per project. Routing source of truth: `docs/agent-packs.yaml`.
+
+- **7 new product-pack agents** — `product-manager`, `frontend-engineer`, `backend-engineer`, `mobile-engineer`, `data-engineer`, `growth-engineer`, `technical-writer`. (Total agents: 34 → 41.)
+- `hooks/detect-project-type.sh` (SessionStart) — auto-detects `PROJECT_TYPE=game|web|mobile|service|unknown` (+`ai` flag) from engine/framework signals, handling monorepos (scans `apps/*`, `packages/*`). The orchestrator uses it to activate `core+game` or `core+product` and avoid spawning off-domain agents. Verified against the owner's real projects (Unity / Next.js / React Native / Firebase).
+- `docs/agent-packs.yaml` — pack classification + activation rules + neutral-name mapping for hybrid agents (`art-director`→design-lead, `narrative-director`→content-strategist, `community-manager`→marketing-lead, `writer`→content-writer).
+- `docs/design/v0.4.0-product-domain-pack.md` — design doc: portfolio analysis, decisions, roadmap, pre-implementation checks.
+
+### Changed
+
+- `CLAUDE.md` — orchestrator guide restructured around **two stage tracks** (GAME and PRODUCT) plus a Domain packs section and a pack-routing table. Agent usage rules now lead with "respect the active domain pack."
+- `.claude-plugin/plugin.json` / `.claude-plugin/marketplace.json` — version `0.3.0` → `0.4.0`; description and keywords broadened to game + app/web/service.
+
+### Roadmap (next)
+
+- v0.4.1 — product workflow skills (`/create-prd`, `/usability-test`, `/ab-experiment`, `/data-model`, `/user-flow`) + stack scaffolds (`/scaffold-nextjs`, `/firebase-setup`, `/stripe-integration`, `/llm-integration`) + stack presets.
+- v0.5.0 — plugin/marketplace rename to "Claude Code Studios", full doc rebrand, `customer-support` agent, web/RN opt-in hooks.
+
+---
+
 ## v0.3.0 — 2026-05-17
 
 ### Added — Unity UI/UX guidelines (5 permanent rules)

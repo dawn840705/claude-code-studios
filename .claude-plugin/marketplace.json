@@ -7,8 +7,8 @@
     {
       "name": "claude-code-game-studios",
       "source": "./",
-      "description": "Full game development studio for Claude Code: 34 specialist agents, 72 workflow skills, and production hooks covering pre-production through live-ops.",
-      "version": "0.1.0",
+      "description": "Full software studio for Claude Code: 41 specialist agents across game AND app/web/service development, 72+ workflow skills, and production hooks covering pre-production through live-ops.",
+      "version": "0.4.0",
       "author": {
         "name": "Cannon Kingdom Dev"
       },
@@ -17,6 +17,9 @@
         "game-development",
         "game-design",
         "gamedev",
+        "app-development",
+        "web-development",
+        "saas",
         "orchestration",
         "agents",
         "workflows"
