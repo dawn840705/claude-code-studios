@@ -28,7 +28,7 @@ The advisory hooks warn but don't block. For zero-tolerance `.meta` enforcement 
 ```bash
 # In your Unity project root:
 mkdir -p .claude/githooks
-cp ~/.claude/plugins/marketplaces/game-studios/plugins/claude-code-game-studios/templates/githooks/unity-pre-commit .claude/githooks/pre-commit
+cp ~/.claude/plugins/marketplaces/game-studios/plugins/claude-code-studios/templates/githooks/unity-pre-commit .claude/githooks/pre-commit
 chmod +x .claude/githooks/pre-commit
 git config core.hooksPath .claude/githooks
 ```

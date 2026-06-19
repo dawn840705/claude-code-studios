@@ -5,7 +5,7 @@
   },
   "plugins": [
     {
-      "name": "claude-code-game-studios",
+      "name": "claude-code-studios",
       "source": "./",
       "description": "Full software studio for Claude Code: 41 specialist agents across game AND app/web/service development, 72+ workflow skills, and production hooks covering pre-production through live-ops.",
       "version": "0.4.0",

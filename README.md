@@ -90,34 +90,34 @@ Claude Code 플러그인 형태로 패키징된 *완전한* 소프트웨어 스�
 
 ```bash
 # Claude Code 안에서:
-/plugin marketplace add dawn840705/claude-code-game-studios
-/plugin install claude-code-game-studios@game-studios
+/plugin marketplace add dawn840705/claude-code-studios
+/plugin install claude-code-studios@game-studios
 ```
 
 이미 0.1.0 이 설치되어 있는 프로젝트는 업데이트만:
 
 ```bash
-/plugin update claude-code-game-studios@game-studios
+/plugin update claude-code-studios@game-studios
 ```
 
 ### 옵션 2 — 로컬 마켓플레이스 (개발 / 포크 시)
 
 ```bash
-git clone https://github.com/dawn840705/claude-code-game-studios.git /path/to/local
+git clone https://github.com/dawn840705/claude-code-studios.git /path/to/local
 # Claude Code 안에서:
 /plugin marketplace add /path/to/local
-/plugin install claude-code-game-studios@game-studios
+/plugin install claude-code-studios@game-studios
 ```
 
 ### 옵션 3 — 수동 (프로젝트 안에 symlink)
 
 ```bash
 cd /your/game/project
-ln -s /path/to/claude-code-game-studios/agents .claude/agents
-ln -s /path/to/claude-code-game-studios/skills .claude/skills
-ln -s /path/to/claude-code-game-studios/hooks  .claude/hooks
-ln -s /path/to/claude-code-game-studios/rules  .claude/rules
-ln -s /path/to/claude-code-game-studios/docs   .claude/docs
+ln -s /path/to/claude-code-studios/agents .claude/agents
+ln -s /path/to/claude-code-studios/skills .claude/skills
+ln -s /path/to/claude-code-studios/hooks  .claude/hooks
+ln -s /path/to/claude-code-studios/rules  .claude/rules
+ln -s /path/to/claude-code-studios/docs   .claude/docs
 ```
 
 (주의: 옵션 3 은 플러그인 시스템을 우회 — hook 이 자동 등록되지 않습니다. `.claude-plugin/plugin.json` 의 `hooks` 블록을 프로젝트의 `.claude/settings.json` 에 직접 복사해야 합니다.)

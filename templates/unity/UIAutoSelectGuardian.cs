@@ -19,7 +19,7 @@ using UnityEngine.InputSystem.LowLevel;
 ///
 /// 의존: com.unity.inputsystem 1.x. uGUI (Canvas + Button).
 ///
-/// 출처: dawn840705/claude-code-game-studios v0.3.0 — StarDiver 프로젝트 distillation.
+/// 출처: dawn840705/claude-code-studios v0.3.0 — StarDiver 프로젝트 distillation.
 /// 자세한 사양: docs/engine/unity-ui-guidelines.md
 /// </summary>
 public class UIAutoSelectGuardian : MonoBehaviour
