@@ -1,0 +1,127 @@
+# agent-packs.yaml — 도메인 팩 분류 매니페스트 (v0.4.0+)
+#
+# 단일 source-of-truth. 오케스트레이터(CLAUDE.md)와 detect-project-type.sh 가 참조.
+# project_type 감지 결과에 따라 활성 팩만 라우팅 → 무관 에이전트가 컨텍스트를 오염시키지 않음.
+#
+# pack 값:
+#   core    — 모든 프로젝트에서 항상 활성 (도메인 무관 범용 역할)
+#   game    — game 프로젝트에서만 활성
+#   product — web / mobile / service 프로젝트에서만 활성
+#
+# 하이브리드 에이전트는 core 에 두되, 게임/제품 양쪽 프레이밍을 모두 수행 (neutral_name 참고).
+# neutral_name 은 v0.5.0 정식 리네임 전까지 "권장 호칭" 으로만 사용 (파일명은 유지, 무중단).
+
+version: "0.4.0"
+
+# 활성 규칙: project_type → 활성 팩
+activation:
+  game:    [core, game]
+  web:     [core, product]
+  mobile:  [core, product]
+  service: [core, product]
+  unknown: [core, game, product]   # 감지 실패 시 전체 노출(안전 폴백)
+
+packs:
+
+  core:
+    # --- 디렉터 ---
+    - name: creative-director
+      neutral_name: vision-lead
+      role: 제품/창작 비전, 부서간 충돌 조정, 스코프 중재
+    - name: technical-director
+      role: 아키텍처 소유, 기술 평가, 성능 예산, 리스크
+    - name: producer
+      role: 스프린트 계획, 마일스톤 추적, 리스크, 부서 조율
+    # --- 프로그래밍(범용) ---
+    - name: lead-programmer
+      role: 코드 아키텍처, 코드 리뷰, API 설계, 표준 강제
+    - name: ui-programmer
+      role: UI 시스템/화면/인터랙션 구현 (게임 HUD ~ 앱 화면)
+    - name: ai-programmer
+      role: 행동/추론 시스템, 의사결정 로직, LLM 통합
+    - name: engine-programmer
+      role: 코어 시스템, 렌더링/물리/메모리, 리소스 로딩
+    - name: tools-programmer
+      role: 에디터 확장, 콘텐츠 파이프라인 툴, 자동화
+    - name: prototyper
+      role: 빠른 컨셉 검증, vertical slice, 실험
+    # --- QA/Ops(범용) ---
+    - name: qa-lead
+      role: 테스트 전략, 버그 트리아지, 품질 게이트, 릴리스 준비
+    - name: qa-tester
+      role: 테스트 케이스, 버그 리포트, 회귀 체크리스트
+    - name: performance-analyst
+      role: 프로파일링, 병목 식별, 최적화 권고
+    - name: security-engineer
+      role: 보안/프라이버시, 인증, 데이터 보호 (게임: anti-cheat)
+    - name: accessibility-specialist
+      role: 접근성 감사, WCAG, 보조 기능
+    - name: localization-lead
+      role: i18n 아키텍처, 문자열 관리, 번역 파이프라인
+    - name: release-manager
+      role: 릴리스 파이프라인, 버전, 인증/스토어 제출
+    - name: devops-engineer
+      role: 빌드 파이프라인, CI/CD, 배포 인프라
+    - name: ux-designer
+      role: 유저 플로우, 인터랙션 설계, 온보딩, 접근성
+    - name: analytics-engineer
+      role: 텔레메트리, 퍼널 분석, A/B, 대시보드
+    - name: network-programmer
+      role: 네트워킹, 상태 동기화 (게임: netcode / 서비스: 실시간)
+    # --- 하이브리드(게임/제품 양용, core 배치) ---
+    - name: art-director
+      neutral_name: design-lead
+      role: 비주얼 아이덴티티, 스타일 가이드 (게임 아트 ~ 웹 디자인 시스템)
+    - name: narrative-director
+      neutral_name: content-strategist
+      role: 스토리/콘텐츠 전략, 메시징 아키텍처
+    - name: community-manager
+      neutral_name: marketing-lead
+      role: 패치노트/릴리스 커뮤니케이션, 소셜, 유저 피드백, 위기 대응
+    - name: writer
+      neutral_name: content-writer
+      role: 카피/문구/UX 라이팅 (게임 대사 ~ 제품 마이크로카피)
+
+  game:
+    - name: game-designer
+      role: 메커닉 설계, 시스템 디자인, 밸런싱, 플레이어 경험
+    - name: gameplay-programmer
+      role: 게임 메커닉/플레이어 시스템/전투/인터랙션 구현 (제품 대응: frontend/backend-engineer)
+    - name: systems-designer
+      role: 메커닉 수식, 상호작용 매트릭스, 시뮬레이션 스펙
+    - name: economy-designer
+      role: 자원 흐름, 루트 테이블, 진행 곡선, 가상 경제
+    - name: level-designer
+      role: 공간 레이아웃, 인카운터, 페이싱, 환경 스토리텔링
+    - name: world-builder
+      role: 로어 정합성, 팩션, 타임라인, 지리/문화
+    - name: live-ops-designer
+      role: 시즌 이벤트, 배틀패스, 콘텐츠 케이던스, 리텐션 메커닉
+    - name: technical-artist
+      role: 셰이더, VFX, 렌더링 최적화, 아트 파이프라인
+    - name: audio-director
+      role: 사운드 아이덴티티, 음악 디렉션, 오디오 아키텍처
+    - name: sound-designer
+      role: SFX, 오디오 이벤트, 믹싱 파라미터
+
+  product:
+    - name: product-manager
+      role: PRD, 로드맵, 우선순위, 지표 정의, 이해관계자 조율
+      mirrors: [creative-director, producer]
+    - name: frontend-engineer
+      role: 웹 React/Next.js 구현, 상태관리, 반응형, Core Web Vitals
+      mirrors: [ui-programmer]
+    - name: backend-engineer
+      role: REST/GraphQL API, DB 스키마, 인증/세션, 서버 검증, 확장성
+      mirrors: [network-programmer]
+    - name: mobile-engineer
+      role: React Native/Expo, 네이티브 모듈, 스토어 빌드, 오프라인/배터리
+    - name: data-engineer
+      role: ETL, 데이터 웨어하우스, 이벤트 스키마, 데이터 품질
+      mirrors: [analytics-engineer]
+    - name: growth-engineer
+      role: 전환 퍼널, 리텐션 루프, A/B, SEO, 획득 채널
+      mirrors: [live-ops-designer]
+    - name: technical-writer
+      role: API 문서, 사용자 가이드, 런북
+      mirrors: [writer]
