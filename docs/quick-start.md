@@ -1,15 +1,34 @@
-# Game Studio Agent Architecture -- Quick Start Guide
+# Claude Code Studios -- Quick Start Guide
 
 ## What Is This?
 
-This is a complete Claude Code agent architecture for game development. It
-organizes 48 specialized AI agents into a studio hierarchy that mirrors
-real game development teams, with defined responsibilities, delegation
-rules, and coordination protocols. It includes engine-specialist agents
-for Godot, Unity, and Unreal — each with dedicated sub-specialists for
-major engine subsystems. All design agents and templates are grounded in
-established game design theory (MDA Framework, Self-Determination Theory,
-Flow State, Bartle Player Types). Use whichever engine set matches your project.
+This is a complete Claude Code studio for **both game development and
+app/web/service development**. It organizes **41 specialized AI agents** and
+**76 workflow skills** into a studio hierarchy that mirrors real product teams,
+with defined responsibilities, delegation rules, and coordination protocols.
+
+Agents are grouped into three **domain packs** (source of truth:
+`docs/agent-packs.yaml`):
+
+- **core** — domain-neutral roles active in EVERY project (directors,
+  programming, QA/Ops, plus hybrids that frame both ways).
+- **game** — game-only roles (`game-designer`, `systems-designer`,
+  `economy-designer`, `level-designer`, `world-builder`, `live-ops-designer`,
+  `technical-artist`, `audio-director`, `sound-designer`).
+- **product** — app/web/service roles (`product-manager`, `frontend-engineer`,
+  `backend-engineer`, `mobile-engineer`, `data-engineer`, `growth-engineer`,
+  `technical-writer`).
+
+At session start the `detect-project-type.sh` hook prints
+`PROJECT_TYPE=<game|web|mobile|service|unknown>` and only the relevant packs
+activate (core + game for games; core + product for app/web/service). There are
+**no engine-specific agents** — engine guidance comes from `/setup-engine` and
+version-aware reference docs. Design agents and templates are grounded in
+established game design theory (MDA Framework, Self-Determination Theory, Flow
+State, Bartle Player Types).
+
+> For the full agent list see `docs/agent-roster.md`; for orchestration and
+> stage routing see the root `CLAUDE.md`.
 
 ## How to Use
 
@@ -21,57 +40,63 @@ There are three tiers of agents:
   - `creative-director` -- vision and creative conflict resolution
   - `technical-director` -- architecture and technology decisions
   - `producer` -- scheduling, coordination, and risk management
+  - (product track adds `product-manager` for PRD/roadmap/prioritization)
 
 - **Tier 2 (Sonnet)**: Department leads who own their domain
-  - `game-designer`, `lead-programmer`, `art-director`, `audio-director`,
+  - Game: `game-designer`, `lead-programmer`, `art-director`, `audio-director`,
     `narrative-director`, `qa-lead`, `release-manager`, `localization-lead`
+  - Product: `frontend-engineer`, `backend-engineer`, `mobile-engineer`,
+    `data-engineer`, `growth-engineer`, `technical-writer`
 
 - **Tier 3 (Sonnet/Haiku)**: Specialists who execute within their domain
   - Designers, programmers, artists, writers, testers, engineers
 
 ### 2. Pick the Right Agent for the Job
 
-Ask yourself: "What department would handle this in a real studio?"
+Ask yourself: "What department would handle this in a real studio?" Respect the
+active domain pack — never spawn product agents on a game project (or vice
+versa). Core agents are always fair game.
 
 | I need to... | Use this agent |
 |-------------|---------------|
-| Design a new mechanic | `game-designer` |
-| Write combat code | `gameplay-programmer` |
-| Create a shader | `technical-artist` |
-| Write dialogue | `writer` |
+| Design a new mechanic (game) | `game-designer` |
+| Write combat code (game) | `gameplay-programmer` |
+| Create a shader / VFX (game) | `technical-artist` |
+| Write dialogue / lore (game) | `writer` |
+| Design a level (game) | `level-designer` |
+| Design a loot table / economy (game) | `economy-designer` |
+| Plan live events and seasons (game) | `live-ops-designer` |
+| Build a web UI (product) | `frontend-engineer` |
+| Build a server API / DB schema (product) | `backend-engineer` |
+| Build a mobile app (product) | `mobile-engineer` |
+| Define a PRD / roadmap (product) | `product-manager` |
+| Build event/ETL pipelines (product) | `data-engineer` |
+| Improve acquisition/retention funnels (product) | `growth-engineer` |
+| Write API docs / runbooks (product) | `technical-writer` |
+| Implement UI screens / HUDs | `ui-programmer` |
 | Plan the next sprint | `producer` |
 | Review code quality | `lead-programmer` |
 | Write test cases | `qa-tester` |
-| Design a level | `level-designer` |
 | Fix a performance problem | `performance-analyst` |
 | Set up CI/CD | `devops-engineer` |
-| Design a loot table | `economy-designer` |
 | Resolve a creative conflict | `creative-director` |
 | Make an architecture decision | `technical-director` |
 | Manage a release | `release-manager` |
 | Prepare strings for translation | `localization-lead` |
-| Test a mechanic idea quickly | `prototyper` |
+| Test an idea quickly | `prototyper` |
 | Review code for security issues | `security-engineer` |
 | Check accessibility compliance | `accessibility-specialist` |
-| Get Unreal Engine advice | `unreal-specialist` |
-| Get Unity advice | `unity-specialist` |
-| Get Godot advice | `godot-specialist` |
-| Design GAS abilities/effects | `ue-gas-specialist` |
-| Define BP/C++ boundaries | `ue-blueprint-specialist` |
-| Implement UE replication | `ue-replication-specialist` |
-| Build UMG/CommonUI widgets | `ue-umg-specialist` |
-| Design DOTS/ECS architecture | `unity-dots-specialist` |
-| Write Unity shaders/VFX | `unity-shader-specialist` |
-| Manage Addressable assets | `unity-addressables-specialist` |
-| Build UI Toolkit/UGUI screens | `unity-ui-specialist` |
-| Write idiomatic GDScript | `godot-gdscript-specialist` |
-| Create Godot shaders | `godot-shader-specialist` |
-| Build GDExtension modules | `godot-gdextension-specialist` |
-| Plan live events and seasons | `live-ops-designer` |
+| Design UX flows / interactions | `ux-designer` |
+| Set up telemetry / A/B tests | `analytics-engineer` |
 | Write patch notes for players | `community-manager` |
-| Brainstorm a new game idea | Use `/brainstorm` skill |
+| Get engine-specific setup advice | Run `/setup-engine` (not an agent) |
+| Brainstorm a new concept | Use `/brainstorm` skill |
 
 ### 3. Use Slash Commands for Common Tasks
+
+A selection of the most common commands is below. For the complete list of all
+**76 skills** (with one-line purposes, grouped by phase), see
+`docs/skills-reference.md`.
 
 | Command | What it does |
 |---------|-------------|
@@ -262,23 +287,29 @@ If you have design docs, prototypes, or code already:
 
 ## File Structure Reference
 
+Plugin repo layout:
+
 ```
-CLAUDE.md                          -- Master config (read this first, ~60 lines)
-.claude/
-  settings.json                    -- Claude Code hooks and project settings
-  agents/                          -- 48 agent definitions (YAML frontmatter)
-  skills/                          -- 68 slash command definitions (YAML frontmatter)
-  hooks/                           -- 12 hook scripts (.sh) wired by settings.json
-  rules/                           -- 11 path-specific rule files
-  docs/
-    quick-start.md                 -- This file
-    technical-preferences.md       -- Project-specific standards (populated by /setup-engine)
-    coding-standards.md            -- Coding and design doc standards
-    coordination-rules.md          -- Agent coordination rules
-    context-management.md          -- Context budgets and compaction instructions
-    directory-structure.md         -- Project directory layout
-    workflow-catalog.yaml          -- 7-phase pipeline definition (read by /help)
-    setup-requirements.md          -- System prerequisites (Git Bash, jq, Python)
-    settings-local-template.md     -- Personal settings.local.json guide
-    templates/                     -- 37 document templates
+CLAUDE.md                          -- Orchestrator guide (read this first)
+.claude-plugin/
+  plugin.json                      -- Plugin manifest + hook wiring
+  marketplace.json                 -- Marketplace entry
+agents/                            -- 41 agent definitions (YAML frontmatter)
+skills/                            -- 76 slash command definitions (one folder per skill, each with SKILL.md)
+hooks/                             -- 15 hook scripts (.sh) wired by plugin.json
+rules/                             -- 12 path-specific rule files
+docs/
+  quick-start.md                   -- This file
+  agent-roster.md                  -- One-line description per agent
+  agent-packs.yaml                 -- Pack classification + activation rules (domain routing)
+  skills-reference.md              -- Skill-by-skill usage guide
+  agent-coordination-map.md        -- Which agents coordinate with which
+  workflow-catalog.yaml            -- Canonical workflow definitions
+  director-gates.md                -- Stage-transition gate criteria
+  coding-standards.md              -- Coding and design doc standards
+  templates/                       -- 37 document templates
 ```
+
+> When the plugin is installed, Claude Code surfaces these as agents and `/`
+> slash commands. Per-project overrides live in the consumer project's
+> `.claude/agents/`, `.claude/skills/`, and `.claude/rules/`.

@@ -1,6 +1,6 @@
 # Claude Code Studios — Plugin Guide
 
-When this plugin is active, you have access to a full software studio: **41 specialist agents**, 72+ workflow skills, and production hooks. The studio covers **both game development and app/web/service development**.
+When this plugin is active, you have access to a full software studio: **41 specialist agents**, 76 workflow skills, and production hooks. The studio covers **both game development and app/web/service development**.
 
 ## Your role
 
