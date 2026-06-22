@@ -1,7 +1,7 @@
 {
   "name": "claude-code-studios",
   "version": "0.4.0",
-  "description": "Full software studio for Claude Code: 41 specialist agents across game AND app/web/service development, 72+ workflow skills, and production hooks covering pre-production through live-ops. v0.4.0 adds a product-pack (product-manager, frontend/backend/mobile/data/growth-engineer, technical-writer) and project-type auto-detection so only the relevant agent pack activates. (v0.3.0 added Unity UI/UX guidelines, MCP workflow patterns, and subagent collaboration rules.)",
+  "description": "Full software studio for Claude Code: 41 specialist agents across game AND app/web/service development, 76 workflow skills, and production hooks covering pre-production through live-ops. v0.4.0 adds a product-pack (product-manager, frontend/backend/mobile/data/growth-engineer, technical-writer) and project-type auto-detection so only the relevant agent pack activates. (v0.3.0 added Unity UI/UX guidelines, MCP workflow patterns, and subagent collaboration rules.)",
   "author": {
     "name": "Cannon Kingdom Dev"
   },
