@@ -1,6 +1,6 @@
 # Available Skills (Slash Commands)
 
-76 slash commands organized by phase. Type `/` in Claude Code to access any of them.
+77 slash commands organized by phase. Type `/` in Claude Code to access any of them.
 
 ## Onboarding & Navigation
 
@@ -134,3 +134,9 @@ Coordinate multiple agents on a single feature area:
 | `/team-level` | level-designer + narrative-director + world-builder + art-director + systems-designer + qa-tester |
 | `/team-live-ops` | live-ops-designer + economy-designer + community-manager + analytics-engineer |
 | `/team-qa` | qa-lead + qa-tester + gameplay-programmer + producer |
+
+## Web + AI (Product)
+
+| Command | Purpose |
+|---------|---------|
+| `/web-ai-patterns` | Field-proven reusable patterns for web+AI (SaaS) products — LLM orchestration & i18n-safe parsing (`ai`), no-loss cost/usage gating & billing & webhook idempotency (`monetization`), document-store data modeling (`data`). Source: SpecForge. |
