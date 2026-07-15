@@ -1,0 +1,65 @@
+---
+name: lesson-log
+description: "교육용 노하우 기록 — 최근 작업에서 강의 가치가 있는 레슨을 추출해 Documents/Lessons/ 에 표준 포맷으로 기록하고 INDEX 를 갱신한다. 모든 프로젝트는 교육 자료(바이브 코딩 강의 소스)라는 스튜디오 원칙의 실행 도구."
+argument-hint: "[주제 또는 비워두면 최근 작업에서 자동 추출]"
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Bash, Write, Edit
+context: |
+  !git log --oneline -15 2>/dev/null
+  !ls Documents/Lessons/ 2>/dev/null | tail -10
+---
+
+## Phase 1: 레슨 후보 식별
+
+인자가 주어지면 그 주제를 레슨으로 정리한다. 인자가 없으면 최근 커밋 로그·현재 대화 맥락에서 **캡처 트리거 5종** (rules/lesson-capture.md) 에 해당하는 사건을 찾는다:
+
+1. 반복된 함정 (같은 실수 2회+)
+2. 사용자 지적으로 드러난 설계 구멍
+3. 검증(봇/실측/데이터)으로 뒤집힌 가정
+4. 도구·워크플로우 함정과 우회법
+5. 기획 의사결정 패턴 확정 순간
+
+후보가 여럿이면 각각 별도 레슨 파일로 (1건 1파일). 이미 기록된 레슨과 중복인지 `Documents/Lessons/INDEX.md` 를 먼저 확인 — 중복이면 기존 파일을 갱신한다.
+
+---
+
+## Phase 2: 레슨 작성
+
+`${CLAUDE_PLUGIN_ROOT}/templates/lesson.md` 템플릿을 따라 `Documents/Lessons/LES-YYYYMMDD-NN-<slug>.md` 를 작성한다 (NN = 같은 날짜 내 순번).
+
+작성 원칙:
+- **"시도와 실패" 절이 본체** — 무엇을 믿었고 왜 틀렸는지를 생략하면 강의 가치가 사라진다. 결과만 쓰지 말 것.
+- **teachable-moment** 는 학생의 호기심을 여는 한 줄 (예: "코드를 고쳤는데 게임이 안 바뀐다. 왜?").
+- 교훈은 이 프로젝트가 아니어도 성립하는 일반형으로.
+- 강의 포인트에 재현 가능한 실습 아이디어 1개 이상.
+- 관련 커밋 해시·회의록 링크를 반드시 하단에 남긴다 (강의 준비 시 원본 추적용).
+
+카테고리: `vibe-coding` / `game-design` / `engine-tech` / `test-balancing` / `production-ops`
+난이도: 입문 (단일 개념) / 중급 (시스템 상호작용) / 심화 (설계 판단·방법론)
+
+---
+
+## Phase 3: INDEX 갱신
+
+`Documents/Lessons/INDEX.md` 가 없으면 생성한다:
+
+```markdown
+# Lessons Index — <프로젝트명>
+
+> 강의 소스용 노하우 원장. 포맷/규칙 = 플러그인 rules/lesson-capture.md
+
+## 커리큘럼 맵
+| 카테고리 | 레슨 수 | 난이도 분포 |
+|---|---|---|
+
+## 레슨 목록 (최신순)
+- [LES-...-slug](LES-....md) — <teachable-moment> `카테고리/난이도`
+```
+
+새 레슨을 목록 맨 위에 추가하고 커리큘럼 맵 카운트를 갱신한다.
+
+---
+
+## Phase 4: 보고
+
+기록한 레슨의 제목·카테고리·teachable-moment 를 한 줄씩 사용자에게 보고한다. 커밋은 사용자의 커밋 흐름에 맡긴다 (자동 커밋하지 않음 — 단 사용자가 커밋을 요청한 작업 묶음에 포함돼 있으면 함께 커밋).
