@@ -29,9 +29,9 @@ Strips AI tells from Korean prose — translationese, mechanical parallelism, pa
 
 ### Added — First tests and CI in this repo
 
-- `tests/` — 26 files: 11 `test_*.py`, golden fixtures (2 sets), `checks.py`. **185 passed, 1 skipped, 12 subtests**, reproduced exactly from the upstream baseline after porting.
+- `tests/` — 27 files: 12 `test_*.py`, golden fixtures (2 sets), `checks.py`. The ported suite reproduces the upstream baseline exactly (**185 passed, 1 skipped, 12 subtests**); with the linter's own tests the repo now runs **205 passed**.
 - `scripts/` — 6 deterministic gate/build scripts. Standard library only; **zero third-party dependencies**.
-- `scripts/lint_skills.py` — the 7 static checks from `skills/skill-test/SKILL.md` as runnable code. That skill is a linter an LLM reads and performs, so it could never run in CI. It found 11 real pre-existing violations; those are pinned in `scripts/lint_baseline.json` so CI blocks *new* violations without demanding the backlog be cleared first.
+- `scripts/lint_skills.py` — the 7 static checks from `skills/skill-test/SKILL.md` as runnable code. That skill is a linter an LLM reads and performs, so it could never run in CI. It found 11 real pre-existing violations; those are pinned in `scripts/lint_baseline.json` so CI blocks *new* violations without demanding the backlog be cleared first. `tests/test_skill_lint.py` covers it in both directions — a baselined failure stays tolerated, a new one fails the build — including a regression test for the stale-entry guard.
 - `.github/workflows/test.yml` — pytest × Python 3.11/3.12/3.13, SSOT drift checks (`quick-rules.md` and `diagnosis-rules.md` are *built* from the taxonomy — hand-editing them is now unmergeable), and the skill/agent structure lint.
 - `LICENSE` — the repo declared MIT in `plugin.json` without ever shipping the text. Fixed.
 
