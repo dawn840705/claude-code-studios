@@ -7,19 +7,24 @@
 #   core    — 모든 프로젝트에서 항상 활성 (도메인 무관 범용 역할)
 #   game    — game 프로젝트에서만 활성
 #   product — web / mobile / service 프로젝트에서만 활성
+#   writing — 한국어 텍스트 산출물이 있는 모든 프로젝트에서 활성 (도메인 무관)
 #
 # 하이브리드 에이전트는 core 에 두되, 게임/제품 양쪽 프레이밍을 모두 수행 (neutral_name 참고).
 # neutral_name 은 v0.5.0 정식 리네임 전까지 "권장 호칭" 으로만 사용 (파일명은 유지, 무중단).
 
-version: "0.4.0"
+version: "0.6.0"
 
 # 활성 규칙: project_type → 활성 팩
+# writing 은 전 타입에서 활성 — 게임의 패치노트·GDD·내러티브 텍스트에도,
+# 제품의 릴리스 노트·랜딩 카피·기술 문서에도 똑같이 필요하다.
+# core 에 병합하지 않은 이유는 한국어 전용이기 때문 — 영어 대응이 필요해지면
+# 여기서 빼기만 하면 된다.
 activation:
-  game:    [core, game]
-  web:     [core, product]
-  mobile:  [core, product]
-  service: [core, product]
-  unknown: [core, game, product]   # 감지 실패 시 전체 노출(안전 폴백)
+  game:    [core, game, writing]
+  web:     [core, product, writing]
+  mobile:  [core, product, writing]
+  service: [core, product, writing]
+  unknown: [core, game, product, writing]   # 감지 실패 시 전체 노출(안전 폴백)
 
 packs:
 
@@ -125,3 +130,15 @@ packs:
     - name: technical-writer
       role: API 문서, 사용자 가이드, 런북
       mirrors: [writer]
+
+  # 한국어 윤문 — 전 project_type 에서 활성. 출처: epoko77-ai/im-not-ai (MIT, NOTICE.md).
+  # tools 를 좁게 선언해 "도구 호출 N회 캡"을 프롬프트가 아니라 스키마로 강제한다.
+  writing:
+    - name: humanize-monolith
+      role: 단일 콜 한글 윤문 — 탐지·윤문·자체검증 일괄, 도구 호출 3회 캡
+    - name: humanize-diagnostician
+      role: 글 전체의 지배 AI 티 패턴 3~6개 진단 (standard·heavy 경로)
+    - name: humanize-finalizer
+      role: 원문 대조 의미 보존 15항 + 자연성 판정, 국소 보정 (heavy 경로)
+    - name: korean-ai-tell-taxonomist
+      role: AI 티 분류 체계 SSOT 유지·신규 패턴 승격 (유지보수 전용, 런타임 미호출)

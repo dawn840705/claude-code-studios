@@ -1,6 +1,6 @@
 # Available Skills (Slash Commands)
 
-81 slash commands organized by phase. Type `/` in Claude Code to access any of them.
+83 slash commands organized by phase. Type `/` in Claude Code to access any of them.
 
 ## Onboarding & Navigation
 
@@ -149,3 +149,5 @@ Coordinate multiple agents on a single feature area:
 | Command | Purpose |
 |---------|---------|
 | `/humanize-korean` | Strip AI tells from Korean text — translationese, mechanical parallelism, passive overuse, emoji/bullet excess — without changing a single point of meaning. Routes to 1/2/3+ calls by measured severity; structural gates (`scripts/verify_gates.py`) decide PASS/FAIL by exit code, not self-scoring. |
+| `/humanize` | Thin entry command for the above — Fast mode by default, `--strict` forces the 3-call precision path. Explicit slash invocation only. |
+| `/humanize-redo` | Second pass on the most recent result — re-run by category, paragraph, or strength; rolls back from `final_prev.md`. Max 3 rounds, then hands off for human review. |

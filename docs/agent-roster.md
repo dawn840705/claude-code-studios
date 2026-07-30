@@ -1,19 +1,21 @@
 # Agent Roster
 
-41 agents, each with a dedicated definition file in `agents/`. Use the agent
+45 agents, each with a dedicated definition file in `agents/`. Use the agent
 best suited to the task at hand. When a task spans multiple domains, the
 coordinating agent (usually `producer`, `product-manager`, or the domain lead)
 delegates to specialists.
 
-Agents are organized into three domain packs (source of truth:
+Agents are organized into four domain packs (source of truth:
 `docs/agent-packs.yaml`). The `detect-project-type.sh` hook picks the active
 packs at session start:
 
 - **core** — domain-neutral roles active in EVERY project.
 - **game** — game-only roles (active on `PROJECT_TYPE=game`).
 - **product** — app/web/service roles (active on `PROJECT_TYPE=web|mobile|service`).
+- **writing** — Korean-text rewriting, active on EVERY type (patch notes and GDDs
+  need it as much as release notes and landing copy).
 
-There are no engine-specific agents in v0.4.0. Engine guidance is handled by
+There are no engine-specific agents. Engine guidance is handled by
 `/setup-engine` and version-aware reference docs, not dedicated agents.
 
 ## Core pack (always active)
@@ -88,3 +90,17 @@ There are no engine-specific agents in v0.4.0. Engine guidance is handled by
 | `data-engineer` | Data | Event schemas, ETL/ELT pipelines, data warehousing, data quality |
 | `growth-engineer` | Growth | Acquisition, activation, retention, monetization loops, conversion funnels, SEO, A/B experiments |
 | `technical-writer` | Documentation | API docs, user guides, onboarding docs, operational runbooks |
+
+## Writing pack (active on every `PROJECT_TYPE`)
+
+Korean AI-tell removal. Vendored from `epoko77-ai/im-not-ai` (MIT — see
+[`NOTICE.md`](../NOTICE.md)). `tools` is declared narrowly on purpose: upstream
+enforces its tool-call cap by prompt instruction, and narrowing the schema makes
+the same limit structural.
+
+| Agent | Domain | When to Use |
+|-------|--------|-------------|
+| `humanize-monolith` | Rewriting | Single-call Korean rewrite — detect, rewrite, self-verify in one pass (3-call tool cap) |
+| `humanize-diagnostician` | Diagnosis | Names the 3-6 dominant AI-tell patterns across a whole text (standard/heavy paths) |
+| `humanize-finalizer` | Verification | Meaning-preservation (15 checks) + naturalness against the original; local fixes only, never a rewrite |
+| `korean-ai-tell-taxonomist` | Taxonomy | Maintains the AI-tell classification SSOT and promotes new patterns (maintenance only — never called at runtime) |

@@ -1,6 +1,6 @@
 # Claude Code Studios — Plugin Guide
 
-When this plugin is active, you have access to a full software studio: **41 specialist agents**, 81 workflow skills, and production hooks. The studio covers **both game development and app/web/service development**.
+When this plugin is active, you have access to a full software studio: **45 specialist agents**, 83 workflow skills, and production hooks. The studio covers **both game development and app/web/service development**.
 
 ## Your role
 
@@ -13,14 +13,19 @@ Agents are organized into three packs (source of truth: `docs/agent-packs.yaml`)
 - **core** — domain-neutral roles active in EVERY project (directors, lead-programmer, qa, devops, security, ux-designer, analytics, etc.). Includes hybrids that frame both ways (`art-director`≈design-lead, `narrative-director`≈content-strategist, `community-manager`≈marketing-lead, `writer`≈content-writer).
 - **game** — game-only roles: `game-designer`, `systems-designer`, `economy-designer`, `level-designer`, `world-builder`, `live-ops-designer`, `technical-artist`, `audio-director`, `sound-designer`.
 - **product** — app/web/service roles: `product-manager`, `frontend-engineer`, `backend-engineer`, `mobile-engineer`, `data-engineer`, `growth-engineer`, `technical-writer`.
+- **writing** — Korean AI-tell removal: `humanize-monolith`, `humanize-diagnostician`, `humanize-finalizer`, `korean-ai-tell-taxonomist`. **Active on every project type** — patch notes and GDDs need it as much as release notes and landing copy. Kept out of `core` only because it is Korean-specific.
 
 **At session start, the `detect-project-type.sh` hook prints `PROJECT_TYPE=<game|web|mobile|service|unknown>`.** Use it to pick the active packs:
 
 | PROJECT_TYPE | Active packs | Use these agents |
 |---|---|---|
-| `game` | core + **game** | game agents + core. Do NOT spawn product agents. |
-| `web` / `mobile` / `service` | core + **product** | product agents + core. Do NOT spawn game agents (level-designer, world-builder, etc.). |
+| `game` | core + **game** + writing | game agents + core. Do NOT spawn product agents. |
+| `web` / `mobile` / `service` | core + **product** + writing | product agents + core. Do NOT spawn game agents (level-designer, world-builder, etc.). |
 | `unknown` | all | Ask the user: game, or app/web/service? Then lock the pack. |
+
+The `writing` pack is never gated by domain — reach for it whenever Korean prose is
+going out to readers. Verdicts come from `scripts/verify_gates.py` exit codes, not
+from an agent's self-assessment.
 
 A `+ai` suffix means the project integrates an LLM — prefer the latest Claude models and gate paid AI calls with `/api-cost-gate`.
 
