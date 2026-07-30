@@ -1,88 +1,90 @@
 # Agent Roster
 
-The following agents are available. Each has a dedicated definition file in
-`.claude/agents/`. Use the agent best suited to the task at hand. When a task
-spans multiple domains, the coordinating agent (usually `producer` or the
-domain lead) should delegate to specialists.
+41 agents, each with a dedicated definition file in `agents/`. Use the agent
+best suited to the task at hand. When a task spans multiple domains, the
+coordinating agent (usually `producer`, `product-manager`, or the domain lead)
+delegates to specialists.
 
-## Tier 1 -- Leadership Agents (Opus)
+Agents are organized into three domain packs (source of truth:
+`docs/agent-packs.yaml`). The `detect-project-type.sh` hook picks the active
+packs at session start:
+
+- **core** — domain-neutral roles active in EVERY project.
+- **game** — game-only roles (active on `PROJECT_TYPE=game`).
+- **product** — app/web/service roles (active on `PROJECT_TYPE=web|mobile|service`).
+
+There are no engine-specific agents in v0.4.0. Engine guidance is handled by
+`/setup-engine` and version-aware reference docs, not dedicated agents.
+
+## Core pack (always active)
+
+### Directors
+
 | Agent | Domain | When to Use |
 |-------|--------|-------------|
-| `creative-director` | High-level vision | Major creative decisions, pillar conflicts, tone/direction |
-| `technical-director` | Technical vision | Architecture decisions, tech stack choices, performance strategy |
-| `producer` | Production management | Sprint planning, milestone tracking, risk management, coordination |
+| `creative-director` | High-level vision (≈vision-lead) | Major creative/product decisions, pillar conflicts, tone/direction, scope arbitration |
+| `technical-director` | Technical vision | Architecture decisions, tech stack choices, performance strategy, technical risk |
+| `producer` | Production management | Sprint planning, milestone tracking, risk management, cross-department coordination |
 
-## Tier 2 -- Department Lead Agents (Sonnet)
+### Programming (general)
+
 | Agent | Domain | When to Use |
 |-------|--------|-------------|
-| `game-designer` | Game design | Mechanics, systems, progression, economy, balancing |
-| `lead-programmer` | Code architecture | System design, code review, API design, refactoring |
-| `art-director` | Visual direction | Style guides, art bible, asset standards, UI/UX direction |
-| `audio-director` | Audio direction | Music direction, sound palette, audio implementation strategy |
-| `narrative-director` | Story and writing | Story arcs, world-building, character design, dialogue strategy |
-| `qa-lead` | Quality assurance | Test strategy, bug triage, release readiness, regression planning |
-| `release-manager` | Release pipeline | Build management, versioning, changelogs, deployment, rollbacks |
-| `localization-lead` | Internationalization | String externalization, translation pipeline, locale testing |
+| `lead-programmer` | Code architecture | System design, code review, API design, coding standards, work assignment |
+| `ui-programmer` | UI implementation | UI framework, screens, HUDs, widgets, data binding |
+| `ai-programmer` | AI / decision systems | Behavior trees, pathfinding, NPC logic, state machines, LLM integration |
+| `engine-programmer` | Core systems | Rendering, physics, memory management, resource loading, scene management |
+| `tools-programmer` | Dev tools | Editor extensions, content authoring tools, debug utilities, pipeline automation |
+| `prototyper` | Rapid prototyping | Throwaway prototypes, mechanic testing, feasibility validation |
+| `network-programmer` | Networking | Replication, lag compensation, matchmaking, network protocol (service: realtime) |
 
-## Tier 3 -- Specialist Agents (Sonnet or Haiku)
-| Agent | Domain | Model | When to Use |
-|-------|--------|-------|-------------|
-| `systems-designer` | Systems design | Sonnet | Specific mechanic implementation, formula design, loops |
-| `level-designer` | Level design | Sonnet | Level layouts, pacing, encounter design, flow |
-| `economy-designer` | Economy/balance | Sonnet | Resource economies, loot tables, progression curves |
-| `gameplay-programmer` | Gameplay code | Sonnet | Feature implementation, gameplay systems code |
-| `engine-programmer` | Engine systems | Sonnet | Core engine, rendering, physics, memory management |
-| `ai-programmer` | AI systems | Sonnet | Behavior trees, pathfinding, NPC logic, state machines |
-| `network-programmer` | Networking | Sonnet | Netcode, replication, lag compensation, matchmaking |
-| `tools-programmer` | Dev tools | Sonnet | Editor extensions, pipeline tools, debug utilities |
-| `ui-programmer` | UI implementation | Sonnet | UI framework, screens, widgets, data binding |
-| `technical-artist` | Tech art | Sonnet | Shaders, VFX, optimization, art pipeline tools |
-| `sound-designer` | Sound design | Haiku | SFX design docs, audio event lists, mixing notes |
-| `writer` | Dialogue/lore | Sonnet | Dialogue writing, lore entries, item descriptions |
-| `world-builder` | World/lore design | Sonnet | World rules, faction design, history, geography |
-| `qa-tester` | Test execution | Haiku | Writing test cases, bug reports, test checklists |
-| `performance-analyst` | Performance | Sonnet | Profiling, optimization recs, memory analysis |
-| `devops-engineer` | Build/deploy | Haiku | CI/CD, build scripts, version control workflow |
-| `analytics-engineer` | Telemetry | Sonnet | Event tracking, dashboards, A/B test design |
-| `ux-designer` | UX flows | Sonnet | User flows, wireframes, accessibility, input handling |
-| `prototyper` | Rapid prototyping | Sonnet | Throwaway prototypes, mechanic testing, feasibility validation |
-| `security-engineer` | Security | Sonnet | Anti-cheat, exploit prevention, save encryption, network security |
-| `accessibility-specialist` | Accessibility | Haiku | WCAG compliance, colorblind modes, remapping, text scaling |
-| `live-ops-designer` | Live operations | Sonnet | Seasons, events, battle passes, retention, live economy |
-| `community-manager` | Community | Haiku | Patch notes, player feedback, crisis comms, community health |
+### QA / Ops (general)
 
-## Engine-Specific Agents (use the set matching your engine)
+| Agent | Domain | When to Use |
+|-------|--------|-------------|
+| `qa-lead` | Quality assurance | Test strategy, bug triage, release quality gates, testing process |
+| `qa-tester` | Test execution | Test cases, bug reports, regression checklists |
+| `performance-analyst` | Performance | Profiling, bottleneck ID, optimization recommendations, metrics tracking |
+| `security-engineer` | Security | Vulnerability review, anti-cheat, exploit prevention, auth, data protection |
+| `accessibility-specialist` | Accessibility | WCAG compliance, colorblind modes, remapping, text scaling |
+| `localization-lead` | Internationalization | i18n architecture, string externalization, translation pipeline, locale testing |
+| `release-manager` | Release pipeline | Certification, store submissions, versioning, release-day coordination |
+| `devops-engineer` | Build/deploy | CI/CD, build scripts, version control workflow, deployment infrastructure |
+| `ux-designer` | UX flows | User flows, interaction design, information architecture, accessibility, input handling |
+| `analytics-engineer` | Telemetry | Event tracking, funnel analysis, A/B test design, dashboards |
 
-### Engine Leads
+### Hybrids (game/product, framed either way)
 
-| Agent | Engine | Model | When to Use |
-| ---- | ---- | ---- | ---- |
-| `unreal-specialist` | Unreal Engine 5 | Sonnet | Blueprint vs C++, GAS overview, UE subsystems, Unreal optimization |
-| `unity-specialist` | Unity | Sonnet | MonoBehaviour vs DOTS, Addressables, URP/HDRP, Unity optimization |
-| `godot-specialist` | Godot 4 | Sonnet | GDScript patterns, node/scene architecture, signals, Godot optimization |
+| Agent | Domain | When to Use |
+|-------|--------|-------------|
+| `art-director` | Visual direction (≈design-lead) | Style guides, art bible (game) or web design system (product), asset standards |
+| `narrative-director` | Story/content (≈content-strategist) | Story arcs, world-building, character design, messaging architecture |
+| `community-manager` | Community (≈marketing-lead) | Patch notes, social, player/user feedback, crisis comms |
+| `writer` | Copy/content (≈content-writer) | Dialogue, lore, item descriptions (game) or product microcopy/UX writing |
 
-### Unreal Engine Sub-Specialists
+## Game pack (active on `PROJECT_TYPE=game`)
 
-| Agent | Subsystem | Model | When to Use |
-| ---- | ---- | ---- | ---- |
-| `ue-gas-specialist` | Gameplay Ability System | Sonnet | Abilities, gameplay effects, attribute sets, tags, prediction |
-| `ue-blueprint-specialist` | Blueprint Architecture | Sonnet | BP/C++ boundary, graph standards, naming, BP optimization |
-| `ue-replication-specialist` | Networking/Replication | Sonnet | Property replication, RPCs, prediction, relevancy, bandwidth |
-| `ue-umg-specialist` | UMG/CommonUI | Sonnet | Widget hierarchy, data binding, CommonUI input, UI performance |
+| Agent | Domain | When to Use |
+|-------|--------|-------------|
+| `game-designer` | Game design | Core loops, mechanics, progression, economy, balancing, player experience |
+| `gameplay-programmer` | Gameplay code | Mechanic/player-system/combat/interaction implementation |
+| `systems-designer` | Systems design | Combat formulas, progression curves, crafting recipes, interaction matrices |
+| `economy-designer` | Economy/balance | Resource economies, loot tables, progression curves, virtual markets |
+| `level-designer` | Level design | Spatial layouts, encounters, pacing, environmental storytelling |
+| `world-builder` | World/lore design | Factions, cultures, history, geography, world rules |
+| `live-ops-designer` | Live operations | Seasons, battle passes, content cadence, retention mechanics, live economy |
+| `technical-artist` | Tech art | Shaders, VFX, rendering optimization, art pipeline tools |
+| `audio-director` | Audio direction | Music direction, sound design philosophy, audio implementation strategy, mix balance |
+| `sound-designer` | Sound design | SFX spec sheets, audio event docs, mixing parameters |
 
-### Unity Sub-Specialists
+## Product pack (active on `PROJECT_TYPE=web|mobile|service`)
 
-| Agent | Subsystem | Model | When to Use |
-| ---- | ---- | ---- | ---- |
-| `unity-dots-specialist` | DOTS/ECS | Sonnet | Entity Component System, Jobs, Burst compiler, hybrid renderer |
-| `unity-shader-specialist` | Shaders/VFX | Sonnet | Shader Graph, VFX Graph, URP/HDRP customization, post-processing |
-| `unity-addressables-specialist` | Asset Management | Sonnet | Addressable groups, async loading, memory, content delivery |
-| `unity-ui-specialist` | UI Toolkit/UGUI | Sonnet | UI Toolkit, UXML/USS, UGUI Canvas, data binding, cross-platform input |
-
-### Godot Sub-Specialists
-
-| Agent | Subsystem | Model | When to Use |
-| ---- | ---- | ---- | ---- |
-| `godot-gdscript-specialist` | GDScript | Sonnet | Static typing, design patterns, signals, coroutines, GDScript performance |
-| `godot-shader-specialist` | Shaders/Rendering | Sonnet | Godot shading language, visual shaders, particles, post-processing |
-| `godot-gdextension-specialist` | GDExtension | Sonnet | C++/Rust bindings, native performance, custom nodes, build systems |
+| Agent | Domain | When to Use |
+|-------|--------|-------------|
+| `product-manager` | Product management | PRD, roadmap, prioritization, success metrics, stakeholder alignment |
+| `frontend-engineer` | Web frontend | React/Next.js UI, client state, responsive layouts, Core Web Vitals |
+| `backend-engineer` | Backend | REST/GraphQL APIs, DB schemas, auth/session, server validation, scalability |
+| `mobile-engineer` | Mobile | React Native/Expo, native modules, offline behavior, app store builds |
+| `data-engineer` | Data | Event schemas, ETL/ELT pipelines, data warehousing, data quality |
+| `growth-engineer` | Growth | Acquisition, activation, retention, monetization loops, conversion funnels, SEO, A/B experiments |
+| `technical-writer` | Documentation | API docs, user guides, onboarding docs, operational runbooks |

@@ -1,6 +1,6 @@
 # Available Skills (Slash Commands)
 
-77 slash commands organized by phase. Type `/` in Claude Code to access any of them.
+78 slash commands organized by phase. Type `/` in Claude Code to access any of them.
 
 ## Onboarding & Navigation
 
@@ -22,6 +22,9 @@
 | `/quick-design` | Lightweight design spec for small changes — tuning, tweaks, minor additions |
 | `/review-all-gdds` | Cross-GDD consistency and game design holism review across all design docs |
 | `/propagate-design-change` | When a GDD is revised, find affected ADRs and produce an impact report |
+| `/art-bible` | Guided, section-by-section Art Bible authoring — visual identity spec that gates asset production |
+| `/asset-spec` | Generate per-asset visual specs and AI generation prompts from GDDs/level docs/profiles |
+| `/governance-bible-init` | Bootstrap a domain-specific governance Bible (Sound, Art, Narrative, etc.) via the Anchor + Bible pattern |
 
 ## UX & Interface Design
 
@@ -67,6 +70,8 @@
 | `/gate-check` | Validate readiness to advance between development phases (PASS/CONCERNS/FAIL) |
 | `/consistency-check` | Scan all GDDs against the entity registry to detect cross-document inconsistencies (stats, names, rules that contradict each other) |
 | `/self-loop` | Iterate a deliverable until all pass criteria score 8+/10 — evidence-cited scoring, fix lowest first, max 5 iterations, stall detection (see `rules/self-loop.md`) |
+| `/sot-audit` | Audit a Single Source of Truth for cross-witness consistency across design doc, code enum, engine asset, and runtime usage |
+| `/legacy-purge` | Audit a codebase for legacy residue after a pivot/deprecation/migration — produces a categorized suspect table (never auto-deletes) |
 
 ## QA & Testing
 
@@ -81,6 +86,8 @@
 | `/test-evidence-review` | Quality review of test files and manual evidence documents |
 | `/test-flakiness` | Detect non-deterministic (flaky) tests from CI run logs |
 | `/skill-test` | Validate skill files for structural compliance and behavioral correctness |
+| `/skill-improve` | Improve a skill via a test-fix-retest loop — keeps or reverts based on score change |
+| `/security-audit` | Audit for security vulnerabilities (save tampering, cheat vectors, network exploits, data exposure) with remediation guidance |
 
 ## Production
 
@@ -102,6 +109,7 @@
 | `/changelog` | Auto-generate changelog from git commits and sprint data |
 | `/patch-notes` | Generate player-facing patch notes from git history and internal data |
 | `/hotfix` | Emergency fix workflow with audit trail, bypassing normal sprint process |
+| `/day-one-patch` | Scope, implement, and QA-gate a focused day-one launch patch for known post-gold-master issues |
 
 ## Creative & Content
 
@@ -110,6 +118,7 @@
 | `/prototype` | Rapid throwaway prototype to validate a mechanic (relaxed standards, isolated worktree) |
 | `/onboard` | Generate contextual onboarding document for a new contributor or agent |
 | `/localize` | Localization workflow: string extraction, validation, translation readiness |
+| `/api-cost-gate` | Pre-flight cost approval gate for any paid AI API call — forces 4-point disclosure before invocation |
 
 ## Team Orchestration
 
@@ -126,3 +135,9 @@ Coordinate multiple agents on a single feature area:
 | `/team-level` | level-designer + narrative-director + world-builder + art-director + systems-designer + qa-tester |
 | `/team-live-ops` | live-ops-designer + economy-designer + community-manager + analytics-engineer |
 | `/team-qa` | qa-lead + qa-tester + gameplay-programmer + producer |
+
+## Web + AI (Product)
+
+| Command | Purpose |
+|---------|---------|
+| `/web-ai-patterns` | Field-proven reusable patterns for web+AI (SaaS) products — LLM orchestration & i18n-safe parsing (`ai`), no-loss cost/usage gating & billing & webhook idempotency (`monetization`), document-store data modeling (`data`). Source: SpecForge. |
