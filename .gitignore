@@ -3,3 +3,6 @@
 node_modules/
 .vscode/
 .idea/
+
+# 런타임 산출물 (스킬이 프로젝트에서 생성 — 플러그인 리포에는 커밋하지 않음)
+production/
