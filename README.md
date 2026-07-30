@@ -1,8 +1,12 @@
-# Claude Code Game Studios
+# Claude Code Studios
 
 Claude Code 플러그인 형태로 패키징된 *완전한* 소프트웨어 스튜디오. **게임은 물론 앱/웹/서비스 개발까지** 커버 (v0.4.0+).
 
-**전문 에이전트 41종** · **워크플로우 skill 76종** · **production hooks** · **거버넌스/워크플로우 자산 (v0.2.0+)** · **도메인 팩 + 프로젝트 타입 자동 감지 (v0.4.0+)** — 프리프로덕션 → 프로덕션 → QA → 릴리스 → 라이브 옵스 전 단계 커버.
+**전문 에이전트 45종** · **워크플로우 skill 83종** · **production hooks** · **거버넌스/워크플로우 자산 (v0.2.0+)** · **도메인 팩 + 프로젝트 타입 자동 감지 (v0.4.0+)** — 프리프로덕션 → 프로덕션 → QA → 릴리스 → 라이브 옵스 전 단계 커버.
+
+> **v0.6.0 신규:** 게이트가 더 이상 자기 채점이 아닙니다. 스크립트 **exit code 가 판정**이고(`0` 통과 / `1` 경고 / `2` 중단 / `3` 판정불가), 돌지 못한 게이트는 통과로 읽지 않습니다 — 계약: [docs/deterministic-gates.md](docs/deterministic-gates.md). `/self-loop` 은 채점 전에 "스크립트가 판정할 수 있는가"를 먼저 묻고, `/smoke-check` 은 러너 출력을 해석하는 대신 exit code 를 직접 읽습니다.
+>
+> 함께 들어온 것 — 한글 윤문 **writing 팩**(`/humanize-korean` · `/humanize` · `/humanize-redo` + 에이전트 4종, 전 프로젝트 타입에서 활성), **콜 수 라우팅 규칙**([rules/route-hint.md](rules/route-hint.md) — 절감은 모델 교체가 아니라 콜 수 축소에서 온다), 그리고 **리포 최초의 테스트와 CI**(pytest 185건 × Python 3.11/3.12/3.13 + SSOT drift 차단 + 스킬 구조 린트). 윤문 자산 출처: [epoko77-ai/im-not-ai](https://github.com/epoko77-ai/im-not-ai) (MIT — [NOTICE.md](NOTICE.md)). 설계 배경: [docs/design/v0.6.0-integration-plan.md](docs/design/v0.6.0-integration-plan.md).
 
 > **v0.4.0 신규:** 에이전트가 `core` / `game` / `product` 3개 팩으로 분리됩니다. SessionStart 훅(`detect-project-type.sh`)이 프로젝트를 자동 감지(`game` / `web` / `mobile` / `service`)해 **해당 팩만 활성화** — 게임 프로젝트엔 게임 에이전트, 앱/웹 프로젝트엔 제품 에이전트(`product-manager`, `frontend/backend/mobile/data/growth-engineer`, `technical-writer`)만 라우팅됩니다. 분류 기준: [docs/agent-packs.yaml](docs/agent-packs.yaml). 설계 배경: [docs/design/v0.4.0-product-domain-pack.md](docs/design/v0.4.0-product-domain-pack.md).
 
@@ -24,11 +28,12 @@ Claude Code 플러그인 형태로 패키징된 *완전한* 소프트웨어 스�
 
 ## 무엇이 들어있나
 
-### 에이전트 (41종)
+### 에이전트 (45종)
 
-디렉터 · 부서장 · 스페셜리스트 — 실제 스튜디오 조직도 그대로. **core**(전 도메인 공통) + **game**(게임 전용) + **product**(앱/웹/서비스 전용) 3팩:
+디렉터 · 부서장 · 스페셜리스트 — 실제 스튜디오 조직도 그대로. **core**(전 도메인 공통) + **game**(게임 전용) + **product**(앱/웹/서비스 전용) + **writing**(한글 윤문, 전 타입 활성) 4팩:
 
 - **product 팩 (v0.4.0 신규)**: `product-manager`, `frontend-engineer`, `backend-engineer`, `mobile-engineer`, `data-engineer`, `growth-engineer`, `technical-writer`
+- **writing 팩 (v0.6.0 신규)**: `humanize-monolith`, `humanize-diagnostician`, `humanize-finalizer`, `korean-ai-tell-taxonomist` — 게임의 패치노트·GDD 에도, 제품의 릴리스 노트·랜딩 카피에도 똑같이 필요하므로 도메인으로 게이팅하지 않습니다
 
 아래는 game/core 로스터:
 

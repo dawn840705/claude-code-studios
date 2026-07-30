@@ -1,6 +1,39 @@
 # Changelog
 
-## Unreleased
+## v0.6.0 — 2026-07-30
+
+### Changed — Gates stopped grading themselves
+
+Every quality gate in this plugin used to end with an LLM declaring PASS or FAIL. `/self-loop` already defended against that (8+ requires quoted evidence, 5-iteration cap, stall detection) — but every one of those defenses was the same kind: asking the model to doubt itself. This release moves the verdict out of the model.
+
+- `docs/deterministic-gates.md` — exit-code contract as a repo standard: `0` converged / `1` warning / `2` abort / `3` **could not judge**. A gate that did not run has produced no verdict, and "no verdict" is never "pass". Reference implementation is `scripts/verify_gates.py`. Four caller rules (the exit code overrides the model; never re-derive a verdict from stdout; keep PASS/FAIL/NOT RUN distinct; name the deciding gate) plus how to add a gate.
+- `skills/self-loop/SKILL.md` — scoring now asks **"can a script decide this?"** first. If yes, the exit code sets the score and model judgment does not override it. Self-scoring is the fallback for the irreducibly qualitative (readability, tone, whether an argument holds), not the default.
+- `skills/smoke-check/SKILL.md` — reads the runner's **exit code** instead of parsing its output. Non-zero is FAIL even if the log looks harmless; zero is PASS even if it contains scary warnings. The NOT RUN → PASS WITH WARNINGS policy stays (deliberate, for environments with no engine binary) but the three states are never collapsed.
+- `/gate-check` is deliberately untouched — it judges whether artifacts say something *meaningful*, which is irreducibly qualitative, and its verdict is documented as advisory.
+
+### Added — Korean humanize (`writing` pack)
+
+Strips AI tells from Korean prose — translationese, mechanical parallelism, passive overuse, emoji/bullet excess — without changing a single point of meaning. Vendored from [`epoko77-ai/im-not-ai`](https://github.com/epoko77-ai/im-not-ai) @ `53e24e8` (MIT; full notice in `NOTICE.md`).
+
+- **3 skills** — `/humanize-korean` (orchestrator; routes to 1/2/3+ calls by measured severity), `/humanize` (Fast entry, `--strict` forces the precision path), `/humanize-redo` (second pass by category/paragraph/strength, rollback via `final_prev.md`).
+- **4 agents** — `humanize-monolith`, `humanize-diagnostician`, `humanize-finalizer`, `korean-ai-tell-taxonomist`. `tools` is declared narrowly on purpose: upstream enforces its tool-call cap by prompt instruction; narrowing the schema makes the same limit structural.
+- **New `writing` pack, active on every `PROJECT_TYPE`** — patch notes and GDDs need this as much as release notes and landing copy. Kept out of `core` only because it is Korean-specific, so dropping it later means one line in `activation`.
+- `humanize-redo` shipped upstream referencing agents retired in v2.1 (`korean-style-rewriter`, `content-fidelity-auditor`) and reading artifacts that do not exist. Repaired here against the real call path — a candidate to send back upstream.
+
+### Added — Call-count routing (`rules/route-hint.md`)
+
+`CLAUDE.md` already said "don't spawn agents just because they exist", with no way to act on it. Upstream measurement prices that instinct: the same 10,000-character text cost **610K tokens as 7 chunks vs. 134K as a single call, at equal quality** — the waste was reloading shared context per chunk, not the model tier. With 45 agents that structure is easy to reproduce by accident.
+
+- Three routes — **light** (orchestrator handles it, 0 agents) / **standard** (1 specialist) / **heavy** (fan-out + gates), with a tiebreaker: when torn, take the lighter one.
+- Two principles carried over verbatim: **savings come from fewer calls, not a cheaper model** (never silently downgrade a tier — that is the user's choice) and **splitting is the last resort**.
+
+### Added — First tests and CI in this repo
+
+- `tests/` — 26 files: 11 `test_*.py`, golden fixtures (2 sets), `checks.py`. **185 passed, 1 skipped, 12 subtests**, reproduced exactly from the upstream baseline after porting.
+- `scripts/` — 6 deterministic gate/build scripts. Standard library only; **zero third-party dependencies**.
+- `scripts/lint_skills.py` — the 7 static checks from `skills/skill-test/SKILL.md` as runnable code. That skill is a linter an LLM reads and performs, so it could never run in CI. It found 11 real pre-existing violations; those are pinned in `scripts/lint_baseline.json` so CI blocks *new* violations without demanding the backlog be cleared first.
+- `.github/workflows/test.yml` — pytest × Python 3.11/3.12/3.13, SSOT drift checks (`quick-rules.md` and `diagnosis-rules.md` are *built* from the taxonomy — hand-editing them is now unmergeable), and the skill/agent structure lint.
+- `LICENSE` — the repo declared MIT in `plugin.json` without ever shipping the text. Fixed.
 
 ### Added — Self-loop quality rule (all projects)
 
