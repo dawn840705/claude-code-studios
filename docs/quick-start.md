@@ -4,7 +4,7 @@
 
 This is a complete Claude Code studio for **both game development and
 app/web/service development**. It organizes **41 specialized AI agents** and
-**78 workflow skills** into a studio hierarchy that mirrors real product teams,
+**80 workflow skills** into a studio hierarchy that mirrors real product teams,
 with defined responsibilities, delegation rules, and coordination protocols.
 
 Agents are grouped into three **domain packs** (source of truth:
@@ -95,7 +95,7 @@ versa). Core agents are always fair game.
 ### 3. Use Slash Commands for Common Tasks
 
 A selection of the most common commands is below. For the complete list of all
-**78 skills** (with one-line purposes, grouped by phase), see
+**80 skills** (with one-line purposes, grouped by phase), see
 `docs/skills-reference.md`.
 
 | Command | What it does |
@@ -295,9 +295,9 @@ CLAUDE.md                          -- Orchestrator guide (read this first)
   plugin.json                      -- Plugin manifest + hook wiring
   marketplace.json                 -- Marketplace entry
 agents/                            -- 41 agent definitions (YAML frontmatter)
-skills/                            -- 78 slash command definitions (one folder per skill, each with SKILL.md)
+skills/                            -- 80 slash command definitions (one folder per skill, each with SKILL.md)
 hooks/                             -- 15 hook scripts (.sh) wired by plugin.json
-rules/                             -- 13 rule files (2 global + 11 path-specific)
+rules/                             -- 14 rule files (3 global + 11 path-specific)
 docs/
   quick-start.md                   -- This file
   agent-roster.md                  -- One-line description per agent

@@ -1,0 +1,41 @@
+---
+name: lesson-review
+description: "레슨 원장 회고 — 지정 기간의 커밋/회의록/스펙 변경을 스캔해 누락된 교육용 레슨을 발굴하고, INDEX 와 커리큘럼 맵을 재생성한다. 강의 준비 전 정리 도구."
+argument-hint: "[기간: 예 '2026-07' 또는 'last-week', 비우면 마지막 레슨 이후]"
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Bash, Write, Edit, Agent
+context: |
+  !ls Documents/Lessons/ 2>/dev/null
+  !git log --oneline -30 2>/dev/null
+---
+
+## Phase 1: 스캔 범위 결정
+
+인자의 기간을 파싱한다. 비어 있으면 `Documents/Lessons/` 의 마지막 레슨 날짜 이후 ~ 현재. 레슨이 하나도 없으면 사용자에게 소급 범위를 확인한다 (전체 소급은 대형 작업).
+
+---
+
+## Phase 2: 소스 스캔
+
+기간 내 다음을 훑어 캡처 트리거 5종 (rules/lesson-capture.md) 후보를 수집한다:
+
+- `git log` — fix/재수정/revert 패턴 (같은 영역 반복 커밋 = 함정 신호), 커밋 메시지의 "사장님/사용자 피드백" 언급
+- `Documents/Meetings/*.md` — 기각 옵션 근거, 검증 결과가 가정을 뒤집은 기록
+- 스펙/설계 문서의 큰 변경 (설계 방향 전환)
+
+범위가 넓으면 Explore 에이전트로 병렬 스캔한다.
+
+---
+
+## Phase 3: 후보 정리 → 사용자 게이트
+
+발굴 후보를 표로 제시한다: 사건 / 트리거 유형 / 예상 카테고리·난이도 / 강의 가치 한 줄. 사용자가 선택하면 (또는 전부 승인하면) 각각을 lesson-log 와 동일한 포맷으로 작성한다.
+
+---
+
+## Phase 4: INDEX + 커리큘럼 맵 재생성
+
+전체 레슨을 다시 훑어:
+- `INDEX.md` 목록을 최신순으로 재생성
+- 커리큘럼 맵 갱신: 카테고리별 레슨 수 + 난이도 분포 + **강의 모듈 제안** (같은 카테고리 레슨 3개 이상이면 하나의 수업 차시로 묶을 수 있는지 코멘트)
+- 카테고리 공백 지적 (예: "test-balancing 레슨이 0 — 이 기간 검증 작업이 없었는지, 기록 누락인지 확인 필요")

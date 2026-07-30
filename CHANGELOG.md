@@ -7,7 +7,21 @@
 - `rules/self-loop.md` — global, path-independent rule: deliverables with clear quality criteria are never one-shot. Protocol per iteration: plan → execute → score each criterion 1-10 → judge (all ≥ 8 → done, else fix lowest first). Includes defenses for the two classic traps of self-scoring loops: **score inflation** (criteria must be objectively verifiable; scores of 8+ require quoted evidence; every score names a remaining weakness) and **runaway loops** (max 5 iterations by default; stop + report after 2 consecutive stalled rounds). Ends with a verifiable exit report so the user can check the result without trusting the scores.
 - `skills/self-loop/SKILL.md` — `/self-loop [target] [--criteria "..."] [--max N]`, the executable form of the rule. Default entry point when reworking after a FAIL from `/smoke-check`, `/gate-check`, or `/story-done`, or when the user asks to "loop until it passes" / "될 때까지 반복".
 - `hooks/session-start.sh` — now prints a compact Self-Loop Rule reminder at every session start, so the rule reaches every project using the plugin.
-- `CLAUDE.md` — new "Self-loop quality rule" section in the orchestrator guide; `docs/rules-reference.md` gained a Global Rules section; `docs/skills-reference.md` updated (skill count 68 → 78, includes previously undocumented skills).
+- `CLAUDE.md` — new "Self-loop quality rule" section in the orchestrator guide; `docs/rules-reference.md` gained a Global Rules section; `docs/skills-reference.md` updated (skill count corrected to match the repo — previously undocumented skills are now listed).
+
+## v0.5.0 — 2026-07-15
+
+### Added — Lesson Ledger (교육용 노하우 원장)
+
+Every studio project doubles as **teaching material** for a game-designer vibe-coding course. This release makes knowledge capture a first-class, auto-propagating workflow: update the plugin once, every project gets it.
+
+- `skills/lesson-log` — `/lesson-log [topic]` extracts lecture-worthy lessons from recent work into `Documents/Lessons/LES-YYYYMMDD-NN-<slug>.md` (standard format) and updates `INDEX.md`. The "what we tried and why it failed" section is mandatory — failure narratives are the teaching asset.
+- `skills/lesson-review` — `/lesson-review [period]` retrospective-scans commits/meeting-notes for missed lessons, regenerates INDEX + curriculum map (category counts, difficulty distribution, lecture-module suggestions).
+- `templates/lesson.md` — lesson format: frontmatter (id/category/difficulty/teachable-moment) + 6 sections (Context → Problem → What we tried → Resolution → Lesson → Teaching notes).
+- `rules/lesson-capture.md` — 5 standing capture triggers: repeated trap ×2 / design hole exposed by user feedback / assumption overturned by verification / tooling pitfall / design-decision pattern locked by data.
+- `hooks/session-start.sh` — Lesson Ledger status line at every session start (count + latest, or initialization nudge). This is the auto-propagation mechanism: no per-project setup needed.
+
+Categories (curriculum axes): `vibe-coding` / `game-design` / `engine-tech` / `test-balancing` / `production-ops`. Seed ledger lives in the StarDiver repo (`Documents/Lessons/`).
 
 ## v0.4.0 — 2026-06-19
 

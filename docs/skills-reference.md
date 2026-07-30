@@ -1,6 +1,6 @@
 # Available Skills (Slash Commands)
 
-78 slash commands organized by phase. Type `/` in Claude Code to access any of them.
+80 slash commands organized by phase. Type `/` in Claude Code to access any of them.
 
 ## Onboarding & Navigation
 
@@ -99,6 +99,8 @@
 | `/bug-triage` | Read all open bugs, re-evaluate priority vs. severity, assign owner and label |
 | `/reverse-document` | Generate design or architecture docs from existing implementation |
 | `/playtest-report` | Generate a structured playtest report or analyze existing playtest notes |
+| `/lesson-log` | Extract lecture-worthy lessons from recent work into `Documents/Lessons/` (standard format) and update INDEX (see `rules/lesson-capture.md`) |
+| `/lesson-review` | Retrospective scan of commits/notes for missed lessons; regenerates INDEX and the curriculum map |
 
 ## Release
 

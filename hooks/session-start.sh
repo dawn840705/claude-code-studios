@@ -80,5 +80,19 @@ echo "  plan -> execute -> score each criterion 1-10 (strict, evidence-cited) ->
 echo "Guards: scores of 8+ require quoted evidence | max 5 iterations | stop+report after 2 stalled rounds."
 echo "Full protocol: rules/self-loop.md in this plugin. Explicit run: /self-loop"
 
+# --- Lesson Ledger (교육용 노하우 원장) ---
+LESSON_DIR="Documents/Lessons"
+if [ -d "$LESSON_DIR" ]; then
+    LESSON_COUNT=$(find "$LESSON_DIR" -name "LES-*.md" 2>/dev/null | wc -l)
+    LATEST_LESSON=$(ls -t "$LESSON_DIR"/LES-*.md 2>/dev/null | head -1)
+    echo ""
+    echo "Lesson Ledger: $LESSON_COUNT lessons recorded$([ -n "$LATEST_LESSON" ] && echo ", latest: $(basename "$LATEST_LESSON" .md)")"
+    echo "  (교육 자료 원칙: 함정 반복/설계 구멍/뒤집힌 가정/도구 함정/기획 패턴 발생 시 /lesson-log 로 기록)"
+else
+    echo ""
+    echo "Lesson Ledger: not initialized — this studio treats every project as teaching material."
+    echo "  First lesson-worthy moment: run /lesson-log to create Documents/Lessons/ (rules/lesson-capture.md)"
+fi
+
 echo "==================================="
 exit 0
