@@ -6,3 +6,8 @@ node_modules/
 
 # 런타임 산출물 (스킬이 프로젝트에서 생성 — 플러그인 리포에는 커밋하지 않음)
 production/
+
+# Python 산물 (v0.5.0 이식 예정 scripts/ · tests/ 용 — 계획서 §6)
+__pycache__/
+*.pyc
+_workspace/
