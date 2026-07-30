@@ -1,0 +1,51 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  pytest:
+    name: pytest (py${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      # pytest is the only third-party dependency; the vendored runtime itself
+      # is standard-library only (see NOTICE.md).
+      - run: pip install pytest
+      - run: pytest tests/ -v
+
+  drift:
+    name: generated-file drift
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # quick-rules.md and diagnosis-rules.md are BUILT from ai-tell-taxonomy.md
+      # (the SSOT). Hand-editing them silently desyncs the runtime — these two
+      # checks are what make that impossible to merge.
+      - run: python3 scripts/build_quick_rules.py --check
+      - run: python3 scripts/build_diagnosis_rules.py --check
+
+  lint:
+    name: skill/agent structure
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # Pre-existing failures are recorded in scripts/lint_baseline.json and are
+      # tolerated; anything new fails the build. Fix an entry, then delete it
+      # from the baseline — the linter reports stale entries.
+      - run: python3 scripts/lint_skills.py skills/ agents/ --baseline

@@ -1,6 +1,6 @@
 # Available Skills (Slash Commands)
 
-80 slash commands organized by phase. Type `/` in Claude Code to access any of them.
+81 slash commands organized by phase. Type `/` in Claude Code to access any of them.
 
 ## Onboarding & Navigation
 
@@ -143,3 +143,9 @@ Coordinate multiple agents on a single feature area:
 | Command | Purpose |
 |---------|---------|
 | `/web-ai-patterns` | Field-proven reusable patterns for web+AI (SaaS) products — LLM orchestration & i18n-safe parsing (`ai`), no-loss cost/usage gating & billing & webhook idempotency (`monetization`), document-store data modeling (`data`). Source: SpecForge. |
+
+## Writing
+
+| Command | Purpose |
+|---------|---------|
+| `/humanize-korean` | Strip AI tells from Korean text — translationese, mechanical parallelism, passive overuse, emoji/bullet excess — without changing a single point of meaning. Routes to 1/2/3+ calls by measured severity; structural gates (`scripts/verify_gates.py`) decide PASS/FAIL by exit code, not self-scoring. |
