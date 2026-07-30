@@ -121,12 +121,42 @@ Deliverables with clear quality criteria are **never one-shot**. Iterate until t
 
 1. **Plan** — name the ONE thing this iteration will do.
 2. **Execute** — build or fix it.
-3. **Score** — grade each pass criterion 1-10. Strict: a score of 8+ must cite evidence (test output, command result, file content), and every score names a remaining weakness.
+3. **Score** — for each criterion, first ask **"can a script decide this?"** If yes, run it and let the **exit code set the score** — your judgment does not override it. Only for the rest (readability, tone, whether an argument holds) do you grade 1-10, and a score of 8+ must cite evidence (test output, command result, file content), with every score naming a remaining weakness.
 4. **Judge** — all criteria ≥ 8 → done. Otherwise continue, fixing the lowest score first. Never claim "finished" below that bar.
 
 Guards (both traps of self-scoring loops): **score inflation** — criteria must be objectively verifiable, no evidence → no 8+; **runaway loops** — max 5 iterations, and stop + report if the lowest score stalls for 2 consecutive rounds. Always end with an exit report the user can verify without trusting the scores.
 
 Full protocol: `rules/self-loop.md`. Explicit invocation: `/self-loop`. Apply it by default when reworking after a FAIL from `/smoke-check`, `/gate-check`, or `/story-done`, and whenever the user says "될 때까지", "loop until it passes", or similar.
+
+## Deterministic gates — the exit code is the verdict
+
+When a script can judge something, **the script judges it.** Exit codes are the
+contract: `0` pass · `1` warning · `2` abort · `3` could not run. A gate that
+could not run has produced no verdict — never read that as a pass.
+
+Do not re-derive a verdict by parsing a runner's output; that puts the judgment
+back in the model. Read the exit code, then use the text only to explain it.
+Name the deciding gate in every verdict: `pytest → exit 1 (3 failed)`.
+
+`/gate-check` stays qualitative on purpose (it judges whether artifacts say
+something meaningful, and its verdict is advisory). Full contract and how to add
+a gate: `docs/deterministic-gates.md`.
+
+## Route hint — pick a route before spawning
+
+| Route | Signals | Action |
+|---|---|---|
+| light | 1-2 files, single domain, repeating an existing pattern | Handle it yourself. **0 agents.** |
+| standard | Single domain, real design judgment needed | 1 specialist agent |
+| heavy | Multiple domains, hard to reverse, or evidence explicitly required | Team fan-out + gates |
+
+**Savings come from fewer calls, not a cheaper model** — never silently downgrade
+a tier to save cost; that is the user's choice. **Splitting is the last resort.**
+Measured upstream: the same text as 7 chunks cost 610K tokens versus 134K as one
+call, at equal quality — the waste was reloading shared context per chunk. With
+45 agents that structure is easy to reproduce by accident.
+
+Tied between two routes? Take the lighter one. Full rule: `rules/route-hint.md`.
 
 ## File conventions the plugin expects
 

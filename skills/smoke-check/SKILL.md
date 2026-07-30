@@ -120,12 +120,34 @@ FAIL — the developer must manually confirm results."
 Do not treat NOT RUN as an automatic FAIL. Record it as a warning. The
 developer's manual confirmation in Phase 4 can resolve it.
 
-Parse runner output and extract:
+### The exit code is the verdict
+
+**Capture the runner's exit code and let it decide.** Append `; echo "EXIT=$?"`
+to the command (or check `$?` immediately) and record the value.
+
+| Runner exit | Automated-test status |
+|---|---|
+| `0` | PASS |
+| non-zero | **FAIL — immediately, with no interpretation of the output** |
+| never ran (binary missing, no runner) | NOT RUN → PASS WITH WARNINGS |
+
+Do not read the output and form your own opinion about whether the failures
+"really matter". A non-zero exit is a FAIL even if the log looks harmless to
+you; a zero exit is a PASS even if the log contains scary-looking warnings.
+See [`docs/deterministic-gates.md`](../../docs/deterministic-gates.md).
+
+Keep the three states distinct and never collapse them: **PASS** (ran, exit 0)
+· **FAIL** (ran, non-zero) · **NOT RUN** (did not run). NOT RUN being tolerated
+is a deliberate policy for environments without an engine binary — it is not
+permission to guess at a verdict.
+
+Then parse the output — **to explain the verdict, not to set it**:
 - Total tests run
 - Passing count
 - Failing count
 - Names of any failing tests (up to 10; if more, note the count)
 - Any crash or error output from the runner itself
+- The exit code itself, quoted in the report
 
 ---
 
@@ -346,7 +368,9 @@ Any platform with one or more FAIL checks contributes to the overall FAIL verdic
 [Verdict rules — first matching rule wins:]
 
 **FAIL** if ANY of:
-- Automated test suite ran and reported one or more test failures
+- **The test runner exited non-zero** (Phase 2). This is decided by the exit
+  code, not by reading the log — quote the code in the report:
+  `pytest → exit 1`.
 - Any Batch 1 (core stability) check returned FAIL
 - Any Batch 2 (primary sprint mechanic or regression check) returned FAIL
 

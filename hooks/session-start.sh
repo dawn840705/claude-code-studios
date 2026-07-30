@@ -79,6 +79,14 @@ echo "Deliverables with clear quality criteria are NOT one-shot. Iterate:"
 echo "  plan -> execute -> score each criterion 1-10 (strict, evidence-cited) -> all >=8 ? done : fix lowest first"
 echo "Guards: scores of 8+ require quoted evidence | max 5 iterations | stop+report after 2 stalled rounds."
 echo "Full protocol: rules/self-loop.md in this plugin. Explicit run: /self-loop"
+echo "Scoring order: if a script can decide a criterion, its EXIT CODE sets the score — not your judgment."
+
+# --- Route hint (call-count routing; applies to every project) ---
+echo ""
+echo "=== Route Hint (always active) ==="
+echo "Pick a route BEFORE spawning: light = handle it yourself (0 agents) | standard = 1 specialist | heavy = fan-out + gates"
+echo "Savings come from FEWER CALLS, not a cheaper model. Splitting is the last resort — measured: 7 chunks 610K tok vs 134K single call, equal quality."
+echo "Tied between two routes? Take the lighter one. Full rule: rules/route-hint.md"
 
 # --- Lesson Ledger (교육용 노하우 원장) ---
 LESSON_DIR="Documents/Lessons"

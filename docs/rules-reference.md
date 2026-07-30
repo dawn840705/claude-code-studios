@@ -8,6 +8,7 @@ These apply to every project using the plugin, regardless of which files are bei
 | ---- | ---- |
 | `self-loop.md` | Quality-gated deliverables are never one-shot: plan → execute → score (1-10, evidence-cited) → judge, until all criteria ≥ 8. Guards against score inflation and runaway loops (max 5 iterations, stall detection). Executable form: `/self-loop` |
 | `subagent-collaboration.md` | Multi-subagent parallel collaboration pattern for broad/deep design decisions — when to fan out, prompt requirements, result integration, meeting minutes |
+| `route-hint.md` | Pick a route before spawning: **light** (orchestrator handles it, 0 agents) / **standard** (1 specialist) / **heavy** (team fan-out + gates). Savings come from fewer calls, not a cheaper model; splitting is the last resort. Measured upstream: 7-chunk fan-out 610K tokens vs. 134K single call at equal quality |
 | `lesson-capture.md` | Every project doubles as teaching material. 5 standing triggers (repeated trap ×2, design hole exposed by feedback, assumption overturned, tooling pitfall, design pattern locked by data) prompt a lesson entry in `Documents/Lessons/`. Executable form: `/lesson-log`, `/lesson-review` |
 
 ## Path-Specific Rules

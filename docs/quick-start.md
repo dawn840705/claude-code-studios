@@ -297,7 +297,7 @@ CLAUDE.md                          -- Orchestrator guide (read this first)
 agents/                            -- 45 agent definitions (YAML frontmatter)
 skills/                            -- 83 slash command definitions (one folder per skill, each with SKILL.md)
 hooks/                             -- 15 hook scripts (.sh) wired by plugin.json
-rules/                             -- 14 rule files (3 global + 11 path-specific)
+rules/                             -- 15 rule files (4 global + 11 path-specific)
 docs/
   quick-start.md                   -- This file
   agent-roster.md                  -- One-line description per agent

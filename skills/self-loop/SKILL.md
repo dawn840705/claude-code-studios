@@ -65,10 +65,23 @@ Each iteration, in strict order:
 1. **Plan** — name the ONE thing this iteration will do.
 2. **Execute** — build or fix it. Actually run commands / write files;
    a plan is not an iteration.
-3. **Score** — grade every criterion 1-10. For each score:
-   - cite evidence (test output, command result, file excerpt) — a score
-     of 8+ **without quoted evidence is invalid**, re-score it lower;
-   - name at least one remaining weakness, even at 9-10.
+3. **Score** — before grading anything, ask of each criterion:
+   **"can a script decide this?"**
+   - **Yes** → run the script. Its **exit code sets the score**, and your
+     judgment does not override it. Non-zero → that criterion scores below 8,
+     even if the work looks right to you. Record the command and the code:
+     `pytest tests/ → exit 1 (3 failed)`. See
+     [`docs/deterministic-gates.md`](../../docs/deterministic-gates.md) for the
+     0/1/2/3 contract. A gate that could not run (exit 3) is NOT a pass —
+     that criterion is unscored and the loop cannot declare DONE on it.
+   - **No** (readability, tone, whether an argument holds) → grade 1-10, and:
+     - cite evidence (test output, command result, file excerpt) — a score
+       of 8+ **without quoted evidence is invalid**, re-score it lower;
+     - name at least one remaining weakness, even at 9-10.
+
+   Self-scoring is the fallback, not the default. Every criterion you grade by
+   hand that a script could have measured is a criterion you are grading
+   generously without knowing it.
 4. **Judge** —
    - All criteria >= 8 → declare `DONE`, go to Phase 3.
    - Otherwise → declare `CONTINUE`, and the next iteration MUST target
