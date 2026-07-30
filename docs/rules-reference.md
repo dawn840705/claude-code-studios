@@ -1,4 +1,15 @@
-# Path-Specific Rules
+# Rules Reference
+
+## Global Rules (always active, path-independent)
+
+These apply to every project using the plugin, regardless of which files are being edited:
+
+| Rule File | Enforces |
+| ---- | ---- |
+| `self-loop.md` | Quality-gated deliverables are never one-shot: plan → execute → score (1-10, evidence-cited) → judge, until all criteria ≥ 8. Guards against score inflation and runaway loops (max 5 iterations, stall detection). Executable form: `/self-loop` |
+| `subagent-collaboration.md` | Multi-subagent parallel collaboration pattern for broad/deep design decisions — when to fan out, prompt requirements, result integration, meeting minutes |
+
+## Path-Specific Rules
 
 Rules in `.claude/rules/` are automatically enforced when editing files in matching paths:
 

@@ -1,6 +1,6 @@
 # Available Skills (Slash Commands)
 
-68 slash commands organized by phase. Type `/` in Claude Code to access any of them.
+77 slash commands organized by phase. Type `/` in Claude Code to access any of them.
 
 ## Onboarding & Navigation
 
@@ -66,6 +66,7 @@
 | `/tech-debt` | Scan, track, prioritize, and report on technical debt |
 | `/gate-check` | Validate readiness to advance between development phases (PASS/CONCERNS/FAIL) |
 | `/consistency-check` | Scan all GDDs against the entity registry to detect cross-document inconsistencies (stats, names, rules that contradict each other) |
+| `/self-loop` | Iterate a deliverable until all pass criteria score 8+/10 — evidence-cited scoring, fix lowest first, max 5 iterations, stall detection (see `rules/self-loop.md`) |
 
 ## QA & Testing
 

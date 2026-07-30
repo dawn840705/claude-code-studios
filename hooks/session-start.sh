@@ -71,5 +71,14 @@ if [ -f "$STATE_FILE" ]; then
     echo "=== END SESSION STATE PREVIEW ==="
 fi
 
+
+# --- Self-loop quality rule (applies to every project using this plugin) ---
+echo ""
+echo "=== Self-Loop Rule (always active) ==="
+echo "Deliverables with clear quality criteria are NOT one-shot. Iterate:"
+echo "  plan -> execute -> score each criterion 1-10 (strict, evidence-cited) -> all >=8 ? done : fix lowest first"
+echo "Guards: scores of 8+ require quoted evidence | max 5 iterations | stop+report after 2 stalled rounds."
+echo "Full protocol: rules/self-loop.md in this plugin. Explicit run: /self-loop"
+
 echo "==================================="
 exit 0

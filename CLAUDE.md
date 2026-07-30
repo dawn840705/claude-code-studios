@@ -110,6 +110,19 @@ Key skills: `/milestone-review`, `/patch-notes` (A/B experiment & funnel skills 
 ### Gate checks (between stages)
 `/gate-check <target-stage>` validates readiness to advance with a PASS/CONCERNS/FAIL verdict.
 
+## Self-loop quality rule (every project, every domain)
+
+Deliverables with clear quality criteria are **never one-shot**. Iterate until they pass:
+
+1. **Plan** — name the ONE thing this iteration will do.
+2. **Execute** — build or fix it.
+3. **Score** — grade each pass criterion 1-10. Strict: a score of 8+ must cite evidence (test output, command result, file content), and every score names a remaining weakness.
+4. **Judge** — all criteria ≥ 8 → done. Otherwise continue, fixing the lowest score first. Never claim "finished" below that bar.
+
+Guards (both traps of self-scoring loops): **score inflation** — criteria must be objectively verifiable, no evidence → no 8+; **runaway loops** — max 5 iterations, and stop + report if the lowest score stalls for 2 consecutive rounds. Always end with an exit report the user can verify without trusting the scores.
+
+Full protocol: `rules/self-loop.md`. Explicit invocation: `/self-loop`. Apply it by default when reworking after a FAIL from `/smoke-check`, `/gate-check`, or `/story-done`, and whenever the user says "될 때까지", "loop until it passes", or similar.
+
 ## File conventions the plugin expects
 
 Skills will create these as needed — do not pre-create empty:
