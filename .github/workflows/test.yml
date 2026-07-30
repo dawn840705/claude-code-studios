@@ -36,6 +36,10 @@ jobs:
       # checks are what make that impossible to merge.
       - run: python3 scripts/build_quick_rules.py --check
       - run: python3 scripts/build_diagnosis_rules.py --check
+      # The workflow catalog is executable config: check_phase.py judges phase
+      # completion from it. A broken glob or dangling depends_on would silently
+      # corrupt /help's verdicts — schema validation makes that unmergeable.
+      - run: python3 scripts/check_phase.py --validate
 
   lint:
     name: skill/agent structure

@@ -1,6 +1,6 @@
 # Available Skills (Slash Commands)
 
-83 slash commands organized by phase. Type `/` in Claude Code to access any of them.
+84 slash commands organized by phase. Type `/` in Claude Code to access any of them.
 
 ## Onboarding & Navigation
 
@@ -25,6 +25,12 @@
 | `/art-bible` | Guided, section-by-section Art Bible authoring — visual identity spec that gates asset production |
 | `/asset-spec` | Generate per-asset visual specs and AI generation prompts from GDDs/level docs/profiles |
 | `/governance-bible-init` | Bootstrap a domain-specific governance Bible (Sound, Art, Narrative, etc.) via the Anchor + Bible pattern |
+
+## Product Design (App/Web/Service)
+
+| Command | Purpose |
+|---------|---------|
+| `/create-prd` | Guided, section-by-section PRD authoring for a single product feature — writes `product/prd/prd-<feature>.md`. Product-track counterpart of `/design-system` |
 
 ## UX & Interface Design
 

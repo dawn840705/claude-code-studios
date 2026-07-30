@@ -2,9 +2,11 @@
 
 Claude Code 플러그인 형태로 패키징된 *완전한* 소프트웨어 스튜디오. **게임은 물론 앱/웹/서비스 개발까지** 커버 (v0.4.0+).
 
-**전문 에이전트 45종** · **워크플로우 skill 83종** · **production hooks** · **거버넌스/워크플로우 자산 (v0.2.0+)** · **도메인 팩 + 프로젝트 타입 자동 감지 (v0.4.0+)** — 프리프로덕션 → 프로덕션 → QA → 릴리스 → 라이브 옵스 전 단계 커버.
+**전문 에이전트 45종** · **워크플로우 skill 84종** · **production hooks** · **거버넌스/워크플로우 자산 (v0.2.0+)** · **도메인 팩 + 프로젝트 타입 자동 감지 (v0.4.0+)** — 프리프로덕션 → 프로덕션 → QA → 릴리스 → 라이브 옵스 전 단계 커버.
 
-> **v0.6.0 신규:** 게이트가 더 이상 자기 채점이 아닙니다. 스크립트 **exit code 가 판정**이고(`0` 통과 / `1` 경고 / `2` 중단 / `3` 판정불가), 돌지 못한 게이트는 통과로 읽지 않습니다 — 계약: [docs/deterministic-gates.md](docs/deterministic-gates.md). `/self-loop` 은 채점 전에 "스크립트가 판정할 수 있는가"를 먼저 묻고, `/smoke-check` 은 러너 출력을 해석하는 대신 exit code 를 직접 읽습니다.
+> **v0.6.1 신규:** 결정론적 흐름이 **product 트랙까지** 확장됐습니다. `docs/workflow-catalog.yaml` 이 game/product **듀얼 트랙**(스키마 v2)이 되고, 스텝 간 의존이 `depends_on` 으로 명시되며, 단계 완료 판정은 새 게이트 **`scripts/check_phase.py`** 가 exit code 로 내립니다(`0` 완료 / `1` 진행중 / `2` 의존 위반 — 건너뛴 스텝 탐지 / `3` 판정불가). `/help` 와 `/project-stage-detect` 는 이제 직접 glob 하지 않고 이 판정을 읽습니다. 약속만 있던 **`/create-prd`** 도 합류 — product 트랙의 `/design-system` 대응물입니다.
+>
+> **v0.6.0:** 게이트가 더 이상 자기 채점이 아닙니다. 스크립트 **exit code 가 판정**이고(`0` 통과 / `1` 경고 / `2` 중단 / `3` 판정불가), 돌지 못한 게이트는 통과로 읽지 않습니다 — 계약: [docs/deterministic-gates.md](docs/deterministic-gates.md). `/self-loop` 은 채점 전에 "스크립트가 판정할 수 있는가"를 먼저 묻고, `/smoke-check` 은 러너 출력을 해석하는 대신 exit code 를 직접 읽습니다.
 >
 > 함께 들어온 것 — 한글 윤문 **writing 팩**(`/humanize-korean` · `/humanize` · `/humanize-redo` + 에이전트 4종, 전 프로젝트 타입에서 활성), **콜 수 라우팅 규칙**([rules/route-hint.md](rules/route-hint.md) — 절감은 모델 교체가 아니라 콜 수 축소에서 온다), 그리고 **리포 최초의 테스트와 CI**(pytest 185건 × Python 3.11/3.12/3.13 + SSOT drift 차단 + 스킬 구조 린트). 윤문 자산 출처: [epoko77-ai/im-not-ai](https://github.com/epoko77-ai/im-not-ai) (MIT — [NOTICE.md](NOTICE.md)). 설계 배경: [docs/design/v0.6.0-integration-plan.md](docs/design/v0.6.0-integration-plan.md).
 

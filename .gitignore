@@ -11,3 +11,4 @@ production/
 __pycache__/
 *.pyc
 _workspace/
+_to_delete/

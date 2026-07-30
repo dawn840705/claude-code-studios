@@ -1,5 +1,28 @@
 # Changelog
 
+## v0.6.1 — 2026-07-30
+
+### Changed — The deterministic flow now covers both tracks
+
+The workflow catalog claimed to serve the whole studio but only encoded the game track — on a `web`/`mobile`/`service` project, `/help` walked users through art bibles and playtests. The premise of a deterministic flow (every project passes the same steps, produces the same artifacts, in the same order) held for exactly one of the two domains this plugin supports. Prompted by [a pattern analysis of large skill plugins](https://thakicloud.com/tech-blog/ko/dev/agentops/agent-plugin-158-skills-deterministic-flow/): the flow, not the model, owns format/order/dependencies — so the flow has to exist for every domain.
+
+- `docs/workflow-catalog.yaml` — **schema v2, dual-track**. `tracks: game` (the v1 flow, unchanged step-for-step) and `tracks: product` (discovery → architecture → build → hardening → ship → growth, mirroring the CLAUDE.md product stages with real artifact globs: `product/prd/prd-*.md`, ADR minimums, `tests/regression-suite.md`, …). Track selection follows `PROJECT_TYPE`.
+- **Explicit step dependencies** — steps now declare `depends_on` (qualified as `phase:step` where ids repeat). Order is no longer implied by list position alone; a skipped step is now *detectable* rather than inferable.
+
+### Added — `scripts/check_phase.py`: phase completion is script-decided
+
+`/help` used to decide step completion by having the model glob for artifacts and count matches — exactly the kind of judgment `docs/deterministic-gates.md` says a script must own (globs + `min_count` + text pattern are 100% mechanical). New gate, same contract:
+
+- Exit codes: `0` phase complete · `1` in progress · `2` **dependency violation** (a completed step's required dependency is missing — a step was skipped) · `3` cannot judge (catalog unreadable, or both game and product markers present with no `--track`). Code 3 is never a pass.
+- Resolves track (marker-based, mirroring `detect-project-type.sh`), phase (`production/stage.txt` first, artifact inference second), then evaluates every step. `--json` for machine consumption, `--validate` for CI schema checking (broken globs, dangling `depends_on` → unmergeable).
+- Standard library only, including the catalog parser — a purpose-built YAML-subset reader rather than a PyYAML dependency, keeping the vendored runtime at zero third-party deps.
+- `skills/help/SKILL.md` — runs the gate in its context block; the model now narrates the script's verdicts instead of producing its own. Model-side globbing survives only as the documented exit-3 fallback, labeled as such. `skills/project-stage-detect/SKILL.md` — same, as its new first step.
+- `tests/test_check_phase.py` — 21 tests: the real catalog parses and validates, v1 game flow survived the restructure intact, artifact/pattern/min_count semantics, all four exit codes exercised via the CLI.
+
+### Added — `/create-prd`
+
+Promised for v0.4.1 ("until then use `/design-system` framed as a PRD"), never shipped. Now real: guided section-by-section PRD authoring to `product/prd/prd-<feature>.md` — 8 required sections with a self-check that success metrics carry numbers + measurement sources, acceptance criteria map to FRs, and the MoSCoW *Won't* list is non-empty (an empty Won't list means scope was not decided). Retrofit mode mirrors `/design-system` (fills gaps, never touches existing content). The catalog's `discovery:create-prd` step points at it; the CLAUDE.md workaround note is gone. Skill count: 83 → 84.
+
 ## v0.6.0 — 2026-07-30
 
 ### Changed — Gates stopped grading themselves

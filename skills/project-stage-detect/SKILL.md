@@ -21,6 +21,29 @@ of artifacts, and gaps that need attention. It's especially useful when:
 
 ## Workflow
 
+### 0. Run the Deterministic Phase Gate
+
+Before any model-side scanning, run (Bash):
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT:-.claude}/scripts/check_phase.py" \
+  --catalog "${CLAUDE_PLUGIN_ROOT:-.claude}/docs/workflow-catalog.yaml" --json
+```
+
+This returns the track (game/product), current phase, per-step completion
+verdicts, the current blocker, and any **dependency violations** (a completed
+step whose required dependency was skipped). These verdicts are deterministic —
+carry them into the report unchanged; do not re-derive completion by globbing
+(`docs/deterministic-gates.md`). Name the gate in the report:
+`check_phase.py → exit N`.
+
+- `EXIT: 2` — surface each violation as a top-priority gap.
+- `EXIT: 3` — the gate produced no verdict (say so explicitly); fall back to
+  model-side classification below and mark Stage Confidence as CONCERNS at best.
+
+The scans below add what the gate cannot see: content quality, code volume,
+and gaps that need human judgment.
+
 ### 1. Scan Key Directories
 
 Analyze project structure and content:
@@ -59,7 +82,11 @@ Analyze project structure and content:
 
 ### 2. Classify Project Stage
 
-Based on scanned artifacts, determine stage. Check `production/stage.txt` first —
+**Normal path:** the stage is the `phase` field from check_phase.py (Step 0) —
+it already applied stage.txt-first, artifact-inference-second, for the right
+track. Report it with `Stage Confidence: PASS` and name the gate.
+
+**Fallback (gate exit 3 only):** check `production/stage.txt` first —
 if it exists, use its value (explicit override from `/gate-check`). Otherwise,
 auto-detect using these heuristics (check from most-advanced backward):
 

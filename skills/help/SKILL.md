@@ -5,7 +5,7 @@ argument-hint: "[optional: what you just finished, e.g. 'finished design-review'
 user-invocable: true
 allowed-tools: Read, Glob, Grep
 context: |
-  !echo "=== Live Project State ===" && echo "Stage: $(cat production/stage.txt 2>/dev/null | tr -d '[:space:]' || echo 'not set')" && echo "Latest sprint: $(ls -t production/sprints/*.md 2>/dev/null | head -1 || echo 'none')" && echo "Session state: $(head -5 production/session-state/active.md 2>/dev/null || echo 'none')"
+  !echo "=== Live Project State ===" && echo "Stage: $(cat production/stage.txt 2>/dev/null | tr -d '[:space:]' || echo 'not set')" && echo "Latest sprint: $(ls -t production/sprints/*.md 2>/dev/null | head -1 || echo 'none')" && echo "Session state: $(head -5 production/session-state/active.md 2>/dev/null || echo 'none')" && echo "=== Deterministic Phase Check (check_phase.py) ===" && python3 "${CLAUDE_PLUGIN_ROOT:-.claude}/scripts/check_phase.py" --catalog "${CLAUDE_PLUGIN_ROOT:-.claude}/docs/workflow-catalog.yaml" 2>&1 || true
 model: haiku
 ---
 
@@ -19,11 +19,34 @@ gap analysis, use `/project-stage-detect`.
 
 ---
 
+## Step 0: Read the Deterministic Phase Check (context block)
+
+The context block above already ran `scripts/check_phase.py` — the deterministic
+gate for phase completion (see `docs/deterministic-gates.md`). Its output is the
+verdict. **Do not re-derive step completion by globbing yourself.**
+
+Read from its output:
+- `track=` and `phase=` — which track (game/product) and phase the project is in
+- `[x]` complete / `[ ]` incomplete / `[?]` MANUAL / `[-]` untrackable, per step
+- `next required step:` — the blocker
+- `VERDICT:` and `EXIT:` — the exit-code contract:
+  `0` phase complete · `1` in progress · `2` dependency violation (a step was
+  skipped — surface this prominently) · `3` cannot judge
+
+**Only if `EXIT: 3` appears** (catalog unreadable, ambiguous track): fall back
+to the manual artifact checks in Step 4, and say explicitly that completion was
+judged by the model, not the gate. If the track was ambiguous, ask the user
+(game or app/web/service?) — never guess.
+
+---
+
 ## Step 1: Read the Catalog
 
-Read `.claude/docs/workflow-catalog.yaml`. This is the authoritative list of all
-phases, their steps (in order), whether each step is required or optional, and
-the artifact globs that indicate completion.
+Read `.claude/docs/workflow-catalog.yaml` for step **descriptions, commands, and
+ordering** (schema v2: `tracks:` → game / product → `phases:`). Use the track
+reported by check_phase.py — game projects follow the game track, web/mobile/
+service projects follow the product track. The catalog explains *what* each step
+is; completion *status* comes from Step 0.
 
 ---
 
@@ -52,25 +75,28 @@ skills in production/polish, etc.).
 
 ## Step 2: Determine Current Phase
 
-Check in this order:
+**Normal path:** use the `phase=` value from check_phase.py (Step 0) — it
+already applied stage.txt-first, artifact-inference-second, for the right track.
+
+**Fallback (EXIT: 3 only):** check in this order:
 
 1. **Read `production/stage.txt`** — if it exists and has content, this is the
-   authoritative phase name. Map it to a catalog phase key:
-   - "Concept" → `concept`
-   - "Systems Design" → `systems-design`
-   - "Technical Setup" → `technical-setup`
-   - "Pre-Production" → `pre-production`
-   - "Production" → `production`
-   - "Polish" → `polish`
-   - "Release" → `release`
+   authoritative phase name. Map it to a catalog phase key for the active track:
+   - Game: "Concept" → `concept` · "Systems Design" → `systems-design` ·
+     "Technical Setup" → `technical-setup` · "Pre-Production" → `pre-production` ·
+     "Production" → `production` · "Polish" → `polish` · "Release" → `release`
+   - Product: "Discovery" → `discovery` · "Architecture" → `architecture` ·
+     "Build" → `build` · "Hardening" → `hardening` · "Ship" → `ship` ·
+     "Growth & Operate" → `growth`
 
 2. **If stage.txt is missing**, infer phase from artifacts (most-advanced match wins):
-   - `src/` has 10+ source files → `production`
-   - `production/stories/*.md` exists → `pre-production`
-   - `docs/architecture/adr-*.md` exists → `technical-setup`
-   - `design/gdd/systems-index.md` exists → `systems-design`
-   - `design/gdd/game-concept.md` exists → `concept`
-   - Nothing → `concept` (fresh project)
+   - Game: `src/` has 10+ source files → `production` · `production/stories/*.md` →
+     `pre-production` · `docs/architecture/adr-*.md` → `technical-setup` ·
+     `design/gdd/systems-index.md` → `systems-design` · `design/gdd/game-concept.md`
+     → `concept` · nothing → `concept`
+   - Product: `src/` has 10+ source files → `build` · `production/epics/` →
+     `build` · `docs/architecture/adr-*.md` → `architecture` ·
+     `product/prd/prd-*.md` → `discovery` · nothing → `discovery`
 
 ---
 
@@ -88,9 +114,12 @@ the output.
 
 ## Step 4: Check Step Completion for the Current Phase
 
-For each step in the current phase (from the catalog):
+**Normal path:** completion per step was already decided in Step 0 by
+check_phase.py — carry those verdicts forward unchanged. The subsections below
+are (a) the fallback when `EXIT: 3` appeared, and (b) the special cases the
+script does not cover (sprint-status.yaml, repeatable-step nuance).
 
-### Artifact-based checks
+### Artifact-based checks (fallback only — EXIT: 3)
 
 If the step has `artifact.glob`:
 - Use Glob to check if files matching the pattern exist
@@ -178,6 +207,16 @@ Command: `[/command]`
 
 ---
 Approaching **[next phase]** gate → run `/gate-check` when ready.
+```
+
+**If check_phase.py reported `EXIT: 2` (dependency violation):** lead with it,
+before the normal layout — name the completed step, the skipped required
+dependency, and the command that fills the gap:
+
+```
+⚠ Dependency violation: [step] is done but its required dependency
+  [dep-step] is missing. Run `[/dep-command]` first — later artifacts built on
+  a skipped step tend to need rework.
 ```
 
 **Formatting rules:**

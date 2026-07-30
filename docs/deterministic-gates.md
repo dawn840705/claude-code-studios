@@ -41,6 +41,19 @@ attainment, antithesis wipeout, golden checks + number injection) and reports a
 fifth (sentence touch rate) without letting it affect the exit code — a signal
 that is merely informative must not move the verdict.
 
+**[`scripts/check_phase.py`](../scripts/check_phase.py) applies the same
+contract to workflow-phase completion.** The catalog
+(`docs/workflow-catalog.yaml`, schema v2) declares artifact globs and explicit
+`depends_on` per step; the script evaluates them and exits `0` (phase complete)
+/ `1` (in progress) / `2` (dependency violation — a completed step's required
+dependency is missing) / `3` (cannot judge: catalog unreadable or track
+ambiguous). `/help` runs it in its context block and `/project-stage-detect`
+runs it as its first step — both carry its verdicts forward instead of
+re-globbing. Model-side artifact checks remain only as the documented fallback
+for exit 3, and must be labeled as such. CI validates the catalog schema with
+`check_phase.py --validate` (broken globs, dangling `depends_on`, missing
+`required:` fields are unmergeable).
+
 ## Rules for callers
 
 **The exit code overrides the model.** If the script says FAIL, it is FAIL, no

@@ -1,6 +1,6 @@
 # Claude Code Studios — Plugin Guide
 
-When this plugin is active, you have access to a full software studio: **45 specialist agents**, 83 workflow skills, and production hooks. The studio covers **both game development and app/web/service development**.
+When this plugin is active, you have access to a full software studio: **45 specialist agents**, 84 workflow skills, and production hooks. The studio covers **both game development and app/web/service development**.
 
 ## Your role
 
@@ -61,8 +61,8 @@ For `PROJECT_TYPE=web|mobile|service`. Mirrors the game track stage-for-stage.
 ### Discovery & definition
 Primary agents: `product-manager`, `ux-designer`
 Support: `technical-director`, `design-lead` (`art-director`), `growth-engineer`
-Key skills: `/brainstorm`, `/map-systems`, `/create-architecture`, `/architecture-decision`, `/ux-design`
-Product artifacts: PRD (in `product/prd/`), roadmap, success metrics. (Dedicated `/create-prd` ships in v0.4.1; until then use `/design-system` framed as a PRD.)
+Key skills: `/brainstorm`, `/create-prd`, `/map-systems`, `/create-architecture`, `/architecture-decision`, `/ux-design`
+Product artifacts: product concept + one PRD per feature (in `product/prd/`, via `/create-prd`), roadmap, success metrics.
 
 ### Build (sprints)
 Primary agents: `frontend-engineer`, `backend-engineer`, `mobile-engineer`, `lead-programmer`
@@ -100,7 +100,7 @@ Key skills: `/milestone-review`, `/patch-notes` (A/B experiment & funnel skills 
 
 ### Starting from zero
 - **Game**: `/start` → `/setup-engine` → `/brainstorm` → `/map-systems` → `/design-system` (per system) → `/review-all-gdds` → `/create-architecture` → `/create-epics` → `/create-stories` → `/dev-story`
-- **App/web/service**: `/start` → confirm domain → `/brainstorm` (product concept) → PRD per feature → `/create-architecture` → `/create-epics` → `/create-stories` → `/dev-story`. Spawn `product-manager` for the PRD and `frontend-engineer`/`backend-engineer`/`mobile-engineer` for the build.
+- **App/web/service**: `/start` → confirm domain → `/brainstorm` (product concept) → `/create-prd` per feature → `/create-architecture` → `/create-epics` → `/create-stories` → `/dev-story`. Spawn `product-manager` for the PRD and `frontend-engineer`/`backend-engineer`/`mobile-engineer` for the build.
 
 ### Joining a mid-flight project
 `/adopt` audits existing artifacts for template compliance and produces a migration plan.
@@ -137,6 +137,15 @@ could not run has produced no verdict — never read that as a pass.
 Do not re-derive a verdict by parsing a runner's output; that puts the judgment
 back in the model. Read the exit code, then use the text only to explain it.
 Name the deciding gate in every verdict: `pytest → exit 1 (3 failed)`.
+
+**Workflow-phase completion is script-decided too.** `scripts/check_phase.py`
+evaluates the current phase's step completion against the catalog's artifact
+globs and step dependencies (`0` phase complete · `1` in progress · `2`
+dependency violation — a step was skipped · `3` cannot judge). `/help` and
+`/project-stage-detect` read its verdict instead of globbing for themselves.
+The catalog (`docs/workflow-catalog.yaml`, schema v2) is **dual-track**: game
+projects follow the game track, web/mobile/service projects follow the product
+track — same deterministic flow discipline for both domains.
 
 `/gate-check` stays qualitative on purpose (it judges whether artifacts say
 something meaningful, and its verdict is advisory). Full contract and how to add
@@ -198,7 +207,7 @@ tests/regression-suite.md
 - `docs/agent-packs.yaml` — pack classification (core/game/product) + activation rules; source of truth for domain routing
 - `docs/design/v0.4.0-product-domain-pack.md` — design doc for the product expansion (roadmap v0.4.0→0.5.0)
 - `docs/agent-coordination-map.md` — which agents coordinate with which
-- `docs/workflow-catalog.yaml` — canonical workflow definitions
+- `docs/workflow-catalog.yaml` — canonical workflow definitions (v2: game + product tracks, explicit `depends_on` step dependencies; judged by `scripts/check_phase.py`)
 - `docs/director-gates.md` — stage-transition gate criteria
 - `docs/coding-standards.md`, `docs/technical-preferences.md` — code baselines
 - `docs/skills-reference.md` — skill-by-skill usage guide
