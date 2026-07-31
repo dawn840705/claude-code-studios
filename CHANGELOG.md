@@ -1,5 +1,79 @@
 # Changelog
 
+## v0.6.2 — 2026-07-31
+
+### Fixed — Hooks stopped assuming a lowercase web layout
+
+Three of the four path-sensitive hooks hardcoded `src/`, `assets/` and
+`design/gdd/`. Unity forces `Assets/` + `ProjectSettings/` and keeps code under
+`Assets/**/*.cs`, so on a real Unity project they either never fired or fired on
+nothing. Shipping `unity-meta-check.sh` and `unity-animator-string-lint.sh` said
+Unity was a first-class target; the rest of the hook set said otherwise.
+Measured on a live Unity 6 project (60+ scripts, 80+ design docs, six observed
+commits):
+
+- **`detect-gaps.sh` called a mature project a fresh start.** All three
+  freshness tests looked at non-Unity paths, and the branch `exit 0`s — so
+  checks 1-5, the actual purpose of the hook, had never run on a Unity project.
+  Freshness now also clears on an engine scaffold, on 3+ design docs under any
+  detected design root, and on a non-empty `production/` tree (which is why this
+  very repo, having no `src/` at all, was also reporting `NEW PROJECT`). Checks
+  1-5 resolve `core`/`gameplay` directories by **name** rather than by a fixed
+  `src/gameplay` path, so Unity's `Assets/02.Scripts/Gameplay/Combat/` resolves.
+- **`validate-commit.sh` passed silently on every commit.** Its four staged-file
+  filters were all `^src/…`-shaped. Code checks now select files by
+  **extension**, which is portable across engines; document and JSON checks use
+  the detected design and asset roots. Per-file findings collapse into one
+  summary line (5 files named, then a count) so a large Unity commit cannot bury
+  the warning, and the scan is capped at 200 files to stay inside the 15s
+  PreToolUse budget. Also fixed: matched lines used to leak onto stdout because
+  the `grep` guards were missing `-q`.
+- **`validate-assets.sh` had two bugs hiding each other.** The path filter
+  matched lowercase `assets/` only, so Unity files never reached the naming
+  rule — which hardcoded lowercase-with-underscores and would have rejected
+  `PlayerController.cs`, `CARD_MaxHP.asset` and `Monster_Base.prefab`, all of
+  them correct Unity names (a C# file name must match its class name). Fixing
+  the path alone would have warned on essentially every Unity file. The
+  convention is now per-engine: `pascal` for Unity/Unreal flags only whitespace
+  and hyphens, `snake` for web/Godot is unchanged, and `any` disables the check.
+- **`plugin.json`** — the PostToolUse matcher was `Write|Edit`, so `.meta`
+  checks and the Animator lint were skipped wherever MultiEdit is active. Now
+  `Write|Edit|MultiEdit`.
+
+`unity-meta-check.sh`, `unity-animator-string-lint.sh`, `validate-push.sh` and
+`detect-project-type.sh` were already correct and are untouched; regression
+tests pin the first three.
+
+### Added — `hooks/lib/detect-layout.sh`
+
+One place decides the layout, because copy-pasting the same engine test per hook
+is how they diverged. Exports `STUDIO_ENGINE` (unity/godot/unreal/gamemaker/
+generic), source roots and extensions, design roots, asset roots and the naming
+convention, plus helpers (`studio_count_sources`, `studio_find_subdir`,
+`studio_naming_violation`, …). Generated trees (`Library/`, `Temp/`,
+`node_modules/`, `Intermediate/`, …) are pruned from every walk — Unity's
+`Library/` alone would blow the SessionStart timeout.
+
+- **Backward compatible by construction.** `generic` reproduces the old web
+  layout; `lib`/`app`/`packages` are additive and only apply when they exist.
+- **Overridable** via environment, `.claude/studio-layout.json`, or a
+  `studio.layout` block in `.claude/settings.json` — a project whose docs live
+  somewhere unusual (`Documents/Specs/`) can say so. Unreadable config falls
+  through to detection, never to an empty layout.
+- **Degrades, never dies.** Every consumer guards the `source` with `-f` and
+  keeps a legacy fallback; a missing helper cannot fail a session or a commit.
+- `docs/hooks-reference.md` — layout contract, the override schema, and five
+  rules for adding a hook (source the helper; select by extension; stay
+  advisory; `grep -E` only; test both directions).
+
+### Added — `tests/test_hooks_layout.py`
+
+69 tests, the repo's first coverage of hook behaviour: engine detection for four
+engines, layout resolution and override precedence (including the jq-less grep
+fallback), the `NEW PROJECT` misfire in both directions, Unity vs. web naming,
+JSON blocking on both layouts, and a guard proving the source globs are not
+shell-expanded before `find` sees them. Suite: 226 → 295 passed.
+
 ## v0.6.1 — 2026-07-30
 
 ### Changed — The deterministic flow now covers both tracks

@@ -1,7 +1,7 @@
 {
   "name": "claude-code-studios",
-  "version": "0.6.1",
-  "description": "Full software studio for Claude Code: 45 specialist agents across game AND app/web/service development, 84 workflow skills, and production hooks covering pre-production through live-ops. v0.6.1 extends the deterministic workflow catalog to the product track (dual-track schema v2, explicit step dependencies, check_phase.py exit-code gate) and ships /create-prd. (v0.6.0 added the Korean humanize pack, deterministic exit-code gates, and the repo's first tests + CI.)",
+  "version": "0.6.2",
+  "description": "Full software studio for Claude Code: 45 specialist agents across game AND app/web/service development, 84 workflow skills, and production hooks covering pre-production through live-ops. v0.6.2 makes the hooks layout-aware (shared engine/path detection in hooks/lib/detect-layout.sh) so Unity, Godot and Unreal projects stop being misread as fresh starts or skipped outright. (v0.6.1 extended the deterministic workflow catalog to the product track and shipped /create-prd; v0.6.0 added the Korean humanize pack, deterministic exit-code gates, and the repo's first tests + CI.)",
   "author": {
     "name": "Cannon Kingdom Dev"
   },
@@ -63,7 +63,7 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "Write|Edit",
+        "matcher": "Write|Edit|MultiEdit",
         "hooks": [
           {
             "type": "command",

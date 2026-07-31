@@ -4,7 +4,9 @@ Claude Code 플러그인 형태로 패키징된 *완전한* 소프트웨어 스�
 
 **전문 에이전트 45종** · **워크플로우 skill 84종** · **production hooks** · **거버넌스/워크플로우 자산 (v0.2.0+)** · **도메인 팩 + 프로젝트 타입 자동 감지 (v0.4.0+)** — 프리프로덕션 → 프로덕션 → QA → 릴리스 → 라이브 옵스 전 단계 커버.
 
-> **v0.6.1 신규:** 결정론적 흐름이 **product 트랙까지** 확장됐습니다. `docs/workflow-catalog.yaml` 이 game/product **듀얼 트랙**(스키마 v2)이 되고, 스텝 간 의존이 `depends_on` 으로 명시되며, 단계 완료 판정은 새 게이트 **`scripts/check_phase.py`** 가 exit code 로 내립니다(`0` 완료 / `1` 진행중 / `2` 의존 위반 — 건너뛴 스텝 탐지 / `3` 판정불가). `/help` 와 `/project-stage-detect` 는 이제 직접 glob 하지 않고 이 판정을 읽습니다. 약속만 있던 **`/create-prd`** 도 합류 — product 트랙의 `/design-system` 대응물입니다.
+> **v0.6.2 신규:** hook 이 프로젝트 레이아웃을 읽습니다. 그동안 `detect-gaps.sh` · `validate-commit.sh` · `validate-assets.sh` 는 `src/` · `assets/` · `design/gdd/` 를 박아두고 있어서, `Assets/` 와 `ProjectSettings/` 를 강제하는 Unity 프로젝트에서는 스크립트 60개짜리 코드베이스를 "**NEW PROJECT**" 로 진단하거나(그 분기가 `exit 0` 이라 정작 갭 검사 1~5는 한 번도 못 돌았습니다) 커밋마다 아무것도 못 잡고 지나갔습니다. 감지를 [hooks/lib/detect-layout.sh](hooks/lib/detect-layout.sh) 한 곳으로 모으고, 코드 검사는 경로 대신 **확장자** 기준으로 바꿨습니다. 명명 규칙은 엔진별로 갈라집니다 — Unity 의 `PlayerController.cs` 는 클래스명과 맞춰야 하는 올바른 이름이므로 소문자 강제 대상이 아닙니다. 웹/일반 프로젝트 동작은 그대로이고, `.claude/studio-layout.json` 으로 덮어쓸 수 있습니다. PostToolUse matcher 에 `MultiEdit` 도 추가.
+>
+> **v0.6.1:** 결정론적 흐름이 **product 트랙까지** 확장됐습니다. `docs/workflow-catalog.yaml` 이 game/product **듀얼 트랙**(스키마 v2)이 되고, 스텝 간 의존이 `depends_on` 으로 명시되며, 단계 완료 판정은 새 게이트 **`scripts/check_phase.py`** 가 exit code 로 내립니다(`0` 완료 / `1` 진행중 / `2` 의존 위반 — 건너뛴 스텝 탐지 / `3` 판정불가). `/help` 와 `/project-stage-detect` 는 이제 직접 glob 하지 않고 이 판정을 읽습니다. 약속만 있던 **`/create-prd`** 도 합류 — product 트랙의 `/design-system` 대응물입니다.
 >
 > **v0.6.0:** 게이트가 더 이상 자기 채점이 아닙니다. 스크립트 **exit code 가 판정**이고(`0` 통과 / `1` 경고 / `2` 중단 / `3` 판정불가), 돌지 못한 게이트는 통과로 읽지 않습니다 — 계약: [docs/deterministic-gates.md](docs/deterministic-gates.md). `/self-loop` 은 채점 전에 "스크립트가 판정할 수 있는가"를 먼저 묻고, `/smoke-check` 은 러너 출력을 해석하는 대신 exit code 를 직접 읽습니다.
 >
@@ -61,11 +63,23 @@ Claude Code 플러그인 형태로 패키징된 *완전한* 소프트웨어 스�
 
 ### Hooks
 
-- `SessionStart`: 프로젝트 컨텍스트 로드 + 누락 문서 감지
+- `SessionStart`: 프로젝트 컨텍스트 로드 + 누락 문서 감지 + 프로젝트 타입 판별
 - `PreToolUse` (Bash): git 커밋/푸시 검증 (한국어 컨벤션 기본 — 프로젝트별 오버라이드 가능)
-- `PostToolUse` (Write/Edit): 자산 명명 검증, skill 파일 변경 감지, **Unity 전용 안전장치 (자동 opt-in, v0.2.0+)**
+- `PostToolUse` (Write/Edit/MultiEdit): 자산 명명 검증, skill 파일 변경 감지, **Unity 전용 안전장치 (자동 opt-in, v0.2.0+)**
 - `Notification/PreCompact/PostCompact/Stop`: 컨텍스트 압축 및 세션 로깅
 - `SubagentStart/Stop`: 에이전트 활동 로깅
+
+#### 레이아웃 감지 (v0.6.2+)
+
+경로를 건드리는 hook 은 [hooks/lib/detect-layout.sh](hooks/lib/detect-layout.sh) 에서 레이아웃을 받아옵니다. 엔진을 판별해(unity / godot / unreal / gamemaker / generic) 소스 루트·설계 문서 루트·자산 루트·명명 규칙을 정하고, `Library/` `Temp/` `node_modules/` 같은 생성물은 순회에서 뺍니다.
+
+| | Unity | Godot | Unreal | 일반 |
+|---|---|---|---|---|
+| 소스 루트 | `Assets` | `.` | `Source` `Plugins` | `src` `lib` `app` `packages` |
+| 설계 문서 | 존재하는 후보 전부 (`design/gdd` `Documents` `Docs` `docs/design` …) | | | `design/gdd` `product/prd` `docs/design` |
+| 명명 규칙 | `pascal` | `snake` | `pascal` | `snake` |
+
+`.claude/studio-layout.json`(또는 `.claude/settings.json` 의 `studio.layout`)으로 덮어씁니다 — 문서가 `Documents/Specs/` 에 있는 프로젝트는 그렇게 알려주면 됩니다. 계약과 hook 추가 규칙: [docs/hooks-reference.md](docs/hooks-reference.md).
 
 #### Unity opt-in (v0.2.0+)
 

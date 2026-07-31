@@ -1,15 +1,41 @@
 #!/bin/bash
-# Claude Code PostToolUse hook: Validates asset files after Write/Edit
-# Checks naming conventions for files in assets/ directory
+# Claude Code PostToolUse hook: Validates asset files after Write/Edit/MultiEdit
+# Checks naming conventions for files under the project's asset root(s)
 #
 # Exit behavior:
 #   exit 0 = success or advisory warnings only (non-blocking)
 #   exit 1 = blocking error (build-breaking issues: invalid JSON, missing required fields)
 #
-# Input schema (PostToolUse for Write/Edit):
+# Input schema (PostToolUse for Write/Edit/MultiEdit):
 # { "tool_name": "Write", "tool_input": { "file_path": "assets/data/foo.json", "content": "..." } }
+#
+# Layout-aware since v0.6.2. Two bugs were hiding each other here: the path
+# filter only matched lowercase assets/, so Unity's Assets/ never reached the
+# checks — and the naming rule hardcoded lowercase_with_underscores, which
+# Unity cannot satisfy (a C# file name must match its class name, so
+# PlayerController.cs is correct, not a violation). Fixing the path alone would
+# have fired a naming warning on essentially every Unity file. The convention
+# is now per-engine: pascal for Unity/Unreal, snake elsewhere.
 
 INPUT=$(cat)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+if [ -f "$SCRIPT_DIR/lib/detect-layout.sh" ]; then
+    # shellcheck source=lib/detect-layout.sh
+    . "$SCRIPT_DIR/lib/detect-layout.sh"
+else
+    # Degraded fallback: the pre-v0.6.2 hardcoded web layout.
+    STUDIO_ENGINE="generic"
+    STUDIO_ASSET_NAMING="snake"
+    studio_asset_root_regex() { printf '(^|/)(assets)/'; }
+    studio_naming_violation() {
+        if printf '%s' "$1" | grep -qE '[A-Z[:space:]-]'; then
+            printf 'must be lowercase with underscores'
+            return 0
+        fi
+        return 1
+    }
+fi
 
 # Parse file path -- use jq if available, fall back to grep
 if command -v jq >/dev/null 2>&1; then
@@ -18,11 +44,16 @@ else
     FILE_PATH=$(echo "$INPUT" | grep -oE '"file_path"[[:space:]]*:[[:space:]]*"[^"]*"' | sed 's/"file_path"[[:space:]]*:[[:space:]]*"//;s/"$//')
 fi
 
+# Empty file_path = non-file tool, skip
+[ -z "$FILE_PATH" ] && exit 0
+
 # Normalize path separators (Windows backslash to forward slash)
 FILE_PATH=$(echo "$FILE_PATH" | sed 's|\\|/|g')
 
-# Only check files in assets/
-if ! echo "$FILE_PATH" | grep -qE '(^|/)assets/'; then
+# Only check files under an asset root (Assets/ on Unity, Content/ on Unreal,
+# assets/ on web). Case-sensitive: the case IS the convention signal.
+ASSET_RE=$(studio_asset_root_regex)
+if ! echo "$FILE_PATH" | grep -qE "$ASSET_RE"; then
     exit 0
 fi
 
@@ -30,16 +61,23 @@ FILENAME=$(basename "$FILE_PATH")
 WARNINGS=""   # Style/convention issues -- exit 0 with advisory message
 ERRORS=""     # Build-breaking issues -- exit 1 to block the operation
 
-# ADVISORY: Check naming convention (lowercase with underscores only)
-# Naming issues are style violations -- warn but do not block
-# Uses grep -E (POSIX) not grep -P (Perl) for Windows Git Bash compatibility
-if echo "$FILENAME" | grep -qE '[A-Z[:space:]-]'; then
-    WARNINGS="$WARNINGS\n  NAMING: $FILE_PATH must be lowercase with underscores (got: $FILENAME)"
+# Unity generates .meta sidecars itself; their names mirror the asset they
+# describe, so judging them separately would double every warning.
+case "$FILE_PATH" in
+    *.meta) exit 0 ;;
+esac
+
+# ADVISORY: Check naming convention for the detected engine.
+# Naming issues are style violations -- warn but do not block.
+# Uses grep -E (POSIX) not grep -P (Perl) for Windows Git Bash compatibility.
+NAMING_REASON=$(studio_naming_violation "$FILENAME")
+if [ -n "$NAMING_REASON" ]; then
+    WARNINGS="$WARNINGS\n  NAMING [$STUDIO_ASSET_NAMING]: $FILE_PATH $NAMING_REASON (got: $FILENAME)"
 fi
 
 # BLOCKING: Check JSON validity for data files
 # Invalid JSON will break runtime loading -- this is a build-breaking error
-if echo "$FILE_PATH" | grep -qE '(^|/)assets/data/.*\.json$'; then
+if echo "$FILE_PATH" | grep -qE '(((^|/)assets/data/)|'"$ASSET_RE"').*\.json$'; then
     if [ -f "$FILE_PATH" ]; then
         # Find a working Python command
         PYTHON_CMD=""

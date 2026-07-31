@@ -3,14 +3,50 @@
 # Event: SessionStart
 # Purpose: Detect missing documentation when code/prototypes exist
 # Cross-platform: Windows Git Bash compatible (uses grep -E, not -P)
+#
+# Layout-aware since v0.6.2: source roots, design roots and the engine test all
+# come from hooks/lib/detect-layout.sh. Before that this hook assumed src/ +
+# design/gdd/, so a mature Unity project (Assets/**/*.cs, Documents/*.md) was
+# reported as "NEW PROJECT" and checks 1-5 never ran at all.
 
 # Exit on error for debugging (but don't fail the session)
 set +e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 echo "=== Checking for Documentation Gaps ==="
+
+if [ ! -f "$SCRIPT_DIR/lib/detect-layout.sh" ]; then
+  echo "   (skipped: hooks/lib/detect-layout.sh not found — plugin install looks incomplete)"
+  echo "==================================="
+  exit 0
+fi
+
+# shellcheck source=lib/detect-layout.sh
+. "$SCRIPT_DIR/lib/detect-layout.sh"
+
+# Human-readable root lists for the suggestion messages. Prefer a root that
+# actually exists so the suggested command names a real path.
+PRIMARY_SRC_ROOT=""
+while IFS= read -r candidate; do
+  [ -n "$candidate" ] || continue
+  if [ -d "$candidate" ]; then
+    PRIMARY_SRC_ROOT="$candidate"
+    break
+  fi
+done <<< "$STUDIO_SRC_ROOTS"
+[ -n "$PRIMARY_SRC_ROOT" ] || PRIMARY_SRC_ROOT=$(printf '%s\n' "$STUDIO_SRC_ROOTS" | head -1)
+PRIMARY_DESIGN_ROOT=$(printf '%s\n' "$STUDIO_DESIGN_ROOTS" | head -1)
+DESIGN_ROOT_LIST=$(printf '%s' "$STUDIO_DESIGN_ROOTS" | tr '\n' ' ')
 
 # --- Check 0: Fresh project detection (suggests /start) ---
 FRESH_PROJECT=true
+
+# An engine project is never fresh — Unity/Godot/Unreal/GameMaker all require
+# scaffolding that does not exist before someone deliberately created it.
+if studio_is_engine_project; then
+  FRESH_PROJECT=false
+fi
 
 # Check if engine is configured
 if [ -f ".claude/docs/technical-preferences.md" ]; then
@@ -20,17 +56,30 @@ if [ -f ".claude/docs/technical-preferences.md" ]; then
   fi
 fi
 
-# Check if game concept exists
-if [ -f "design/gdd/game-concept.md" ]; then
+# Check if a game concept exists in any design root
+if studio_design_doc_exists "game-concept" || studio_design_doc_exists "product-concept"; then
   FRESH_PROJECT=false
 fi
 
 # Check if source code exists
-if [ -d "src" ]; then
-  SRC_CHECK=$(find src -type f \( -name "*.gd" -o -name "*.cs" -o -name "*.cpp" -o -name "*.c" -o -name "*.h" -o -name "*.hpp" -o -name "*.rs" -o -name "*.py" -o -name "*.js" -o -name "*.ts" \) 2>/dev/null | head -1)
-  if [ -n "$SRC_CHECK" ]; then
-    FRESH_PROJECT=false
-  fi
+SRC_FILES=$(studio_count_sources)
+if [ "$SRC_FILES" -gt 0 ]; then
+  FRESH_PROJECT=false
+fi
+
+# A body of design docs also rules out "fresh", even when none of them is
+# named game-concept.md — projects that predate this template name it whatever
+# they like.
+DESIGN_FILES=$(studio_count_design_docs)
+if [ "$DESIGN_FILES" -ge 3 ]; then
+  FRESH_PROJECT=false
+fi
+
+# Production artifacts are layout-independent evidence that work has started:
+# sprints, milestones, bugs, session logs. Nothing creates production/ by
+# accident.
+if [ -d "production" ] && [ -n "$(find production -mindepth 1 -print -quit 2>/dev/null)" ]; then
+  FRESH_PROJECT=false
 fi
 
 if [ "$FRESH_PROJECT" = true ]; then
@@ -44,26 +93,9 @@ if [ "$FRESH_PROJECT" = true ]; then
 fi
 
 # --- Check 1: Substantial codebase but sparse design docs ---
-if [ -d "src" ]; then
-  # Count source files (cross-platform, handles Windows paths)
-  SRC_FILES=$(find src -type f \( -name "*.gd" -o -name "*.cs" -o -name "*.cpp" -o -name "*.c" -o -name "*.h" -o -name "*.hpp" -o -name "*.rs" -o -name "*.py" -o -name "*.js" -o -name "*.ts" \) 2>/dev/null | wc -l)
-else
-  SRC_FILES=0
-fi
-
-if [ -d "design/gdd" ]; then
-  DESIGN_FILES=$(find design/gdd -type f -name "*.md" 2>/dev/null | wc -l)
-else
-  DESIGN_FILES=0
-fi
-
-# Normalize whitespace from wc output
-SRC_FILES=$(echo "$SRC_FILES" | tr -d ' ')
-DESIGN_FILES=$(echo "$DESIGN_FILES" | tr -d ' ')
-
 if [ "$SRC_FILES" -gt 50 ] && [ "$DESIGN_FILES" -lt 5 ]; then
-  echo "⚠️  GAP: Substantial codebase ($SRC_FILES source files) but sparse design docs ($DESIGN_FILES files)"
-  echo "    Suggested action: /reverse-document design src/[system]"
+  echo "⚠️  GAP: Substantial codebase ($SRC_FILES source files) but sparse design docs ($DESIGN_FILES files in: $DESIGN_ROOT_LIST)"
+  echo "    Suggested action: /reverse-document design $PRIMARY_SRC_ROOT/[system]"
   echo "    Or run: /project-stage-detect to get full analysis"
 fi
 
@@ -95,47 +127,61 @@ if [ -d "prototypes" ]; then
 fi
 
 # --- Check 3: Core systems without architecture docs ---
-if [ -d "src/core" ] || [ -d "src/engine" ]; then
-  if [ ! -d "docs/architecture" ]; then
-    echo "⚠️  GAP: Core engine/systems exist but no docs/architecture/ directory"
-    echo "    Suggested action: Create docs/architecture/ and run /architecture-decision"
-  else
-    ADR_COUNT=$(find docs/architecture -type f -name "*.md" 2>/dev/null | wc -l)
-    ADR_COUNT=$(echo "$ADR_COUNT" | tr -d ' ')
-
-    if [ "$ADR_COUNT" -lt 3 ]; then
-      echo "⚠️  GAP: Core systems exist but only $ADR_COUNT ADR(s) documented"
-      echo "    Suggested action: /reverse-document architecture src/core/[system]"
+# Matched by directory name rather than a fixed src/core path: Unity nests
+# these as Assets/02.Scripts/Core/, Unreal as Source/<Game>/Core/.
+CORE_DIRS=$(studio_find_subdir core engine Core Engine)
+if [ -n "$CORE_DIRS" ]; then
+  ADR_COUNT=0
+  ADR_ROOT=""
+  for candidate in "docs/architecture" "design/adr" "design/architecture"; do
+    if [ -d "$candidate" ]; then
+      [ -z "$ADR_ROOT" ] && ADR_ROOT="$candidate"
+      n=$(find "$candidate" -type f -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
+      ADR_COUNT=$((ADR_COUNT + n))
     fi
+  done
+
+  if [ -z "$ADR_ROOT" ]; then
+    echo "⚠️  GAP: Core engine/systems exist but no architecture docs directory (looked for docs/architecture/, design/adr/)"
+    echo "    Suggested action: Create design/adr/ and run /architecture-decision"
+  elif [ "$ADR_COUNT" -lt 3 ]; then
+    FIRST_CORE=$(printf '%s\n' "$CORE_DIRS" | head -1)
+    echo "⚠️  GAP: Core systems exist but only $ADR_COUNT ADR(s) documented in $ADR_ROOT/"
+    echo "    Suggested action: /reverse-document architecture $FIRST_CORE"
   fi
 fi
 
 # --- Check 4: Gameplay systems without design docs ---
-if [ -d "src/gameplay" ]; then
-  # Find major gameplay subdirectories (those with 5+ files)
-  GAMEPLAY_SYSTEMS=$(find src/gameplay -mindepth 1 -maxdepth 1 -type d 2>/dev/null)
+GAMEPLAY_DIRS=$(studio_find_subdir gameplay Gameplay systems Systems)
+if [ -n "$GAMEPLAY_DIRS" ]; then
+  while IFS= read -r gameplay_root; do
+    [ -n "$gameplay_root" ] || continue
 
-  if [ -n "$GAMEPLAY_SYSTEMS" ]; then
+    GAMEPLAY_SYSTEMS=$(find "$gameplay_root" -mindepth 1 -maxdepth 1 -type d 2>/dev/null)
+    [ -n "$GAMEPLAY_SYSTEMS" ] || continue
+
     while IFS= read -r system_dir; do
       system_dir=$(echo "$system_dir" | sed 's|\\|/|g')
       system_name=$(basename "$system_dir")
-      file_count=$(find "$system_dir" -type f 2>/dev/null | wc -l)
+      # .meta sidecars are not content — counting them doubles every Unity
+      # directory and halves the effective 5-file threshold.
+      file_count=$(find "$system_dir" -type f ! -name '*.meta' 2>/dev/null | wc -l)
       file_count=$(echo "$file_count" | tr -d ' ')
 
-      # If system has 5+ files, check for corresponding design doc
+      # If system has 5+ files, check for a corresponding design doc
       if [ "$file_count" -ge 5 ]; then
-        # Check for design doc (allow variations: combat-system.md, combat.md)
-        design_doc_1="design/gdd/${system_name}-system.md"
-        design_doc_2="design/gdd/${system_name}.md"
+        # Directory names are matched case-insensitively against doc names:
+        # Unity's Combat/ should find design/gdd/combat-system.md.
+        system_slug=$(echo "$system_name" | tr '[:upper:]' '[:lower:]')
 
-        if [ ! -f "$design_doc_1" ] && [ ! -f "$design_doc_2" ]; then
-          echo "⚠️  GAP: Gameplay system 'src/gameplay/$system_name/' ($file_count files) has no design doc"
-          echo "    Expected: design/gdd/${system_name}-system.md or design/gdd/${system_name}.md"
-          echo "    Suggested action: /reverse-document design src/gameplay/$system_name"
+        if ! studio_design_doc_exists "$system_name" && ! studio_design_doc_exists "$system_slug"; then
+          echo "⚠️  GAP: Gameplay system '$system_dir/' ($file_count files) has no design doc"
+          echo "    Expected: $PRIMARY_DESIGN_ROOT/${system_slug}-system.md or $PRIMARY_DESIGN_ROOT/${system_slug}.md"
+          echo "    Suggested action: /reverse-document design $system_dir"
         fi
       fi
     done <<< "$GAMEPLAY_SYSTEMS"
-  fi
+  done <<< "$GAMEPLAY_DIRS"
 fi
 
 # --- Check 5: Production planning ---

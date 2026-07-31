@@ -6,15 +6,37 @@ This plugin ships with optional Unity-specific safeguards. They auto-detect a Un
 
 | Asset | Type | Activation |
 |---|---|---|
-| `hooks/unity-meta-check.sh` | PostToolUse (Write/Edit) | **Auto** — fires when in a Unity project. Warns on `.cs`/`.shader`/`.asset`/`.prefab`/`.mat`/`.controller` writes if the paired `.meta` is missing. |
-| `hooks/unity-animator-string-lint.sh` | PostToolUse (Write/Edit) | **Auto** — warns when `.cs` files use `Animator.SetBool("name", ...)` instead of cached `StringToHash`. |
+| `hooks/unity-meta-check.sh` | PostToolUse (Write/Edit/MultiEdit) | **Auto** — fires when in a Unity project. Warns on `.cs`/`.shader`/`.asset`/`.prefab`/`.mat`/`.controller` writes if the paired `.meta` is missing. |
+| `hooks/unity-animator-string-lint.sh` | PostToolUse (Write/Edit/MultiEdit) | **Auto** — warns when `.cs` files use `Animator.SetBool("name", ...)` instead of cached `StringToHash`. |
 | `templates/githooks/unity-pre-commit` | git pre-commit | **Manual opt-in** — blocks commit if a staged Unity asset is missing its paired `.meta`. |
 
 ## Auto-opt-in hooks (no setup needed)
 
-If your project root has both `Assets/` and `ProjectSettings/`, the two PostToolUse hooks (`unity-meta-check.sh`, `unity-animator-string-lint.sh`) automatically fire after every Write/Edit. In any other project they exit immediately with no output.
+If your project root has both `Assets/` and `ProjectSettings/`, the two PostToolUse hooks (`unity-meta-check.sh`, `unity-animator-string-lint.sh`) automatically fire after every Write/Edit/MultiEdit. In any other project they exit immediately with no output.
 
 These are **advisory** — they print to stderr but never block tool execution.
+
+## The rest of the hook set (v0.6.2+)
+
+The two hooks above were Unity-aware from the start; the general-purpose hooks
+were not. Until v0.6.2 they hardcoded `src/`, `assets/` and `design/gdd/`, so on
+a Unity project `detect-gaps.sh` reported a mature codebase as `NEW PROJECT`,
+`validate-commit.sh` matched nothing on every commit, and `validate-assets.sh`
+skipped every file. They now read the layout from `hooks/lib/detect-layout.sh`
+and work on `Assets/**/*.cs` without configuration.
+
+One consequence worth knowing: the asset naming rule is **`pascal`** on Unity,
+not `snake`. `PlayerController.cs`, `CARD_MaxHP.asset` and `Monster_Base.prefab`
+are all accepted — only whitespace and hyphens are flagged, since a `.cs` file
+name has to match its class name. If your project's design docs live somewhere
+other than `design/gdd/` or `Documents/`, point the hooks at them:
+
+```json
+// .claude/studio-layout.json
+{ "designRoots": ["Documents/Specs"], "assetNaming": "pascal" }
+```
+
+Full contract: [../hooks-reference.md](../hooks-reference.md).
 
 ### Why these checks?
 
