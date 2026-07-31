@@ -74,6 +74,19 @@ fallback), the `NEW PROJECT` misfire in both directions, Unity vs. web naming,
 JSON blocking on both layouts, and a guard proving the source globs are not
 shell-expanded before `find` sees them. Suite: 226 → 295 passed.
 
+### Fixed — the marketplace manifest had been advertising v0.6.0
+
+`.claude-plugin/marketplace.json` — the file the marketplace actually reads —
+still said `0.6.0` and "83 workflow skills". Both the v0.6.1 and v0.6.2 release
+commits updated `plugin.json` and forgot its twin, so users were being offered a
+two-release-old build. Now `0.6.2` / 84 skills, matching the filesystem.
+
+`tests/test_manifest_sync.py` (9 tests) makes the next omission unmergeable:
+the two manifests must agree on version, license and author; the advertised
+skill and agent counts are checked against the filesystem rather than against
+each other (so adding a skill without touching the description also fails); and
+the CHANGELOG's top section must name the current version or be `Unreleased`.
+
 ## v0.6.1 — 2026-07-30
 
 ### Changed — The deterministic flow now covers both tracks
