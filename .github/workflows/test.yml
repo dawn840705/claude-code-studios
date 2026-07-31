@@ -14,8 +14,8 @@ jobs:
       matrix:
         python-version: ["3.11", "3.12", "3.13"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
       # pytest is the only third-party dependency; the vendored runtime itself
@@ -27,8 +27,8 @@ jobs:
     name: generated-file drift
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       # quick-rules.md and diagnosis-rules.md are BUILT from ai-tell-taxonomy.md
@@ -45,8 +45,8 @@ jobs:
     name: skill/agent structure
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       # Pre-existing failures are recorded in scripts/lint_baseline.json and are
