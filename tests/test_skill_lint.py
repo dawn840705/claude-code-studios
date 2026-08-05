@@ -22,9 +22,11 @@ sys.path.insert(0, os.path.join(_ROOT, "scripts"))
 import lint_skills as ls  # noqa: E402
 
 
+# description 도 검사 대상(Check 8·10)이므로, 이 픽스처는 "잘 쓰인 description"
+# 의 본보기여야 한다 — 언제 쓰는지(trigger)와 언제 쓰지 않는지(negative)를 모두 담는다.
 GOOD_SKILL = """---
 name: good-skill
-description: A well-formed skill
+description: "Use this skill when the user asks to verify a target. Do NOT use it for unrelated reporting tasks."
 argument-hint: "[target]"
 user-invocable: true
 allowed-tools: Read, Glob
@@ -221,6 +223,114 @@ class TestExitCodes(unittest.TestCase):
             _write_skill(skills, "warner", GOOD_SKILL)  # Check 4 read-only WARN
             self.assertEqual(ls.main([skills, "--quiet"]), 0)
             self.assertEqual(ls.main([skills, "--quiet", "--strict"]), 1)
+
+
+class TestDescriptionQuality(unittest.TestCase):
+    """Checks 8·9·10 — description 은 문서가 아니라 라우팅 지시문이다.
+
+    셋 다 WARNING 이므로 실패로 승격되지 않는지도 함께 단언한다. 경고가
+    조용히 실패가 되면 기존 130개 파일이 전부 CI 를 막는다.
+    """
+
+    def _warn_text(self, description: str) -> str:
+        r = ls.Result("x", "skill")
+        ls.check_description_quality(r, description)
+        return " ".join(r.warnings)
+
+    # --- Check 8: when NOT to use --------------------------------------
+    def test_missing_negative_condition_warns(self):
+        self.assertIn("Check 8", self._warn_text(
+            "Use this skill when the user asks for a sprint plan."))
+
+    def test_english_negative_condition_satisfies_check_8(self):
+        for phrase in ("Do NOT use for PDFs.", "instead of a Word document",
+                       "never for style opinions", "Avoid for read-only tasks."):
+            text = self._warn_text(f"Use when the user asks for X. {phrase}")
+            self.assertNotIn("Check 8", text, phrase)
+
+    def test_korean_negative_condition_satisfies_check_8(self):
+        text = self._warn_text("문서를 만들 때 사용하세요. 스프레드시트에는 쓰지 않습니다.")
+        self.assertNotIn("Check 8", text)
+
+    # --- Check 10: when TO use -----------------------------------------
+    def test_capability_blurb_without_trigger_warns(self):
+        self.assertIn("Check 10", self._warn_text(
+            "A helper that produces a nicely formatted report."))
+
+    def test_trigger_clause_satisfies_check_10(self):
+        for phrase in ("Use this skill when the user asks.",
+                       "Trigger whenever a .pptx is involved.",
+                       "Use for release readiness evaluation.",
+                       "사용자가 요청할 때 실행합니다."):
+            self.assertNotIn("Check 10", self._warn_text(phrase), phrase)
+
+    def test_empty_description_is_not_double_reported(self):
+        # 빈 description 은 Check 1 / empty description 이 이미 잡는다.
+        r = ls.Result("x", "skill")
+        ls.check_description_quality(r, "")
+        self.assertEqual(r.warnings, [])
+
+    # --- Check 9: near duplicates ---------------------------------------
+    def _pair(self, da: str, db: str) -> list[ls.Result]:
+        ra, rb = ls.Result("skills/a/SKILL.md", "skill"), ls.Result("skills/b/SKILL.md", "skill")
+        ra.description, rb.description = da, db
+        ls.flag_near_duplicates([ra, rb])
+        return [ra, rb]
+
+    def test_near_identical_descriptions_warn_on_both_sides(self):
+        d = ("Use this skill when the user wants a combat balance review of "
+             "damage formulas, hit rates and enemy scaling curves.")
+        ra, rb = self._pair(d, d)
+        self.assertTrue(any("Check 9" in w for w in ra.warnings))
+        self.assertTrue(any("Check 9" in w for w in rb.warnings))
+
+    def test_distinct_descriptions_do_not_warn(self):
+        ra, rb = self._pair(
+            "Use this skill when the user wants a combat balance review of damage formulas.",
+            "Trigger whenever a PDF must be merged, split, rotated or watermarked.")
+        self.assertFalse(any("Check 9" in w for w in ra.warnings + rb.warnings))
+
+    def test_short_descriptions_abstain(self):
+        # 토큰이 너무 적으면 유사도는 잡음이다 — 판정하지 않는다.
+        ra, rb = self._pair("Do the thing.", "Do the thing.")
+        self.assertFalse(any("Check 9" in w for w in ra.warnings + rb.warnings))
+
+    def test_threshold_is_a_named_constant(self):
+        # deterministic-gates.md "Adding a gate" 규칙 2.
+        self.assertIsInstance(ls.NEAR_DUPLICATE_THRESHOLD, float)
+        self.assertTrue(0.0 < ls.NEAR_DUPLICATE_THRESHOLD < 1.0)
+
+    def test_threshold_can_actually_fire_on_the_real_roster(self):
+        """0.60 은 한 번도 발동하지 않았다. 발동 못 하는 검사는 없느니만 못하다."""
+        files = ls.collect([os.path.join(_ROOT, "skills"), os.path.join(_ROOT, "agents")])
+        results = []
+        for path, kind in files:
+            with open(path, encoding="utf-8") as f:
+                text = f.read()
+            results.append(ls.lint_skill(path, text) if kind == "skill"
+                           else ls.lint_agent(path, text))
+        ls.flag_near_duplicates(results)
+        fired = sum(1 for r in results for w in r.warnings if "Check 9" in w)
+        self.assertGreater(fired, 0, "Check 9 never fires — threshold is too high")
+
+    # --- 등급 ------------------------------------------------------------
+    def test_description_checks_are_warnings_not_failures(self):
+        r = ls.Result("x", "skill")
+        ls.check_description_quality(r, "A helper that does helpful things nicely.")
+        self.assertEqual(r.failures, [])
+        self.assertTrue(r.warnings)
+
+
+class TestUnquote(unittest.TestCase):
+    def test_strips_matching_quotes(self):
+        self.assertEqual(ls.unquote('"hello"'), "hello")
+        self.assertEqual(ls.unquote("'hello'"), "hello")
+
+    def test_leaves_bare_text(self):
+        self.assertEqual(ls.unquote("hello"), "hello")
+
+    def test_unescapes_inner_quotes(self):
+        self.assertEqual(ls.unquote('"say \\"hi\\""'), 'say "hi"')
 
 
 if __name__ == "__main__":

@@ -86,6 +86,71 @@ ANY_H2 = re.compile(r"^##\s+\S", re.M)
 
 FRONTMATTER = re.compile(r"\A---\s*\n(.*?)\n---\s*\n", re.S)
 
+# --- description quality (Checks 8-10) ---------------------------------------
+#
+# `description` is not documentation. It is the routing instruction Claude reads
+# when deciding whether to auto-invoke a skill or spawn an agent, and this repo
+# ships 85 skills + 45 agents — 130 choices resolved from description text alone.
+# A description that says only what a skill does, and not when to reach for it
+# or when to reach past it, forces the model to infer. In operation, inference
+# is a design failure: it shows up as a skill firing on the wrong task, or the
+# right skill never firing at all, and nothing in this repo detects either.
+#
+# All three checks are WARNINGS, not failures. The existing roster will trip
+# them broadly and fixing 130 files is not this change's job; the point is that
+# a *new* skill lands with the defect visible. Run with --strict to see the
+# backlog. Rationale: docs/design/v0.6.3-context-density-plan.md (A-2).
+
+# Check 8 — "when NOT to use this". English and Korean.
+NEGATIVE_CONDITION_PATTERNS = (
+    re.compile(r"\bdo not\b|\bdon't\b|\bnot for\b|\bnever\b|\bavoid\b", re.I),
+    re.compile(r"\binstead of\b|\brather than\b|\bas opposed to\b|\bnot when\b", re.I),
+    re.compile(r"\bonly (?:for|when|if)\b|\bexcept\b", re.I),
+    re.compile(r"않|아닌|아니라|제외|말 것|대신"),
+)
+
+# Check 10 — "when TO use this". A description with neither an explicit trigger
+# clause nor a conditional is a capability blurb, not a routing rule.
+TRIGGER_PATTERNS = (
+    re.compile(r"\buse (?:this |it )?(?:skill |agent )?(?:for|when|whenever|any time|after|before)\b", re.I),
+    re.compile(r"\b(?:trigger|invoke|reach for)(?:s|ed|ing)?\b", re.I),
+    re.compile(r"\bwhen(?:ever)? the (?:user|caller|orchestrator)\b", re.I),
+    re.compile(r"\b(?:run|call) (?:this|it) (?:at|after|before|when|during)\b", re.I),
+    re.compile(r"할 때|하려면|경우에|요청(?:하|할)"),
+)
+
+# Check 9 — near-duplicate descriptions. Jaccard over content tokens.
+#
+# Measured against the full v0.6.2 roster (130 files, 8385 pairs):
+#
+#     max 0.438 · p99.9 0.216 · p99 0.121 · median 0.000
+#
+# The distribution is far tighter than intuition suggests, because these
+# descriptions are long and Jaccard punishes length. The first guess at this
+# constant was 0.60 and it never fired once — a check that cannot fire is worse
+# than no check, because silence reads as "no confusables exist".
+#
+# 0.30 sits above p99.9 and selects exactly the pairs a human agrees are
+# confusable: create-prd ~ design-system (0.44 — the product-track and
+# game-track design docs, which is the pack-mixing failure CLAUDE.md warns
+# about), team-combat ~ team-polish (0.32), team-level ~ team-narrative (0.30).
+#
+# If this starts producing noise, change it here and record the new measurement
+# in the commit message. Never inline it.
+NEAR_DUPLICATE_THRESHOLD = 0.30
+
+# Below this, two descriptions are too thin for a similarity score to mean
+# anything, so Check 9 abstains rather than guessing.
+SIMILARITY_MIN_TOKENS = 6
+
+DESCRIPTION_STOPWORDS = frozenset(
+    """a an and any are as at be by for from has have in into is it its of on or
+    that the then this to use used uses using when with without you your which
+    what while all can if not""".split()
+)
+
+WORD_RE = re.compile(r"[A-Za-z가-힣][A-Za-z0-9가-힣'-]*")
+
 
 class Result:
     """Per-file lint outcome."""
@@ -95,6 +160,7 @@ class Result:
         self.kind = kind  # "skill" | "agent"
         self.failures: list[str] = []
         self.warnings: list[str] = []
+        self.description: str = ""  # kept for the cross-file Check 9 pass
 
     @property
     def verdict(self) -> str:
@@ -127,6 +193,77 @@ def parse_frontmatter(text: str) -> dict[str, str] | None:
         key, _, value = line.partition(":")
         fields[key.strip()] = value.strip()
     return fields
+
+
+def unquote(value: str) -> str:
+    """Strip the surrounding quotes the frontmatter convention uses."""
+    v = value.strip()
+    if len(v) >= 2 and v[0] == v[-1] and v[0] in "\"'":
+        v = v[1:-1]
+    return v.replace('\\"', '"').strip()
+
+
+def description_tokens(description: str) -> set[str]:
+    """Content tokens of a description, for the Check 9 similarity score."""
+    return {
+        w.lower()
+        for w in WORD_RE.findall(description)
+        if w.lower() not in DESCRIPTION_STOPWORDS and len(w) > 1
+    }
+
+
+def jaccard(a: set[str], b: set[str]) -> float:
+    if not a or not b:
+        return 0.0
+    return len(a & b) / len(a | b)
+
+
+def check_description_quality(r: Result, description: str) -> None:
+    """Checks 8 and 10 — the two halves of a routing rule.
+
+    Both are warnings. An empty description is already a failure elsewhere
+    (Check 1 for skills, `empty description` for agents), so skip it here
+    rather than reporting the same defect three times.
+    """
+    r.description = description
+    if not description:
+        return
+
+    if not any(p.search(description) for p in NEGATIVE_CONDITION_PATTERNS):
+        r.warnings.append(
+            "Check 8: description says when to use but never when NOT to — "
+            "the model has to infer the boundary"
+        )
+
+    if not any(p.search(description) for p in TRIGGER_PATTERNS):
+        r.warnings.append(
+            "Check 10: description has no explicit trigger clause "
+            "(\"Use when…\", \"Trigger whenever…\") — it describes, it does not route"
+        )
+
+
+def flag_near_duplicates(results: list[Result]) -> None:
+    """Check 9 — cross-file pass over every description in the run.
+
+    Runs after all files are linted because confusability is a property of the
+    roster, not of one file. Each pair is reported on both sides: whichever
+    file the author is editing should see it.
+    """
+    scored = [
+        (r, description_tokens(r.description))
+        for r in results
+        if len(description_tokens(r.description)) >= SIMILARITY_MIN_TOKENS
+    ]
+    for i, (ra, ta) in enumerate(scored):
+        for rb, tb in scored[i + 1:]:
+            score = jaccard(ta, tb)
+            if score < NEAR_DUPLICATE_THRESHOLD:
+                continue
+            for mine, other in ((ra, rb), (rb, ra)):
+                mine.warnings.append(
+                    f"Check 9: description {score:.2f} similar to "
+                    f"{label(other.path, other.kind)} — the model must guess between them"
+                )
 
 
 def lint_skill(path: str, text: str) -> Result:
@@ -178,6 +315,9 @@ def lint_skill(path: str, text: str) -> Result:
     if "argument-hint" in fm and not hint:
         r.warnings.append("Check 7: argument-hint is empty")
 
+    # Checks 8 & 10 — description as a routing rule (Check 9 runs cross-file)
+    check_description_quality(r, unquote(fm.get("description", "")))
+
     return r
 
 
@@ -192,6 +332,10 @@ def lint_agent(path: str, text: str) -> Result:
         r.failures.append("missing " + ", ".join(missing))
     if not fm.get("description", "").strip():
         r.failures.append("empty description")
+
+    # Agents are routed from description text exactly as skills are — the
+    # orchestrator picks one of 45 by reading them.
+    check_description_quality(r, unquote(fm.get("description", "")))
     return r
 
 
@@ -290,6 +434,9 @@ def main(argv: list[str]) -> int:
         with open(path, encoding="utf-8") as f:
             text = f.read()
         results.append(lint_skill(path, text) if kind == "skill" else lint_agent(path, text))
+
+    # Check 9 is a property of the roster, not of any one file.
+    flag_near_duplicates(results)
 
     if args.write_baseline:
         return write_baseline(args.write_baseline, results)

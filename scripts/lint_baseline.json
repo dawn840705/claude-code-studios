@@ -32,7 +32,6 @@
       "Check 3: no verdict keyword"
     ],
     "self-loop": [
-      "Check 3: no verdict keyword",
       "Check 4: allowed-tools has Write/Edit but no ask-before-write language"
     ],
     "sot-audit": [
