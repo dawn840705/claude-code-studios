@@ -2,6 +2,67 @@
 
 ## Unreleased
 
+### Added — 상류 흡수 1차: 제품 PRD 템플릿 + 전역 룰 3건
+
+출처는 `.upstream-scan/2026-08-05.md` — 이 플러그인을 쓰는 8개 프로젝트를 훑어
+**상류에 없으면서 2개 이상 프로젝트에 반복되는** 것만 추린 리포트다. 9건 중
+"신규 파일·절 추가뿐이라 기존 규약을 건드리지 않는" 4건을 먼저 넣었다. 나머지
+5건(아카이브 경로 규약, 세션 진입 루틴, 커밋 규율, 계측·인수인계 템플릿)은
+선행 결정이나 반복도 확인이 필요해 보류했고 사유는 리포트에 있다.
+
+- **`docs/templates/product-requirements-document.md`** (신규) — product 트랙의
+  **제품 단위** PRD. 5개 프로젝트(SpecForge · InvestLog · TossMiniApp · MindCare ·
+  ReviewSupporter)가 거의 같은 절 구성으로 수렴해 있었는데, 상류 템플릿 39종은
+  전부 게임 쪽이라 받을 자리가 없었다. `game-concept.md` · `pitch-document.md` 는
+  발상 단계 산출물이라 기능/비기능 요구사항, 페르소나, KPI, Out of Scope 가
+  통째로 없다.
+  **`/create-prd` 에는 연결하지 않았다.** 그쪽은 `product/prd/prd-<feature>.md`
+  에 쓰는 *기능 단위* PRD 이고 이건 제품 단위다. 두 층위를 한 스킬에 밀어넣지
+  않는다 — 산출 경로도 겹치지 않게 `product/prd/product-requirements.md` 를
+  권장 경로로 적어 두었다.
+- **`rules/subagent-collaboration.md` § 2.1** (절 추가) — **쓰기 영역을 스폰
+  전에 나눈다.** 45개 에이전트를 병렬로 부르는 플러그인에 쓰기 충돌면 분할이
+  없었다. Edit 은 마지막에 쓴 쪽이 이기고 진 쪽은 "완료" 를 보고하므로, § 5 의
+  안티패턴 중 유일하게 **조용히** 실패한다. 소유 표(에이전트 × 쓰기 경로 ×
+  읽기 전용 × 금지)를 채우지 못하면 아직 부를 준비가 안 된 것으로 본다.
+  소유가 겹치면 병렬 대신 직렬 — § 5 의 "직렬 호출 안티패턴" 은 *독립* 작업에만
+  해당한다는 점을 명시했다. 근거: StarDiver · SpecForge · CorpProject_10th ·
+  TossMiniApp 4개 프로젝트가 각자 같은 규칙을 재발명해 두고 있었다.
+- **`rules/decision-lifecycle.md`** (신규, 전역) — 확정된 결정은 다시 열지
+  않는다. 사람은 회의를 기억하지만 **새 세션의 에이전트는 기억하지 않으므로**,
+  폐기된 대안이 문서에 남지 않으면 매번 신선한 아이디어로 보인다. 확정 항목은
+  결정 문장 + 근거 링크 + **재검토 트리거** 3요소를 갖춘다 (트리거 없는 확정은
+  교착이다). 폐기된 값은 지우지 말고 **본문에** 폐기 표시 — 판단 기준은 "이
+  파일만 읽은 에이전트가 옛 값을 정본으로 착각할 수 있는가". ADR 과 겹치지
+  않게 기술 결정 / 제품·운영 결정의 경계도 표로 나눴다.
+- **`rules/claim-confidence.md`** (신규, 전역) — 확인한 것 · 추정한 것 · 모르는
+  것을 구별해 표기한다(무표기+출처 / `(추정)`+계산식 / `[확인 필요]`). 법조항,
+  과태료, 가격, 수수료율, 경쟁사 사실, API 시그니처는 기억에서 쓰지 않는다.
+  정직성 이전에 **전파** 문제다 — 표시되지 않은 추정치는 문서를 건널 때마다
+  확신이 올라간다. `self-loop.md` 는 *채점 근거*의 인용을 요구하고 이쪽은
+  *산출물 본문*의 사실 표기라 축이 다르며, 본문의 무표기 추정치는 그 자체로
+  `self-loop.md` § 2.1 의 결함 티켓 요건을 충족한다.
+
+하위 호환: **깨는 것 없음.** 스킬 이름 · 슬래시 명령 · 산출물 경로 규약 변경이
+없고, 기존 파일 수정은 `subagent-collaboration.md` 절 추가·§ 5 항목 2건과
+인덱스 3곳(`docs/rules-reference.md` · `docs/quick-start.md` · `README.md`)
+갱신뿐이다. 게이트: pytest 413 passed · `verify_policy` exit 0 ·
+`verify_trajectory` exit 0 · `lint_skills --baseline` exit 0 ·
+`check_phase --validate` exit 0.
+
+리뷰에서 드러난, **이 변경이 만든 게 아니라 부딪힌** 기존 구멍 셋. 고치지
+않았고 다음 스캔 항목으로 남긴다:
+
+- `product/prd/product-concept.md` 를 **쓰는 스킬이 없다.** 카탈로그
+  (`docs/workflow-catalog.yaml:456-458`) 는 그 단계에 `/brainstorm` 을
+  걸어놨지만 `skills/brainstorm/SKILL.md` 는 `design/gdd/game-concept.md` 만
+  쓴다. product 트랙 discovery 가 정상 경로로는 완료될 수 없다.
+- **`/gate-check` 는 game 트랙 phase 이름만 받는다** (`SKILL.md:4`). product
+  트랙(discovery → architecture → build → hardening → ship → growth) 에는
+  쓸 수 없어서, 새 템플릿은 `/project-stage-detect` 로 안내한다.
+- `CLAUDE.md:54` 의 product 스테이지 목록에 `architecture` 가 빠져 있다
+  (카탈로그 `:444` 의 `next_phase` 와 불일치).
+
 ### Added — `claude-seo` as a companion plugin (병합 아님)
 
 SEO 는 이 저장소가 직접 다루지 않던 공백이었다. `growth-engineer` 의 remit 에

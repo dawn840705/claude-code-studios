@@ -202,6 +202,10 @@ Templates are in `.claude/docs/templates/`:
 - `ux-spec.md` -- for per-screen UX specifications (layout zones, states, events)
 - `hud-design.md` -- for whole-game HUD philosophy, zones, and element specs
 - `accessibility-requirements.md` -- for project-wide accessibility tier and feature matrix
+- `product-requirements-document.md` -- **product track only** -- for the product-level PRD
+  (problem, personas, core loop, MVP scope, functional + non-functional requirements, KPIs,
+  out of scope). Not the per-feature PRD `/create-prd` writes -- this one sets the frame,
+  those specify one feature inside it. Game projects use `game-concept.md` instead.
 - `interaction-pattern-library.md` -- for standard UI controls and game-specific patterns
 - `player-journey.md` -- for 6-phase emotional arc and retention hooks by time scale
 - `difficulty-curve.md` -- for difficulty axes, onboarding ramp, and cross-system interactions
