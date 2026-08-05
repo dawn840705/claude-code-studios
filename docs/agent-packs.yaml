@@ -28,6 +28,87 @@ activation:
   service: [core, product, writing]
   unknown: [core, game, product, writing]   # 감지 실패 시 전체 노출(안전 폴백)
 
+# 스테이지별 에이전트 배정 — v0.6.3 에 CLAUDE.md 본문에서 이곳으로 이관.
+#
+# 이 표는 팀의 선택이다. 에이전트가 파일을 뒤져 알아낼 수 있는 정보가 아니라서
+# 지우면 복원되지 않는다. 다만 CLAUDE.md 본문에 두면 매 세션 60줄을 태우면서
+# 정작 중요한 지시(결정적 게이트·루트 힌트)의 밀도를 떨어뜨린다.
+# 그래서 삭제가 아니라 이관했다 — 라우팅의 SoT 는 원래부터 이 파일이다.
+#
+# 워크플로 스텝과 스킬은 docs/workflow-catalog.yaml 이 SoT 다. 여기는 "누가" 만,
+# 카탈로그는 "무엇을 어떤 순서로" 를 담는다. 둘을 겹쳐 적지 않는다.
+#
+#   primary — 그 스테이지의 산출물을 책임지는 역할
+#   support — 필요할 때 부르는 역할 (기본 호출 대상 아님)
+#
+# ⚠ 키는 docs/workflow-catalog.yaml 의 phase id 와 **정확히 일치해야 한다.**
+# check_phase.py 가 현재 phase 를 알려주면 그 이름으로 이 표를 찾는 구조라,
+# 한쪽에만 있는 phase 가 생기면 조회가 조용히 실패한다. 초안에서 실제로 그랬다 —
+# 5개 스테이지만 적어서 concept·systems-design·technical-setup·architecture 가
+# 비어 있었다. phase 를 추가·개명할 때는 두 파일을 같이 고칠 것.
+# tests/test_agent_packs_stages.py 가 이 정합을 강제한다.
+stages:
+
+  game:
+    concept:
+      primary: [game-designer, creative-director]
+      support: [narrative-director, art-director, producer]
+    systems-design:
+      primary: [systems-designer, game-designer, economy-designer]
+      support: [narrative-director, world-builder, technical-director]
+    technical-setup:
+      primary: [technical-director, lead-programmer, engine-programmer]
+      support: [devops-engineer, tools-programmer]
+    pre-production:
+      primary: [game-designer, ux-designer, art-director, gameplay-programmer]
+      support: [technical-artist, level-designer, world-builder, producer, economy-designer]
+    production:
+      primary: [gameplay-programmer, ui-programmer, ai-programmer, lead-programmer]
+      support: [technical-artist, sound-designer, tools-programmer, engine-programmer, network-programmer]
+    polish:
+      primary: [qa-lead, qa-tester, performance-analyst]
+      support: [accessibility-specialist, localization-lead, security-engineer]
+    release:
+      primary: [release-manager, devops-engineer, qa-lead, producer]
+      support: []
+
+  product:
+    discovery:
+      primary: [product-manager, ux-designer]
+      support: [technical-director, art-director, growth-engineer]   # art-director ≈ design-lead
+    architecture:
+      primary: [technical-director, lead-programmer, backend-engineer]
+      support: [devops-engineer, security-engineer, data-engineer]
+    build:
+      primary: [frontend-engineer, backend-engineer, mobile-engineer, lead-programmer]
+      support: [data-engineer, ui-programmer, ux-designer, devops-engineer, ai-programmer]
+    hardening:
+      primary: [qa-lead, qa-tester, performance-analyst, security-engineer]
+      support: [accessibility-specialist, localization-lead]
+    ship:
+      primary: [release-manager, devops-engineer, qa-lead, producer, technical-writer]
+      support: []
+    growth:
+      primary: [growth-engineer, analytics-engineer, data-engineer, community-manager, product-manager]
+      support: []   # community-manager ≈ marketing-lead
+
+# 카탈로그에 대응 phase 가 없는 운영 국면. check_phase.py 는 이것을 반환하지 않으므로
+# 위 표와 분리해 둔다 — 게임 라이브 서비스는 릴리스 이후 사람이 판단해 진입한다.
+post_release:
+  game:
+    live-ops:
+      primary: [live-ops-designer, analytics-engineer, community-manager, economy-designer]
+      support: []
+
+# 스테이지와 무관하게 언제든 부를 수 있는 역할.
+cross_stage:
+  - name: creative-director
+    role: 크리에이티브 비전, 부서 간 충돌 조정
+  - name: technical-director
+    role: 아키텍처, 기술 선택
+  - name: producer
+    role: 스프린트 계획, 마일스톤 추적, 리스크
+
 packs:
 
   core:

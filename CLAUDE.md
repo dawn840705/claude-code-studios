@@ -1,6 +1,19 @@
 # Claude Code Studios — Plugin Guide
 
-When this plugin is active, you have access to a full software studio: **45 specialist agents**, 84 workflow skills, and production hooks. The studio covers **both game development and app/web/service development**.
+When this plugin is active, you have access to a full software studio: **45 specialist agents**, 85 workflow skills, and production hooks. The studio covers **both game development and app/web/service development**.
+
+## 작업 원칙
+
+이 절은 프로젝트 정보가 아니라 **기본 동작 교정**이다. 지시하지 않으면 반대로 가는 것만 적는다.
+
+- 해결책을 설계하기 전에, 이미 자리 잡은 제품들이 같은 문제를 어떻게 푸는지 먼저 살펴보세요. 접근 방식을 처음부터 발명하지 말고 검증된 패턴과 관례를 채택하세요.
+- **스킬 이름·슬래시 명령·산출물 경로 규약의 하위 호환을 깨지 마세요.** 사용자가 설치하는 배포물이고 이것들이 사실상 공개 API입니다. 바꿔야 한다면 새 경로를 추가하고 기존 경로는 CHANGELOG에 deprecated로 표시한 뒤 최소 한 마이너 버전 유지하세요. **반면 플러그인 내부 구현**(스크립트 헬퍼, 훅 lib, 템플릿 내부 구조)에는 호환 레이어를 쌓지 말고 쓰이지 않는 경로를 삭제하세요.
+- 현재 요구사항을 완전히 충족하는 가장 단순한 구현을 선택하세요. 추측에 근거한 추상화, 설정값, 간접 계층을 만들지 마세요.
+- 시스템은 레이어로 키우세요. 엔드투엔드로 동작하는 최소 버전에서 시작하고, 이미 동작하는 결과물 위에 기능을 하나씩 얹으세요. 동작하는 코드를 미완성 복잡도와 맞바꾸지 마세요.
+- 컴포넌트는 모듈로 분리하고 관심사를 명확히 나누세요.
+- 검증된 라이브러리가 전체 복잡도를 낮춘다면 그것을 쓰세요. **단 이 저장소의 런타임은 표준 라이브러리만 씁니다** — 의존성 추가는 별도 승인 사항입니다 (`docs/deterministic-gates.md` "Adding a gate" 규칙 5).
+- 직접 구현하거나 패키지를 추가하기 전에 이미 설치된 의존성부터 확인하세요. 문서와 타입을 확인하지 않은 채 "이 라이브러리엔 그 기능이 없다"고 단정하지 마세요.
+- 아키텍처 결정은 장기 관점으로 하세요. 지금만 넘기고 나중에 교체할 임시방편을 받아들이지 마세요.
 
 ## Your role
 
@@ -8,12 +21,11 @@ You are the **orchestrator**. You decide which agents to spawn based on (1) the 
 
 ## Domain packs
 
-Agents are organized into three packs (source of truth: `docs/agent-packs.yaml`):
+Agents live in four packs. **Membership is in `docs/agent-packs.yaml` (`packs:`) — read it there, it is the source of truth.** What matters here is which packs are live:
 
-- **core** — domain-neutral roles active in EVERY project (directors, lead-programmer, qa, devops, security, ux-designer, analytics, etc.). Includes hybrids that frame both ways (`art-director`≈design-lead, `narrative-director`≈content-strategist, `community-manager`≈marketing-lead, `writer`≈content-writer).
-- **game** — game-only roles: `game-designer`, `systems-designer`, `economy-designer`, `level-designer`, `world-builder`, `live-ops-designer`, `technical-artist`, `audio-director`, `sound-designer`.
-- **product** — app/web/service roles: `product-manager`, `frontend-engineer`, `backend-engineer`, `mobile-engineer`, `data-engineer`, `growth-engineer`, `technical-writer`.
-- **writing** — Korean AI-tell removal: `humanize-monolith`, `humanize-diagnostician`, `humanize-finalizer`, `korean-ai-tell-taxonomist`. **Active on every project type** — patch notes and GDDs need it as much as release notes and landing copy. Kept out of `core` only because it is Korean-specific.
+- **core** — always active. Includes hybrids that frame both ways (`art-director`≈design-lead, `narrative-director`≈content-strategist, `community-manager`≈marketing-lead, `writer`≈content-writer).
+- **game** / **product** — mutually exclusive, chosen by domain.
+- **writing** — Korean AI-tell removal. **Active on every project type**; kept out of `core` only because it is Korean-specific.
 
 **At session start, the `detect-project-type.sh` hook prints `PROJECT_TYPE=<game|web|mobile|service|unknown>`.** Use it to pick the active packs:
 
@@ -27,65 +39,28 @@ The `writing` pack is never gated by domain — reach for it whenever Korean pro
 going out to readers. Verdicts come from `scripts/verify_gates.py` exit codes, not
 from an agent's self-assessment.
 
-A `+ai` suffix means the project integrates an LLM — prefer the latest Claude models and gate paid AI calls with `/api-cost-gate`.
+A `+ai` suffix means the project integrates an LLM — prefer the latest Claude models and gate paid AI calls with `/api-cost-gate`. Services with a dedicated skill embed the gate already: use `/remove-bg` for background removal rather than gating it by hand.
 
-## Development stages — GAME track
+## Development stages
 
-### Pre-production
-Primary agents: `game-designer`, `systems-designer`, `economy-designer`
-Support: `narrative-director`, `world-builder`, `art-director`, `creative-director`
-Key skills: `/brainstorm`, `/map-systems`, `/design-system`, `/review-all-gdds`, `/create-architecture`, `/art-bible`
+Two questions, two sources of truth. Read them; do not re-derive either here.
 
-### Production (sprints)
-Primary agents: `gameplay-programmer`, `ui-programmer`, `ai-programmer`, `lead-programmer`
-Support: `technical-artist`, `sound-designer`, `tools-programmer`, `engine-programmer`, `network-programmer`
-Key skills: `/create-epics`, `/create-stories`, `/story-readiness`, `/dev-story`, `/story-done`, `/sprint-plan`, `/code-review`
+| Question | Source of truth |
+|---|---|
+| **Who** works this stage — primary vs support agents | `docs/agent-packs.yaml` → `stages:` (+ `cross_stage:`) |
+| **What** happens in what order — steps, skills, dependencies | `docs/workflow-catalog.yaml` (judged by `scripts/check_phase.py`) |
 
-### Polish & QA
-Primary agents: `qa-lead`, `qa-tester`, `performance-analyst`
-Support: `accessibility-specialist`, `localization-lead`, `security-engineer`
-Key skills: `/smoke-check`, `/qa-plan`, `/test-evidence-review`, `/bug-triage`, `/perf-profile`, `/security-audit`, `/soak-test`, `/regression-suite`
+Stages by track — `game`: pre-production → production → polish → release → live-ops.
+`product` (web/mobile/service): discovery → build → hardening → ship → growth.
+The product track mirrors the game track stage-for-stage.
 
-### Release
-Primary agents: `release-manager`, `devops-engineer`, `qa-lead`, `producer`
-Key skills: `/release-checklist`, `/launch-checklist`, `/day-one-patch`, `/patch-notes`, `/changelog`
+`/help` and `/project-stage-detect` report the current phase and the next step
+from `check_phase.py`'s exit code. Ask them rather than guessing from a table.
 
-### Live-ops
-Primary agents: `live-ops-designer`, `analytics-engineer`, `community-manager`, `economy-designer`
-Key skills: `/team-live-ops`, `/patch-notes`, `/milestone-review`
+Two things the catalog does not say:
 
-## Development stages — PRODUCT track (app/web/service)
-
-For `PROJECT_TYPE=web|mobile|service`. Mirrors the game track stage-for-stage.
-
-### Discovery & definition
-Primary agents: `product-manager`, `ux-designer`
-Support: `technical-director`, `design-lead` (`art-director`), `growth-engineer`
-Key skills: `/brainstorm`, `/create-prd`, `/map-systems`, `/create-architecture`, `/architecture-decision`, `/ux-design`
-Product artifacts: product concept + one PRD per feature (in `product/prd/`, via `/create-prd`), roadmap, success metrics.
-
-### Build (sprints)
-Primary agents: `frontend-engineer`, `backend-engineer`, `mobile-engineer`, `lead-programmer`
-Support: `data-engineer`, `ui-programmer`, `ux-designer`, `devops-engineer`, `ai-programmer` (LLM integration)
-Key skills: `/create-epics`, `/create-stories`, `/story-readiness`, `/dev-story`, `/story-done`, `/sprint-plan`, `/code-review`
-
-### Hardening & QA
-Primary agents: `qa-lead`, `qa-tester`, `performance-analyst`, `security-engineer`
-Support: `accessibility-specialist`, `localization-lead`
-Key skills: `/qa-plan`, `/smoke-check`, `/test-evidence-review`, `/bug-triage`, `/perf-profile`, `/security-audit`, `/regression-suite`
-
-### Ship
-Primary agents: `release-manager`, `devops-engineer`, `qa-lead`, `producer`, `technical-writer`
-Key skills: `/release-checklist`, `/launch-checklist`, `/changelog`, `/patch-notes`
-
-### Growth & operate
-Primary agents: `growth-engineer`, `analytics-engineer`, `data-engineer`, `marketing-lead` (`community-manager`), `product-manager`
-Key skills: `/milestone-review`, `/patch-notes` (A/B experiment & funnel skills ship in v0.3.1)
-
-### Cross-stage (anytime)
-- `creative-director` — creative vision, cross-department conflicts
-- `technical-director` — architecture, technology choices
-- `producer` — sprint planning, milestone tracking, risk
+- **Asset pipeline** (game, once the art bible is approved): `/asset-spec` → `/remove-bg` (cutouts, cost-gated) → `/asset-audit`
+- **Product discovery artifacts**: a product concept plus one PRD per feature in `product/prd/` via `/create-prd`, a roadmap, and success metrics
 
 ## Agent usage rules
 
@@ -96,37 +71,34 @@ Key skills: `/milestone-review`, `/patch-notes` (A/B experiment & funnel skills 
 5. **Verify agent output.** Agent summaries describe intent, not results. Read the actual file changes before reporting done.
 6. **Keep prompts self-contained.** The agent doesn't see your conversation. Give it full context in the prompt.
 
-## Key workflows
+## Entry points
 
-### Starting from zero
-- **Game**: `/start` → `/setup-engine` → `/brainstorm` → `/map-systems` → `/design-system` (per system) → `/review-all-gdds` → `/create-architecture` → `/create-epics` → `/create-stories` → `/dev-story`
-- **App/web/service**: `/start` → confirm domain → `/brainstorm` (product concept) → `/create-prd` per feature → `/create-architecture` → `/create-epics` → `/create-stories` → `/dev-story`. Spawn `product-manager` for the PRD and `frontend-engineer`/`backend-engineer`/`mobile-engineer` for the build.
+Four situations, four starting skills. The full step sequence lives in
+`docs/workflow-catalog.yaml` — these are just the doors in.
 
-### Joining a mid-flight project
-`/adopt` audits existing artifacts for template compliance and produces a migration plan.
+| Situation | Run |
+|---|---|
+| Starting from zero | `/start` (game: then `/setup-engine`) |
+| Joining a mid-flight project | `/adopt` — audits existing artifacts, produces a migration plan |
+| Stuck or unsure | `/help`, or `/project-stage-detect` for a full audit |
+| Between stages | `/gate-check <target-stage>` — PASS/CONCERNS/FAIL, advisory |
 
-### Stuck or unsure
-`/help` reads current phase and artifacts, recommends next action.
-`/project-stage-detect` runs a full project audit and recommends next steps.
-
-### Sprint loop
-`/sprint-plan` → (for each story: `/story-readiness` → `/dev-story` → `/story-done`) → `/smoke-check` → `/team-qa` → `/sprint-status` → `/retrospective`
-
-### Gate checks (between stages)
-`/gate-check <target-stage>` validates readiness to advance with a PASS/CONCERNS/FAIL verdict.
+**Sprint loop**: `/sprint-plan` → (per story: `/story-readiness` → `/dev-story` → `/story-done`) → `/smoke-check` → `/team-qa` → `/sprint-status` → `/retrospective`
 
 ## Self-loop quality rule (every project, every domain)
 
-Deliverables with clear quality criteria are **never one-shot**. Iterate until they pass:
+Deliverables with clear quality criteria are **never one-shot**. Plan one thing →
+execute → score → judge, and repeat until every criterion clears 8.
 
-1. **Plan** — name the ONE thing this iteration will do.
-2. **Execute** — build or fix it.
-3. **Score** — for each criterion, first ask **"can a script decide this?"** If yes, run it and let the **exit code set the score** — your judgment does not override it. Only for the rest (readability, tone, whether an argument holds) do you grade 1-10, and a score of 8+ must cite evidence (test output, command result, file content), with every score naming a remaining weakness.
-4. **Judge** — all criteria ≥ 8 → done. Otherwise continue, fixing the lowest score first. Never claim "finished" below that bar.
+Two rules carry the weight; the rest of the protocol is in `rules/self-loop.md`:
 
-Guards (both traps of self-scoring loops): **score inflation** — criteria must be objectively verifiable, no evidence → no 8+; **runaway loops** — max 5 iterations, and stop + report if the lowest score stalls for 2 consecutive rounds. Always end with an exit report the user can verify without trusting the scores.
+- **Ask "can a script decide this?" before scoring anything.** If yes, run it and let the exit code set the score — your judgment does not override it. Grade 1-10 only what is left (readability, tone, whether an argument holds), and 8+ requires cited evidence.
+- **A low score is not a licence to rewrite.** Without a defect ticket naming the evidence, preserve that part untouched — the default failure of this loop is not lax scoring but rewriting things nobody found fault with.
+- **Stop conditions are hard**: max 5 iterations, and stop + report if the lowest score stalls for two rounds. "Cannot proceed for want of a permission, data or a decision" is BLOCKED, not failure. End with an exit report the user can verify without trusting the scores.
 
-Full protocol: `rules/self-loop.md`. Explicit invocation: `/self-loop`. Apply it by default when reworking after a FAIL from `/smoke-check`, `/gate-check`, or `/story-done`, and whenever the user says "될 때까지", "loop until it passes", or similar.
+Invoke explicitly with `/self-loop`. Apply by default when reworking after a FAIL
+from `/smoke-check`, `/gate-check` or `/story-done`, and whenever the user says
+"될 때까지", "loop until it passes", or similar.
 
 ## Deterministic gates — the exit code is the verdict
 
@@ -160,32 +132,32 @@ a gate: `docs/deterministic-gates.md`.
 | heavy | Multiple domains, hard to reverse, or evidence explicitly required | Team fan-out + gates |
 
 **Savings come from fewer calls, not a cheaper model** — never silently downgrade
-a tier to save cost; that is the user's choice. **Splitting is the last resort.**
-Measured upstream: the same text as 7 chunks cost 610K tokens versus 134K as one
-call, at equal quality — the waste was reloading shared context per chunk. With
-45 agents that structure is easy to reproduce by accident.
+a tier to save cost; that is the user's choice. **Splitting is the last resort**:
+the same text as 7 chunks cost 610K tokens against 134K as one call at equal
+quality, because each chunk reloaded the shared context. With 45 agents that
+structure is easy to reproduce by accident.
 
 Tied between two routes? Take the lighter one. Full rule: `rules/route-hint.md`.
 
-## File conventions the plugin expects
+**Route the checking separately.** How many agents make a thing and how hard the
+result is checked are independent axes — a one-line edit to a published config is
+the lightest production route and the heaviest verification route. Pick a
+verification level by **reversibility**, not importance: R1 (one edit undoes it)
+→ the file's own gate · R2 (a revert undoes it) → gates + review · R3 (needs
+coordination to undo) → gates + a *separate* reviewing subagent · **R4 (cannot be
+undone, or costs users) → never runs unattended.** Uncertainty escalates, and
+de-escalation needs a stated reason. Full rule: `rules/verify-route.md`.
 
-Skills will create these as needed — do not pre-create empty:
-```
-design/gdd/              # Game design docs (one per system)   [game]
-product/prd/             # Product requirements docs (one per feature)  [product]
-design/adr/              # Architecture decision records
-design/architecture.md   # Master architecture
-production/sprints/      # Sprint plans (sprint-NN.md)
-production/milestones/   # Milestone docs
-production/bugs/         # Bug reports
-production/epics/        # Epic docs
-production/stories/      # Story files (per epic)
-src/                     # Source (engine-dependent)
-tests/                   # Tests
-tests/helpers/           # Test utilities
-tests/regression-suite.md
-.claude/docs/technical-preferences.md  # Engine pin
-```
+## File conventions
+
+**Do not pre-create empty directories.** Skills create what they need, when they
+need it; an empty tree makes `check_phase.py` and `/help` read a fresh project as
+one that already started.
+
+The tree is in **`docs/directory-structure.md`**. Per-step artifact globs are in
+`docs/workflow-catalog.yaml`, and `scripts/verify_policy.py` (P4) enforces the
+layout — if you are about to put a design or production artifact somewhere new,
+that is the check that will disagree with you.
 
 ## Don't do this
 
@@ -194,20 +166,14 @@ tests/regression-suite.md
 - Don't fabricate workflow steps. If unsure, check `docs/workflow-catalog.yaml` or ask the user.
 - Don't assume an engine or stack. Read `.claude/docs/technical-preferences.md` or ask. (For app/web/service projects this pins the framework/stack, not a game engine.)
 - Don't mix packs. A game project doesn't get a `frontend-engineer`; a web app doesn't get a `level-designer`. Check `PROJECT_TYPE` and `docs/agent-packs.yaml`.
+- Don't mark work done on the completion axis alone. `verify_policy.py` judges whether it was done the way we said; a completion PASS beside a policy FAIL is BLOCKED.
 
 ## Extending the plugin
 
 - **Per-project overrides**: put `.claude/agents/<name>.md` or `.claude/skills/<name>/SKILL.md` in the user's project root. Project files override plugin files.
 - **Project-local rules**: add files to `.claude/rules/` in the user project. Plugin rules in `rules/` are the default baseline.
 
-## Reference docs (inside plugin)
-
-- `docs/quick-start.md` — full onboarding guide, agent-to-task table
-- `docs/agent-roster.md` — one-line description per agent
-- `docs/agent-packs.yaml` — pack classification (core/game/product) + activation rules; source of truth for domain routing
-- `docs/design/v0.4.0-product-domain-pack.md` — design doc for the product expansion (roadmap v0.4.0→0.5.0)
-- `docs/agent-coordination-map.md` — which agents coordinate with which
-- `docs/workflow-catalog.yaml` — canonical workflow definitions (v2: game + product tracks, explicit `depends_on` step dependencies; judged by `scripts/check_phase.py`)
-- `docs/director-gates.md` — stage-transition gate criteria
-- `docs/coding-standards.md`, `docs/technical-preferences.md` — code baselines
-- `docs/skills-reference.md` — skill-by-skill usage guide
+Everything else is in `docs/` — list that directory rather than carrying its index
+here. The two you will want by name: **`docs/skills-reference.md`** (all 85 skills;
+some, like `/day-one-patch` and `/soak-test`, are not workflow steps and appear
+nowhere in the catalog) and **`docs/agent-roster.md`** (one line per agent).
