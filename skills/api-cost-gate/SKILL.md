@@ -125,5 +125,11 @@ Confirmed services where this gate has prevented surprise spend or wasted output
 | Midjourney / Stable Diffusion (image) | seconds / generations | varies by tier |
 | Tripo (3D) | credits | varies by mesh complexity |
 | OpenAI / Anthropic (text) | tokens | input + output, varies by model |
+| remove.bg (background removal) | credits | `size=preview` ≈ 0.25 cr, `size=full` ≈ 1 cr per image — a 4× spread, so preview is the default. Gate is wired into `/remove-bg`; `scripts/removebg.py estimate` produces point 2 without charging. |
 
 Add your service to the table when adopted. The 4-point disclosure works identically for all of them.
+
+**Where a service has a dedicated skill, use it.** `/remove-bg` already embeds
+this gate (Phases 2-3) and backs the estimate with a real balance lookup, so
+invoking `/api-cost-gate` separately just duplicates the block. This skill is
+for services that have no wrapper yet.
