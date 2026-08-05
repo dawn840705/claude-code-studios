@@ -71,6 +71,18 @@ Two things the catalog does not say:
 5. **Verify agent output.** Agent summaries describe intent, not results. Read the actual file changes before reporting done.
 6. **Keep prompts self-contained.** The agent doesn't see your conversation. Give it full context in the prompt.
 
+## Companion plugins
+
+Installed alongside, not merged in. Declared in `.claude/settings.json`.
+
+- **`claude-seo`** (MIT, AgriciDaniel) — SEO/GEO. Its `/seo-*` commands and
+  `seo-*` agents own technical SEO, schema, Core Web Vitals, backlinks, local,
+  hreflang, clustering and the Google APIs. **Route SEO work there instead of
+  hand-rolling it in `growth-engineer`** — that agent's `SEO` remit becomes
+  "brief and review the `/seo-*` output", not "do the audit". Do not add `seo-*`
+  skills or agents to this repo; the names would collide. First use on a new
+  machine needs `/seo setup` (one-time venv + Chromium provisioning).
+
 ## Entry points
 
 Four situations, four starting skills. The full step sequence lives in

@@ -1,5 +1,32 @@
 # Changelog
 
+## Unreleased
+
+### Added — `claude-seo` as a companion plugin (병합 아님)
+
+SEO 는 이 저장소가 직접 다루지 않던 공백이었다. `growth-engineer` 의 remit 에
+"SEO" 라는 단어만 있고 그것을 어떻게 하는지는 없었으므로, 실제로는 매번
+즉흥적으로 감사를 짜는 결과가 났다.
+
+- **`.claude/settings.json`** (신규) — `AgriciDaniel/claude-seo` (MIT, v2.2.4)
+  를 `extraKnownMarketplaces` 로 선언하고 `enabledPlugins` 로 켠다.
+  `autoUpdate: false` — 서드파티 마켓플레이스의 기본값이고, 훅과 네트워크
+  fetcher 를 가진 플러그인을 조용히 갱신시키지 않는다.
+- **vendor-in 하지 않았다.** 25 스킬 · 18 에이전트를 이 저장소로 복사하면
+  업스트림 업데이트가 전부 수동 머지가 되고, 게임 프로젝트에서도 팩 게이팅
+  없이 노출된다. 별도 플러그인으로 두면 업데이트는 업스트림에서 오고 이름
+  충돌도 없다 (`seo-*` 는 기존 85 스킬 · 45 에이전트 어디와도 겹치지 않는다).
+- **`CLAUDE.md` → "Companion plugins"** — 라우팅 교정 한 절. SEO 작업은
+  `/seo-*` 로 보내고 `growth-engineer` 는 브리핑·리뷰만 한다. 이 저장소에
+  `seo-*` 스킬/에이전트를 새로 만들지 않는다.
+- `.gitignore` 에 `.claude/settings.local.json` — 머신별 trust 승인 기록.
+
+주의: 설치는 자동이 아니다. 세션 시작 시 신뢰(trust) 프롬프트가 뜨고 사용자가
+승인해야 로드된다. 새 머신에서 첫 사용 시 `/seo setup` 1회 필요 (venv +
+Chromium 프로비저닝). claude-seo 의 `PostToolUse` 훅은 Edit|Write 전체를
+matcher 로 받지만 스크립트가 JSON-LD 포함 여부를 먼저 확인하므로 이 저장소의
+`.md`/`.py` 편집에는 개입하지 않는다.
+
 ## v0.6.3 — 2026-08-04
 
 ### Added — `gate_report.py`: one machine-readable shape for every gate verdict

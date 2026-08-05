@@ -12,3 +12,6 @@ __pycache__/
 *.pyc
 _workspace/
 _to_delete/
+
+# 머신별 플러그인 신뢰(trust) 승인 기록 — .claude/settings.json 만 커밋한다
+.claude/settings.local.json
