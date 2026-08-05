@@ -202,6 +202,30 @@ _DOUBLE_PARTICLE_RE = re.compile(
     r"(?:에서의|에로의|으로의|에의|으로부터의|로부터의)"
 )
 
+# J-3 줄표(em dash, U+2014). 세는 것은 **한국어 산문 문단 안에 끼워 넣은** 줄표뿐.
+#
+# 초안은 "줄 첫머리가 아니면 계수" 였는데, 실측 결과 그렇게 세면 잡히는 것의
+# 74.5%가 마크다운 구조 문법이었다(불릿 48.5% · 헤딩 19.5% · 표 2.9% · 인용 3.5%).
+# 헤딩 부제 `## 제목 — 부제` 는 `#` 이 앞에 오므로 "줄 첫머리" 예외에 걸리지도
+# 않는다. 구조 줄표는 한국어 글쓰기 습관이 아니라 문서 포맷이므로 제외한다.
+_EM_DASH = "—"
+_FENCE_RE = re.compile(r"^\s*(?:```|~~~)")
+# 들여쓴 코드블록(4칸/탭). 목록 항목의 이어지는 줄과 구별되지 않으므로,
+# 앞이 빈 줄일 때만 코드로 본다 — 판정은 _prose_paragraphs 안에서.
+_INDENT_CODE_RE = re.compile(r"^(?: {4}|\t)")
+# 구조 줄 — 통째로 제외. 헤딩(ATX)·표·수평선은 줄표가 있어도 산문이 아니다.
+# 표는 셀 사이 구분이 사라져 문장 경계가 무의미해지므로 통째로 뺀다.
+_MD_STRUCTURAL_RE = re.compile(r"^\s*(?:#{1,6}\s|\||(?:[-*_] *){3,}$)")
+# 표 구분행(`---|---`). 선행 파이프가 없는 GFM 표도 있으므로, 이 줄을 본
+# 뒤로는 빈 줄까지 파이프가 있는 줄을 표 행으로 본다.
+_MD_TABLE_SEP_RE = re.compile(r"^ *\|? *:?-{3,}:? *(?:\| *:?-{3,}:? *)+\|? *$")
+# setext 헤딩 밑줄(`===` / `---`). 바로 위 줄이 제목이므로 그 줄도 뺀다.
+_SETEXT_RE = re.compile(r"^\s*(?:={2,}|-{2,})\s*$")
+# 표지 — 줄에서 떼어내고 **내용은 산문으로 취급**한다. 불릿이나 인용 안의
+# 한국어 문장에 끼운 줄표는 포맷이 아니라 진짜 J-3 이기 때문이다.
+_MD_MARKER_RE = re.compile(r"^\s*(?:[-*+]\s+|\d+[.)]\s+|>+\s*)")
+_HANGUL_RE = re.compile(r"[가-힣]")
+
 # 단락 분리: 빈 줄 1개 이상.
 _PARAGRAPH_SPLIT_RE = re.compile(r"\n\s*\n")
 
@@ -500,6 +524,105 @@ def deul_overuse_rate(text: str) -> float:
     return hits / len(toks)
 
 
+def _prose_paragraphs(text: str) -> list[str]:
+    """마크다운에서 한국어 산문 문단만 추려 문단 단위로 합친다.
+
+    제외: 코드블록(펜스·들여쓰기) 전체, 헤딩·표·수평선 줄, 한글 없는 문단.
+    표지(`- `, `1. `, `> `)는 떼어내고 내용은 남긴다 — 불릿이나 인용 안의
+    한국어 문장은 포맷이 아니라 산문이다. 표 셀만은 통째로 뺀다: 셀 경계가
+    사라지면 문장 경계가 무의미해져 무엇을 "문장 중간" 이라 할지 정할 수 없다.
+
+    **줄을 문단으로 합치는 것이 요점이다.** 줄 단위로 세면 하드랩 재배치만으로
+    수치가 흔들리고, 줄표를 줄머리로 미는 것만으로 계수를 피할 수 있다.
+    렌더 결과가 같으면 값도 같아야 한다.
+    """
+    paras: list[str] = []
+    cur: list[str] = []
+    in_fence = False
+    in_table = False
+    prev_blank = True
+
+    def flush() -> None:
+        if cur:
+            joined = " ".join(cur).strip()
+            if joined and _HANGUL_RE.search(joined):
+                paras.append(joined)
+            cur.clear()
+
+    lines = text.splitlines()
+    for i, line in enumerate(lines):
+        if _FENCE_RE.match(line):
+            in_fence = not in_fence
+            flush()
+            prev_blank = True
+            continue
+        if in_fence:
+            continue
+        if not line.strip():
+            flush()
+            prev_blank = True
+            in_table = False
+            continue
+        # 들여쓴 코드블록 — 빈 줄 뒤에서 시작한 것만. 목록 이어짐과 구별.
+        if prev_blank and _INDENT_CODE_RE.match(line):
+            flush()
+            continue
+        if _MD_TABLE_SEP_RE.match(line):
+            # 구분행 위의 헤더 행도 표다 — 이미 cur 에 들어갔으면 버린다.
+            cur.clear()
+            in_table = True
+            prev_blank = False
+            continue
+        if in_table and "|" in line:
+            prev_blank = False
+            continue
+        if _MD_STRUCTURAL_RE.match(line):
+            flush()
+            prev_blank = False
+            continue
+        # setext 헤딩: 다음 줄이 밑줄이면 이 줄은 제목이다.
+        if i + 1 < len(lines) and _SETEXT_RE.match(lines[i + 1]):
+            flush()
+            prev_blank = False
+            continue
+        if _SETEXT_RE.match(line):
+            flush()
+            prev_blank = False
+            continue
+        prev_blank = False
+        if _MD_MARKER_RE.match(line):
+            # 새 항목은 새 문단으로 — 앞 항목과 이어 붙이지 않는다.
+            flush()
+        cur.append(_MD_MARKER_RE.sub("", line).strip())
+    flush()
+    return paras
+
+
+def em_dash_count(text: str) -> int:
+    """J-3: em dashes (U+2014) inserted inside a Korean prose paragraph.
+
+    What this counts is the English parenthetical-dash habit: a dash
+    dropped into a running Korean sentence. It does *not* count markdown
+    structure — headings, table cells, blockquotes, code, or the list
+    marker position — because those are document format, not a Korean
+    writing habit, and the human comparison corpus (rendered encyclopedia
+    text) cannot produce them at all.
+
+    Measured 2026-08-05, see `empirical-validation.md` 「J-3 줄표 실측」.
+    The effect is large enough that a raw count suffices; no baseline z.
+
+    Returns int >= 0.
+    """
+    if not text.strip():
+        return 0
+    # 문단 첫 글자 줄표도 면제하지 않는다. 면제하면 (a) 빈 줄 하나로 문단을
+    # 쪼개 계수를 피할 수 있고, (b) 반대로 문단을 합치기만 한 윤문이 "역방향
+    # 삽입" 으로 오탐된다 — 줄 단위 계수에서 겪은 것과 같은 실패 모드다.
+    # 대가는 소설 대화 관용 표기(`— 그래서 왔습니다.`)가 계수되는 것인데,
+    # P5 는 before/after 비교라 원문에 있던 것은 양쪽에 똑같이 잡혀 상쇄된다.
+    return sum(para.count(_EM_DASH) for para in _prose_paragraphs(text))
+
+
 def relative_clause_nesting(text: str) -> int:
     """T5: count of sentences with relative-clause nesting depth >= 3.
 
@@ -745,6 +868,10 @@ def compute_all_v2(
         "have_make_literal_count": have_make_literal_count(text),
         "double_particle_count": double_particle_count(text),
         "progressive_aspect_rate": progressive_aspect_rate(text),
+        # J-3 줄표 — baseline 셀 없음(z=None). 판정은 verify_gates P5 의
+        # before/after 비교로만 한다. 절대치 임계를 두지 않는 이유는
+        # 원문에 이미 있던 대시를 보존해야 하기 때문이다.
+        "em_dash_count": em_dash_count(text),
         # C-8 대구 카운트 — 진단 앵커로만 노출. baseline placeholder라 z는
         # None이어도 무방. 판정은 before/after 전멸 비교로만 한다.
         "antithesis_count": antithesis_count(text),

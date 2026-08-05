@@ -2,7 +2,7 @@
 
 진단 콜이 74.8KB taxonomy 전량을 읽던 것을 슬림 인덱스로 교체한 뒤,
 인덱스가 SSOT와 어긋나면(drift) 진단의 ID 핸드오프 계약이 깨진다.
-quick-rules와 동일한 --check 게이트 + 71패턴 전수 커버 + 빈 항목 0 +
+quick-rules와 동일한 --check 게이트 + 패턴 전수 커버 + 빈 항목 0 +
 부피 상한을 여기서 고정한다.
 
 pytest / unittest 양쪽에서 실행된다. LLM 콜 0 — 빌더만 검증한다.
@@ -20,9 +20,14 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 SCRIPTS = os.path.join(HERE, "..", "scripts")
 
 # 부피 게이트: taxonomy(74.8KB) 대비 대폭 절감이 이 파일의 존재 이유.
-# 한글 UTF-8 3바이트 특성상 71패턴 × 2줄의 물리 하한이 있어 상한 14KB.
+# 한글 UTF-8 3바이트 특성상 패턴당 2줄의 물리 하한이 있어 상한 14KB.
 MAX_BYTES = 14 * 1024
 MIN_BYTES = 5 * 1024  # 지나치게 작으면 내용 소실 의심
+
+# 본진 패턴 수. 패턴을 추가·삭제하면 여기 한 줄만 고친다 — 숫자를 박아둔
+# 이유는 인덱스에서 패턴이 조용히 사라지는 것을 잡기 위해서다(카나리아).
+# 파서 결과로 대체하면 그 canary가 자기 자신을 검증하게 되어 무의미해진다.
+PATTERN_COUNT = 72  # v2.4 J-5 추가로 71 → 72
 
 
 def _load_builder():
@@ -50,13 +55,13 @@ class DiagnosisRulesBuildTests(unittest.TestCase):
             "`python3 scripts/build_diagnosis_rules.py` 로 재생성하라.",
         )
 
-    def test_all_71_ids_covered(self) -> None:
+    def test_all_ids_covered(self) -> None:
         """taxonomy의 패턴 ID 전수(quick:false 문서레벨 포함)가 인덱스에 있다."""
         taxo_ids = {p["id"] for p in self.patterns}
         out_ids = set(
             re.findall(r"^- \*\*([A-J]-\d+)\*\*", self.rendered, re.M)
         )
-        self.assertEqual(len(taxo_ids), 71)
+        self.assertEqual(len(taxo_ids), PATTERN_COUNT)
         self.assertEqual(taxo_ids, out_ids)
 
     def test_document_level_patterns_included(self) -> None:
@@ -65,9 +70,9 @@ class DiagnosisRulesBuildTests(unittest.TestCase):
             self.assertRegex(self.rendered, rf"- \*\*{pid}\*\*")
 
     def test_no_empty_definitions_or_signatures(self) -> None:
-        """패턴당 시그니처 줄이 정확히 71개, 빈 값 0."""
+        """패턴당 시그니처 줄이 정확히 PATTERN_COUNT개, 빈 값 0."""
         sig_lines = re.findall(r"^  시그니처:\s*(.*)$", self.rendered, re.M)
-        self.assertEqual(len(sig_lines), 71)
+        self.assertEqual(len(sig_lines), PATTERN_COUNT)
         self.assertEqual([s for s in sig_lines if not s.strip()], [])
 
     def test_size_within_budget(self) -> None:

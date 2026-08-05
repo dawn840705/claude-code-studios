@@ -36,9 +36,9 @@ verdict, and "no verdict" is not "pass". If a gate exits 3, say so and stop —
 do not fall back to reading the output and guessing.
 
 **The reference implementation is [`scripts/verify_gates.py`](../scripts/verify_gates.py).**
-It judges four axes for Korean rewriting (character change rate, target
-attainment, antithesis wipeout, golden checks + number injection) and reports a
-fifth (sentence touch rate) without letting it affect the exit code — a signal
+It judges five axes for Korean rewriting (character change rate, target
+attainment, antithesis wipeout, golden checks + number injection, J-3 em dash)
+and reports a sixth (sentence touch rate) without letting it affect the exit code — a signal
 that is merely informative must not move the verdict.
 
 **[`scripts/check_phase.py`](../scripts/check_phase.py) applies the same

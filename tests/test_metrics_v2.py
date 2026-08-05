@@ -431,6 +431,101 @@ class ChangeRateTests(unittest.TestCase):
         self.assertLess(markup_aware, 0.10)
 
 
+class EmDashCountTests(unittest.TestCase):
+    """J-3 줄표 — 줄머리 대시(목록 표지)는 세지 않는다."""
+
+    def test_counts_mid_line_dashes(self) -> None:
+        text = "AI는 도구 — 그 이상도 이하도 아닌 — 이다."
+        self.assertEqual(metrics_v2.em_dash_count(text), 2)
+
+    def test_markdown_structure_is_not_counted(self) -> None:
+        """헤딩·표·인용·코드·목록 표지는 문서 포맷이지 한국어 습관이 아니다.
+
+        초안은 이것들을 세어 잡힌 것의 74.5%가 마크다운 구조 문법이었다
+        (`empirical-validation.md` 「J-3 줄표 실측」의 1차 측정 폐기 사유).
+        """
+        for text in (
+            "## 1분기 — 설계\n\n본문입니다.",                      # ATX 헤딩
+            "제목 — 부제\n---\n\n본문입니다.",                     # setext 헤딩
+            "| 코드 | 뜻 |\n|---|---|\n| 0 | 수렴 — 전 축 통과 |",   # 파이프 표
+            "코드 | 뜻\n--- | ---\n0 | 수렴 — 전 축\n\n한국어 본문.",  # 선행 파이프 없는 표
+            "```\n# 0 — 수렴\n```\n한국어 본문.",                   # 펜스 코드
+            "한국어 본문.\n\n    # 0 — 수렴\n    # 1 — 경고\n",      # 들여쓴 코드
+            "- 첫째 항목\n- 둘째 항목",                            # 목록 표지
+        ):
+            with self.subTest(text=text):
+                self.assertEqual(metrics_v2.em_dash_count(text), 0)
+
+    def test_prose_inside_a_marker_is_counted(self) -> None:
+        """표지는 떼되 내용은 산문이다 — 불릿·인용 안의 삽입은 진짜 J-3.
+
+        인용 블록을 통째로 버리던 초안은 실측 AI 코퍼스에서 한글 인용 산문
+        18건을 사각으로 놓쳤다. 목록을 산문으로 보는 논거가 인용에도 똑같이
+        성립한다. 표 셀만 예외로 남긴다 — 셀 경계가 사라지면 "문장 중간" 을
+        정의할 수 없다.
+        """
+        for text in (
+            "- 이것은 도구 — 그 이상은 아닌 — 이다.",
+            "> 이것은 도구 — 그 이상은 아닌 — 이다.",
+        ):
+            with self.subTest(text=text):
+                self.assertEqual(metrics_v2.em_dash_count(text), 2)
+
+    def test_value_does_not_depend_on_hard_wrap(self) -> None:
+        """렌더 결과가 같으면 값도 같아야 한다.
+
+        줄 단위로 세면 (a) 하드랩만 바꿔도 수치가 흔들리고 (b) 줄표를
+        줄머리로 미는 것만으로 계수를 피할 수 있다. 그래서 문단으로 합쳐
+        센다 — 줄머리 em dash 를 표지로 면제하지 않는 것은 이 회피로를
+        막기 위한 의도적 선택이다.
+        """
+        one_line = "기술은 답을 주지 않는다 — 다만 질문을 바꿀 뿐이다."
+        wrapped = "기술은 답을 주지 않는다\n— 다만 질문을 바꿀 뿐이다."
+        self.assertEqual(metrics_v2.em_dash_count(one_line), 1)
+        self.assertEqual(metrics_v2.em_dash_count(wrapped), 1)
+
+    def test_paragraph_break_does_not_evade_either(self) -> None:
+        """빈 줄로 문단을 쪼개도 계수가 줄지 않아야 한다.
+
+        문단 첫 글자 줄표를 표지로 면제하면, 줄 단위 계수에서 막은 회피로가
+        문단 층위에서 그대로 다시 열린다. 그 대가로 소설 대화 관용 표기가
+        계상되지만, P5 는 before/after 비교라 원문의 것은 상쇄된다.
+        """
+        joined = "앞 문장이다 — 다만 질문을 바꿀 뿐이다."
+        split = "앞 문장이다.\n\n— 다만 질문을 바꿀 뿐이다."
+        self.assertEqual(metrics_v2.em_dash_count(joined), 1)
+        self.assertEqual(metrics_v2.em_dash_count(split), 1)
+
+    def test_english_only_paragraph_is_not_counted(self) -> None:
+        # 분자가 영문인데 분모가 한글자면 비율이 부풀려진다(1차 측정의 결함).
+        self.assertEqual(
+            metrics_v2.em_dash_count("game / product — mutually exclusive"), 0
+        )
+
+    def test_no_dash_is_zero(self) -> None:
+        self.assertEqual(
+            metrics_v2.em_dash_count("오늘은 비가 온다. 길이 미끄럽다."), 0
+        )
+
+    def test_hyphen_and_en_dash_are_not_counted(self) -> None:
+        # U+002D 하이픈·U+2013 en dash 는 J-3 대상이 아니다(연도 범위 등).
+        self.assertEqual(metrics_v2.em_dash_count("1392–1897년, 한-미 관계"), 0)
+
+    def test_empty_input(self) -> None:
+        self.assertEqual(metrics_v2.em_dash_count(""), 0)
+        self.assertEqual(metrics_v2.em_dash_count("   \n  "), 0)
+
+    def test_exposed_in_compute_all_v2(self) -> None:
+        result = metrics_v2.compute_all_v2(
+            "AI는 도구 — 그 이상도 아닌 — 이다.",
+            baseline_path=BASELINE_PATH,
+            baseline_v2_path=BASELINE_V2_PATH,
+        )
+        self.assertEqual(result["v2_metrics"]["em_dash_count"], 2)
+        # baseline 셀을 두지 않았으므로 z 는 None 이어야 한다.
+        self.assertIsNone(result["v2_z_scores"]["em_dash_count"])
+
+
 class AntithesisCountTests(unittest.TestCase):
     """C-8 대구 카운터 — 전멸 게이트 전용 (절대치 판정 금지)."""
 

@@ -4,12 +4,12 @@ version: "2.3.0"
 argument-hint: "[텍스트 또는 파일 경로] [--genre 장르] [--strength 보수|표준|적극]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Edit, Bash, Task
-description: AI(ChatGPT·Claude·Gemini 등)가 쓴 한글 텍스트를 "사람이 쓴 글처럼" 윤문해주는 오케스트레이터 스킬. 번역투·영어 인용 과다·기계적 병렬·관용구·피동태 남용·접속사 남발·리듬 균일성·이모지/불릿 과다 등 10대 카테고리 70개 AI 티 패턴을 탐지·분류해 내용은 한 글자도 건드리지 않고 문체·리듬·표현만 자연스러운 한국어로 재작성한다. shim의 route_hint(light|standard|heavy)로 경로를 정해 잘 쓴 글은 1콜, 표준은 2콜, 중증·장문만 3+콜(진단→겨냥 윤문→finalize)로 처리한다. 트리거 — "AI 티 없애줘", "AI 같은 글 자연스럽게", "GPT/ChatGPT 문체", "AI 번역투 고쳐", "사람이 쓴 것처럼 윤문", "AI 윤문", "ChatGPT 티 제거", "한글 AI 탐지·윤문", "AI 글 사람처럼", "번역투 제거", "영어 인용 많은 글 윤문", "AI 글 티 안 나게", "휴머나이저", "humanize Korean", "AI detector bypass 한글". 후속 작업 — "특정 카테고리만 다시", "윤문 강도 조정", "장르 바꿔서", "이 문단만", "2차 윤문" 도 모두 이 스킬. 단순 맞춤법·오탈자 교정은 직접 처리, 번역은 번역 스킬, 내용 추가·삭제를 동반한 재작성은 별도 집필 스킬.
+description: AI(ChatGPT·Claude·Gemini 등)가 쓴 한글 텍스트를 "사람이 쓴 글처럼" 윤문해주는 오케스트레이터 스킬. 번역투·영어 인용 과다·기계적 병렬·관용구·피동태 남용·접속사 남발·리듬 균일성·이모지/불릿 과다 등 10대 카테고리 71개 AI 티 패턴을 탐지·분류해 내용은 한 글자도 건드리지 않고 문체·리듬·표현만 자연스러운 한국어로 재작성한다. shim의 route_hint(light|standard|heavy)로 경로를 정해 잘 쓴 글은 1콜, 표준은 2콜, 중증·장문만 3+콜(진단→겨냥 윤문→finalize)로 처리한다. 트리거 — "AI 티 없애줘", "AI 같은 글 자연스럽게", "GPT/ChatGPT 문체", "AI 번역투 고쳐", "사람이 쓴 것처럼 윤문", "AI 윤문", "ChatGPT 티 제거", "한글 AI 탐지·윤문", "AI 글 사람처럼", "번역투 제거", "영어 인용 많은 글 윤문", "AI 글 티 안 나게", "휴머나이저", "humanize Korean", "AI detector bypass 한글". 후속 작업 — "특정 카테고리만 다시", "윤문 강도 조정", "장르 바꿔서", "이 문단만", "2차 윤문" 도 모두 이 스킬. 단순 맞춤법·오탈자 교정은 직접 처리, 번역은 번역 스킬, 내용 추가·삭제를 동반한 재작성은 별도 집필 스킬.
 ---
 
 # Humanize Korean — AI 한글 티 제거 오케스트레이터 (v2.3)
 
-> **v2.3.0** — 구조 수렴 게이트(`verify_gates.py` 4축: 목표달성·대구 전멸·수치·golden) + 진단 슬림 인덱스(`diagnosis-rules.md`, taxonomy 83%↓). (v2.2: route_hint 3경로 + 단일 콜 우선)
+> **v2.3.0** — 구조 수렴 게이트(`verify_gates.py` 5축: 목표달성·대구 전멸·수치·golden·J-3 줄표) + 진단 슬림 인덱스(`diagnosis-rules.md`, taxonomy 83%↓). (v2.2: route_hint 3경로 + 단일 콜 우선)
 > 버전 히스토리·실측 근거·테스트 시나리오: [`reference/design-notes.md`](reference/design-notes.md)
 
 ## Phase 0: 컨텍스트 확인 및 경로 결정
@@ -71,7 +71,7 @@ humanize-korean v2.3 — 경로: {light|standard|heavy} ({route_hint|사용자 �
 ## Standard 경로 (2콜) — 보통의 AI 초안
 
 1. **진단 1콜**: `humanize-diagnostician`을 `Agent` 도구로 1회 호출.
-   - 입력: `input_path=01_input_with_metrics.txt`, `taxonomy_path=reference/diagnosis-rules.md` (진단 전용 슬림 인덱스 — 71패턴 전수, taxonomy에서 자동 생성)
+   - 입력: `input_path=01_input_with_metrics.txt`, `taxonomy_path=reference/diagnosis-rules.md` (진단 전용 슬림 인덱스 — 본진 패턴 전수, taxonomy에서 자동 생성)
    - 출력: `02_diagnosis.md` — 글 전체의 **지배 패턴 3~6개**(본진 ID + 근거 + 처방) + 장르·격식 + 보존 지침.
    - 진단은 span을 세지 않는다. "무엇이 이 글을 지배하는가"를 판단한다(안정적).
 2. shim으로 진단을 monolith 입력 앞에 결합 (Bash — LLM 콜 아님):
@@ -149,8 +149,8 @@ exit code로 분기한다 (0/1/2/3 의미는 기존 게이트와 동일):
 
 | exit | 판정 | 후속 |
 |---|---|---|
-| 0 | 수렴 — 4축 모두 통과 | 결과 전달 진행 |
-| 1 | 경고 — 문자율 30~50% / S1 목표 미달·과교정 / 대구 전멸 / golden FAIL | 결과 전달 + **해당 축 고지** + finalize 승급 |
+| 0 | 수렴 — 5축 모두 통과 | 결과 전달 진행 |
+| 1 | 경고 — 문자율 30~50% / S1 목표 미달·과교정 / 대구 전멸 / golden FAIL / J-3 줄표 잔존·역방향 삽입 | 결과 전달 + **해당 축 고지** + finalize 승급 |
 | 2 | 중단 — 문자율 ≥ 50% | **윤문본 채택 금지.** monolith에 롤백 지시 후 1회 재실행, 재차 2면 `hold_and_report` |
 | 3 | 판정 불가 | 입력 파일 확인 후 재시도. 게이트를 건너뛰지 않는다 |
 
@@ -272,9 +272,9 @@ exit code로 분기한다 (0/1/2/3 의미는 기존 게이트와 동일):
 ## 참고 자료
 
 - 슬림 룰북 (monolith 전용): [`reference/quick-rules.md`](reference/quick-rules.md) — S1·S2 핵심 패턴 + 자체검증 체크리스트
-- 진단 인덱스 (diagnostician 전용): [`reference/diagnosis-rules.md`](reference/diagnosis-rules.md) — 71패턴 전수 ID·정의·시그니처. `build_diagnosis_rules.py`가 taxonomy에서 자동 생성(직접 편집 금지)
+- 진단 인덱스 (diagnostician 전용): [`reference/diagnosis-rules.md`](reference/diagnosis-rules.md) — 본진 패턴 전수 ID·정의·시그니처. `build_diagnosis_rules.py`가 taxonomy에서 자동 생성(직접 편집 금지)
 - 정량 점수 shim: `scripts/prepare_monolith_input.py` — `reference/metrics_v2.py`(실패 시 `metrics.py` fallback) + `reference/baseline.json` 기반 사전 점수 + `route_hint` 산출
-- 분류 체계 본진 (SSOT — 유지보수·taxonomist 전용): [`reference/ai-tell-taxonomy.md`](reference/ai-tell-taxonomy.md) — 10대분류 × 활성 70 패턴 (+A-17 hold 1건) 전수. 런타임 콜은 이 파일을 직접 읽지 않는다
+- 분류 체계 본진 (SSOT — 유지보수·taxonomist 전용): [`reference/ai-tell-taxonomy.md`](reference/ai-tell-taxonomy.md) — 10대분류 × 활성 71 패턴 (+A-17 hold 1건) 전수. 런타임 콜은 이 파일을 직접 읽지 않는다
 - 윤문 처방 (진단 전용): [`reference/rewriting-playbook.md`](reference/rewriting-playbook.md) — 카테고리별 치환 레시피·장르별 허용 표
 - 학술 인용 외부 SSOT: [`reference/scholarship.md`](reference/scholarship.md) — v2.0 학자 인용·caveat verbatim 보존
 - 웹 서비스 스펙 (옵션): [`reference/web-service-spec.md`](reference/web-service-spec.md) — 웹 확장 시 로드

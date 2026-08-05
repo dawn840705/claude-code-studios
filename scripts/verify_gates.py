@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""Tier 1 구조 게이트 — 4축 통합 결정적 사후 검증 (LLM 콜 0).
+"""Tier 1 구조 게이트 — 5축 통합 결정적 사후 검증 (LLM 콜 0).
 
 `verify_change_rate.py`(문자율 단축 게이트)의 확장판. 문자 diff는 구조
 편집에 눈이 없다 — 실측에서 change_rate 2.77% 뒤에 문장 터치율 29.7%,
 ending_comma -86%, C-8 대구 -75%가 숨어 있었다. 이 스크립트는 문자율에
-더해 (목표 달성 · 대구 전멸 · golden+수치) 3축을 결정적 코드로 판정해
+더해 (목표 달성 · 대구 전멸 · golden+수치 · 줄표) 4축을 결정적 코드로 판정해
 문자율의 사각지대를 보완한다. 기존 verify_change_rate.py는 그대로 두고
 (하위 호환), 신규 게이트는 이 파일이 담당한다.
 
-4축 + 리포트:
+5축 + 리포트:
     P0 문자율   — change_rate() vs WARN 30% / ABORT 50% (기존과 동일 판정)
     P1 목표달성 — before z > +2.0인 어휘 S1 지표가 after에서 z <= +1.0으로
                   내려왔는가. 미달(> +2.0)·과교정(< -1.5)은 WARN.
@@ -17,10 +17,12 @@ ending_comma -86%, C-8 대구 -75%가 숨어 있었다. 이 스크립트는 문�
     P4 터치율  — 원문 문장 중 after에 그대로 없는 비율 + 수치 소실 관찰.
                  게이트 아님, 보고만 (수치 소실은 문장 병합·표기 통합의
                  정상 부산물일 수 있어 exit code에 기여하지 않는다).
+    P5 줄표    — J-3 문장 중간 em dash. before >= 3 인데 after > 2 이면 미달,
+                 after > before 이면 역방향 삽입. 둘 다 WARN.
 
 Exit code (verify_change_rate.py와 의미 동일):
     0 — 수렴 (전 축 통과)
-    1 — 경고 (문자율 30~50% / 목표 미달·과교정 / 전멸 / golden FAIL)
+    1 — 경고 (문자율 30~50% / 목표 미달·과교정 / 전멸 / golden FAIL / 줄표 잔존)
     2 — 중단 (문자율 >= 50%). 윤문본 채택 금지 — 최우선.
     3 — 실행 오류 (입력 파일 없음 등). 게이트 판정 불가.
 
@@ -75,6 +77,18 @@ S1_OVERCORRECT_Z = -1.5  # after z가 미만이면 과교정
 
 # P2 전멸 임계값 — 원래 대구가 이만큼은 있어야 "전멸"이 의미를 가진다.
 ANNIHILATION_MIN_BEFORE = 5
+
+# P5 줄표(J-3) 임계값.
+# 절대치가 아니라 before/after 로 판정한다 — J-3 는 "원문에 이미 있던 대시는
+# 사람 글의 증거이므로 보존" 을 예외로 두므로, 출력만 세면 흔한 보존 케이스
+# (원문 1~2회)를 그대로 벌한다.
+#
+# 다만 이 설계가 그 예외를 **완전히** 면제하지는 않는다: 원문에 산문 삽입
+# 줄표가 3회 이상이면 보존해도 미달로 걸린다. 실측상 그런 한국어 원문은
+# 22.0만 자에 0건이라 드물고, 걸려도 exit 1(WARN — 고지 + finalize 승급)이지
+# 채택 금지가 아니다. 반대로 없던 줄표를 넣는 것은 1회부터 잡는다.
+EM_DASH_MIN_BEFORE = 3    # 이만큼은 있어야 "남발" 이라 부를 수 있다
+EM_DASH_TARGET_AFTER = 2  # J-3 처방의 "1문서에 1~2회 이하"
 
 _WS_RE = re.compile(r"\s+")
 
@@ -144,7 +158,7 @@ def judge_s1_targets(
 
 
 def main(argv: list[str] | None = None) -> int:
-    p = argparse.ArgumentParser(description="Tier 1 구조 게이트 (4축 통합)")
+    p = argparse.ArgumentParser(description="Tier 1 구조 게이트 (5축 통합)")
     p.add_argument("--before", required=True, help="원문 경로 (01_input.txt)")
     p.add_argument("--after", required=True, help="윤문본 경로 (final.md)")
     p.add_argument("--genre", default="essay", help="essay/column/report/blog/abstract")
@@ -244,6 +258,30 @@ def main(argv: list[str] | None = None) -> int:
         print(f"[P4 수치소실] 관찰: {dropped} "
               f"(문장 병합·표기 통합이면 정상 — exit 미반영, 확인 요망)")
 
+    # --- P5 줄표 (J-3) ----------------------------------------------------
+    # 두 가지를 잡는다: (a) 남발이 그대로 남음, (b) 윤문기가 대시를 늘림.
+    # (b) 는 D 카테고리의 "역방향 삽입 금지"(v2.0.1)와 같은 실패 모드다.
+    dash_before = _m.em_dash_count(before)
+    dash_after = _m.em_dash_count(after)
+    dash_injected = dash_after > dash_before
+    dash_missed = (
+        dash_before >= EM_DASH_MIN_BEFORE and dash_after > EM_DASH_TARGET_AFTER
+    )
+    warn = warn or dash_injected or dash_missed
+    if dash_injected:
+        dash_verdict = "FAIL — 역방향 삽입 (원문보다 늘었다)"
+    elif dash_missed:
+        dash_verdict = f"FAIL — 미달 (목표 {EM_DASH_TARGET_AFTER} 이하)"
+    elif dash_before >= EM_DASH_MIN_BEFORE:
+        dash_verdict = "OK"
+    else:
+        dash_verdict = f"스킵 (원문 줄표 < {EM_DASH_MIN_BEFORE})"
+    report["em_dash"] = {
+        "before": dash_before, "after": dash_after, "verdict": dash_verdict,
+    }
+    print(f"[P5 줄표] J-3 문장중간 대시 {dash_before} → {dash_after} — "
+          f"{dash_verdict}")
+
     # --- 통합 판정 --------------------------------------------------------
     if abort:
         verdict, code = "ABORT — 강제 중단. 윤문본 채택 금지", 2
@@ -258,7 +296,8 @@ def main(argv: list[str] | None = None) -> int:
     # P4(sentence_touch)는 보고 전용이라 exit code 에 영향을 주지 않는다 —
     # 증거에도 넣지 않는다. 판정에 쓰이지 않은 신호를 근거로 제시하면
     # 읽는 쪽이 그것이 판정에 기여했다고 오해한다.
-    _AXES = ("change_rate", "s1_targets", "antithesis", "golden", "numbers_dropped")
+    _AXES = ("change_rate", "s1_targets", "antithesis", "golden",
+             "em_dash", "numbers_dropped")
     report["gate_report"] = gate_report.build(
         "verify_gates", code, reason=verdict,
         evidence=[{"id": axis, "detail": report[axis]}

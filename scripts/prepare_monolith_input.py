@@ -218,6 +218,11 @@ _V2_COUNT_METRICS = (
     ("double_particle_count", "이중 조사 결합", "A-19", "{:d}"),
     ("relative_clause_nesting", "관형절 3중+ 중첩 문장 수", "A-18", "{:d}"),
     ("deul_overuse_rate", "'-들' 남용률", "A-17 hold", "{:.3f}"),
+    # J-3 는 S1 이고 사후 판정은 verify_gates P5 가 한다. 여기서는 **표시만**
+    # 한다 — route_hint 는 건드리지 않으므로 줄표가 많아도 경로는 그대로다.
+    # 단일 콜 monolith 가 이 수치를 보고 처리하면 충분하다는 판단이고,
+    # 놓쳐도 P5 가 사후에 잡는다.
+    ("em_dash_count", "산문 삽입 줄표", "J-3", "{:d}"),
 )
 
 

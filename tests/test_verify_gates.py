@@ -1,4 +1,4 @@
-"""Tests for scripts/verify_gates.py — Tier 1 구조 게이트 (4축 통합).
+"""Tests for scripts/verify_gates.py — Tier 1 구조 게이트 (5축 통합).
 
 Runs under pytest OR `python -m unittest` (same convention as
 test_golden.py). No LLM calls — the gate is pure Python; this suite
@@ -144,6 +144,119 @@ _ANTITHESIS_WIPED = (
     "관건은 자본보다 신뢰다. 목표는 규모보다 지속이다. "
     "본질은 형식보다 내용이다. 답은 통제보다 자율이다."
 )
+
+
+# P5 줄표 — 문장 중간 em dash 7회. 나머지 표면은 보존해 문자율을 낮게 유지.
+_EM_DASH_HEAVY = (
+    "AI는 도구 — 그 이상도 이하도 아닌 — 이다. "
+    "우리가 보는 것은 변화 — 아주 빠른 변화 — 의 초입이다. "
+    "기술은 답을 주지 않는다 — 다만 질문을 바꿀 뿐이다. "
+    "그래서 나는 이 흐름 — 특히 최근 6개월 — 을 이렇게 읽는다."
+)
+_EM_DASH_CLEARED = (
+    "AI는 도구다. 그 이상도 이하도 아니다. "
+    "우리가 보는 것은 변화의 초입인데, 그 변화가 아주 빠르다. "
+    "기술은 답을 주지 않는다. 다만 질문을 바꿀 뿐이다. "
+    "그래서 나는 이 흐름을, 특히 최근 6개월을 이렇게 읽는다."
+)
+
+
+class EmDashGateTests(unittest.TestCase):
+    """P5 — J-3 줄표. 절대치가 아니라 before/after 로 판정한다."""
+
+    def _run(self, before: str, after: str) -> int:
+        with tempfile.TemporaryDirectory() as d:
+            b = _write(d, "before.txt", before)
+            a = _write(d, "after.md", after)
+            return verify_gates.main(["--before", b, "--after", a])
+
+    def test_cleared_passes(self) -> None:
+        self.assertEqual(self._run(_EM_DASH_HEAVY, _EM_DASH_CLEARED), 0)
+
+    def test_left_untouched_is_warn(self) -> None:
+        """윤문했다면서 줄표가 그대로면 조용한 실패다."""
+        self.assertEqual(self._run(_EM_DASH_HEAVY, _EM_DASH_HEAVY), 1)
+
+    def test_injection_is_warn_even_below_min_before(self) -> None:
+        """원문에 없던 줄표를 넣는 것은 개수와 무관하게 실패.
+
+        D 카테고리의 '역방향 삽입 금지'(v2.0.1)와 같은 실패 모드다.
+        """
+        before = "오늘은 비가 온다. 길이 미끄럽다. 우산을 챙겨야 한다."
+        after = "오늘은 비가 온다 — 길이 미끄럽다. 우산을 챙겨야 한다."
+        self.assertEqual(self._run(before, after), 1)
+
+    def test_preserved_original_dashes_do_not_fail(self) -> None:
+        """J-3 의 '원문에 이미 있던 대시는 보존' 예외를 벌하지 않는다.
+
+        출력만 세는 절대치 게이트였다면 이 케이스가 FAIL 이 된다.
+        """
+        before = "오늘은 비가 온다 — 정말로. 길이 미끄럽다. 우산을 챙겨야 한다."
+        self.assertEqual(self._run(before, before), 0)
+
+    def test_skipped_when_before_sparse(self) -> None:
+        before = "오늘은 비가 온다 — 정말로. 길이 미끄럽다. 우산을 챙겨야 한다."
+        after = "오늘은 비가 온다. 정말로 그렇다. 길이 미끄럽다. 우산을 챙겨야 한다."
+        self.assertEqual(self._run(before, after), 0)
+
+    def test_markdown_structure_does_not_trip_the_gate(self) -> None:
+        """헤딩 부제·표 셀·코드블록을 보존한 윤문이 FAIL 되면 안 된다.
+
+        초안 계수기가 이것들을 세어 정상 윤문이 전부 exit 1 이었다. exit 1 은
+        finalize 승급을 부르므로 오탐 1건당 LLM 콜이 1회 더 나간다 —
+        `docs/deterministic-gates.md` 가 경고하는 "잘못 울리는 게이트" 다.
+        """
+        for text in (
+            "## 1분기 — 설계\n\n본문입니다.\n\n## 2분기 — 구현\n\n또 본문.\n\n"
+            "## 3분기 — 검증\n\n마지막 본문입니다.",
+            "| 코드 | 뜻 |\n|---|---|\n| 0 | 수렴 — 전 축 |\n| 1 | 경고 — 미달 |\n"
+            "| 2 | 중단 — 금지 |\n\n한국어 본문입니다.",
+            "```python\n# 0 — 수렴\n# 1 — 경고\n# 2 — 중단\n```\n\n한국어 본문입니다.",
+        ):
+            with self.subTest(text=text[:20]):
+                self.assertEqual(self._run(text, text), 0)
+
+    def test_pushing_dashes_to_line_start_does_not_evade(self) -> None:
+        """줄바꿈만 넣어 게이트를 통과시킬 수 없어야 한다.
+
+        렌더 결과가 같으므로 값도 같아야 한다. 계수를 문단 단위로 하는 이유.
+        """
+        before = (
+            "이것은 도구 — 그 이상은 — 아니다. 저것도 마찬가지 — 정말로 — 그렇다. "
+            "셋째 — 여기."
+        )
+        evaded = (
+            "이것은 도구 — 그 이상은 — 아니다. 저것도 마찬가지 — 정말로 — 그렇다.\n"
+            "— 셋째 여기."
+        )
+        self.assertEqual(self._run(before, evaded), 1)
+
+    def test_rewrapping_alone_is_not_injection(self) -> None:
+        before = "기술은 답을 주지\n않는다. 다만 질문을\n바꿀 뿐이다."
+        after = "기술은 답을 주지 않는다. 다만 질문을 바꿀 뿐이다."
+        self.assertEqual(self._run(before, after), 0)
+
+    def test_paragraph_merge_alone_is_not_injection(self) -> None:
+        """문단을 합치기만 한 윤문이 "역방향 삽입" 으로 잡히면 안 된다.
+
+        문단 첫 글자 줄표를 면제하던 판본에서는 before 가 0 으로 세어져
+        0 → 1 삽입 오탐이 났다. 대시 개수는 그대로인데 판정이 뒤집혔다.
+        """
+        before = "기술은 답을 주지 않는다.\n\n— 다만 질문을 바꿀 뿐이다.\n\n오늘도 쓴다."
+        after = "기술은 답을 주지 않는다 — 다만 질문을 바꿀 뿐이다. 오늘도 쓴다."
+        self.assertEqual(self._run(before, after), 0)
+
+    def test_paragraph_break_does_not_evade(self) -> None:
+        """빈 줄로 문단을 쪼개 게이트를 통과시킬 수 없어야 한다."""
+        before = (
+            "이것은 도구 — 그 이상은 — 아니다. 저것도 마찬가지 — 정말로 — 그렇다. "
+            "셋째 — 여기."
+        )
+        evaded = (
+            "이것은 도구 — 그 이상은 — 아니다. 저것도 마찬가지 — 정말로 — 그렇다.\n\n"
+            "— 셋째 여기."
+        )
+        self.assertEqual(self._run(before, evaded), 1)
 
 
 class MainExitCodeTests(unittest.TestCase):
