@@ -1,6 +1,6 @@
 # Claude Code Studios — Plugin Guide
 
-When this plugin is active, you have access to a full software studio: **45 specialist agents**, 85 workflow skills, and production hooks. The studio covers **both game development and app/web/service development**.
+When this plugin is active, you have access to a full software studio: **45 specialist agents**, 86 workflow skills, and production hooks. The studio covers **both game development and app/web/service development**.
 
 ## 작업 원칙
 
@@ -186,6 +186,6 @@ that is the check that will disagree with you.
 - **Project-local rules**: add files to `.claude/rules/` in the user project. Plugin rules in `rules/` are the default baseline.
 
 Everything else is in `docs/` — list that directory rather than carrying its index
-here. The two you will want by name: **`docs/skills-reference.md`** (all 85 skills;
+here. The two you will want by name: **`docs/skills-reference.md`** (all 86 skills;
 some, like `/day-one-patch` and `/soak-test`, are not workflow steps and appear
 nowhere in the catalog) and **`docs/agent-roster.md`** (one line per agent).
