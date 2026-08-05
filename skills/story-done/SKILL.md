@@ -270,6 +270,38 @@ If the story has no implementation files yet (verdict is being run before coding
 
 ---
 
+## Phase 5b: Policy Compliance Gate (deterministic)
+
+Everything above this line judges **completion**: did the acceptance criteria
+pass, is the evidence there, did the reviewer approve. None of it can see the
+other failure — work that finished *by breaking a rule*. A story that reached
+its criteria by adding `@pytest.mark.skip`, or that scattered artifacts outside
+the documented tree, produces exactly the same completion report as one that did
+the work properly. That is **unsafe-success**, and it is worse than a plain
+failure because nothing in the record distinguishes it from a real one.
+
+Run the policy axis. It is independent of the completion axis — neither
+overrides the other, and both are reported.
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT:-.claude}/scripts/verify_policy.py" --story [story-file-path]
+```
+
+**Read the exit code. Do not re-derive the verdict from the output** — see
+`.claude/docs/deterministic-gates.md`.
+
+| Exit | Meaning | What to do |
+|---|---|---|
+| `0` | Compliant | Proceed to Phase 6 |
+| `1` | Warning (P3 track mixing / P4 path convention) | Report it in Phase 6 and let the user decide |
+| `2` | Abort (P1 missing evidence / P2 skip marker added) | **Verdict is BLOCKED.** Do not proceed to Phase 7 |
+| `3` | Cannot judge (not a git repo, diff failed) | Say so. **Never record this as a pass** |
+
+Carry the exit code into the Phase 6 report verbatim, naming the gate:
+`verify_policy.py → exit 2 (P2: tests/combat_test.py adds @pytest.mark.skip)`.
+
+---
+
 ## Phase 6: Present the Completion Report
 
 Before updating any files, present the full report:
@@ -306,13 +338,25 @@ Before updating any files, present the full report:
 [All changes within stated scope] OR:
 - Extra files touched: [list] — [note whether valid or scope creep]
 
+### Two-axis verdict
+| Axis | Result | Decided by |
+|------|--------|-----------|
+| Task completion | PASS / FAIL | this skill (criteria above) |
+| Policy compliance | PASS / WARN / FAIL / NOT RUN | `verify_policy.py` exit code (Phase 5b) |
+
 ### Verdict: COMPLETE / COMPLETE WITH NOTES / BLOCKED
 ```
 
 **Verdict definitions:**
-- **COMPLETE**: all criteria pass, no blocking deviations
-- **COMPLETE WITH NOTES**: all criteria pass, advisory deviations documented
-- **BLOCKED**: failing criteria or blocking deviations must be resolved first
+- **COMPLETE**: all criteria pass, no blocking deviations, policy axis exit `0`
+- **COMPLETE WITH NOTES**: all criteria pass; advisory deviations and/or a policy
+  exit `1` documented
+- **BLOCKED**: failing criteria, blocking deviations, **or a policy exit `2`**
+
+**The two axes never cancel each other.** A completion PASS beside a policy FAIL
+is still BLOCKED — that combination is precisely the case this gate exists to
+catch, and reporting only the completion half is how it goes unrecorded. If the
+policy gate exited `3`, write "policy: NOT RUN" and never "policy: PASS".
 
 If the verdict is **BLOCKED**: do not proceed to Phase 7. List what must be
 fixed. Offer to help fix the blocking items.
