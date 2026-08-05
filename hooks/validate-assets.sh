@@ -2,9 +2,14 @@
 # Claude Code PostToolUse hook: Validates asset files after Write/Edit/MultiEdit
 # Checks naming conventions for files under the project's asset root(s)
 #
-# Exit behavior:
-#   exit 0 = success or advisory warnings only (non-blocking)
-#   exit 1 = blocking error (build-breaking issues: invalid JSON, missing required fields)
+# Exit behavior (see docs/deterministic-gates.md for the 4-code contract):
+#   exit 0 = success, or advisory warnings only (non-blocking)
+#   exit 2 = blocking error (build-breaking issues: invalid JSON)
+#
+# exit 2, not exit 1. In a Claude Code hook only exit 2 feeds stderr back to
+# Claude; exit 1 surfaces to the user and is otherwise ignored. This is a
+# PostToolUse hook, so the write has already happened — exit 2 is the only
+# path by which Claude learns it must fix the file it just wrote.
 #
 # Input schema (PostToolUse for Write/Edit/MultiEdit):
 # { "tool_name": "Write", "tool_input": { "file_path": "assets/data/foo.json", "content": "..." } }
@@ -59,7 +64,7 @@ fi
 
 FILENAME=$(basename "$FILE_PATH")
 WARNINGS=""   # Style/convention issues -- exit 0 with advisory message
-ERRORS=""     # Build-breaking issues -- exit 1 to block the operation
+ERRORS=""     # Build-breaking issues -- exit 2 to block the operation
 
 # Unity generates .meta sidecars itself; their names mirror the asset they
 # describe, so judging them separately would double every warning.
@@ -104,7 +109,7 @@ fi
 # Report errors and block if any build-breaking issues found
 if [ -n "$ERRORS" ]; then
     echo -e "=== Asset Validation: ERRORS (Blocking) ===$ERRORS\n===========================================\nFix these errors before proceeding." >&2
-    exit 1
+    exit 2
 fi
 
 exit 0

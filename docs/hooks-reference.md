@@ -24,6 +24,27 @@ for a manual install) and fire automatically:
 Hook reference documentation: `.claude/docs/hooks-reference/`
 Hook input schema documentation: `.claude/docs/hooks-reference/hook-input-schemas.md`
 
+## Which hooks can actually block
+
+A hook that only ever exits 0 has never rendered a verdict, and "no verdict" is
+not "pass" — the same rule [`deterministic-gates.md`](./deterministic-gates.md)
+states for gates. Read this table before treating a silent hook as a green light.
+
+| Hook | Highest exit code | Can it block? |
+| ---- | ----------------- | ------------- |
+| `validate-commit.sh` | 2 | **Yes** — blocks the `git commit` |
+| `validate-push.sh` | 2 | **Yes** — blocks the `git push` |
+| `validate-assets.sh` | 2 | **Yes** — invalid JSON only; naming stays advisory |
+| `validate-skill-change.sh` | 0 | No — advisory only |
+| `unity-meta-check.sh` | 0 | No — advisory only |
+| `unity-animator-string-lint.sh` | 0 | No — advisory only |
+| `detect-gaps.sh` | 0 | No — advisory only |
+| `session-start.sh` · `session-stop.sh` · `pre-compact.sh` | 0 | No — context injection, not judgment |
+| `post-compact.sh` · `notify.sh` | no explicit exit | No — context injection, not judgment |
+| `log-agent.sh` · `log-agent-stop.sh` · `detect-project-type.sh` | 0 | No — audit trail / detection output |
+
+Only three hooks in this plugin render a verdict. Everything else informs.
+
 ---
 
 ## Layout detection — `hooks/lib/detect-layout.sh`
@@ -112,8 +133,13 @@ check entirely for projects that carry a third-party asset store tree.
 
 2. **Select code files by extension, not by directory.** `studio_path_has_ext`
    is portable across every engine; `^src/gameplay/` is portable across none.
-3. **Stay advisory.** Exit 0 with a stderr warning. Reserve non-zero for
-   unambiguous, mechanical failures (invalid JSON), never for style opinions.
+3. **Stay advisory by default; block with `exit 2`.** Exit 0 with a stderr
+   warning for anything judgeable. Reserve blocking for unambiguous, mechanical
+   failures (invalid JSON), never for style opinions — and when you do block,
+   **use `exit 2`, not `exit 1`.** Only `exit 2` feeds stderr back to Claude;
+   `exit 1` surfaces to the user and is otherwise ignored, so a hook that means
+   "Claude must fix this" and exits 1 has produced no verdict at all. See the
+   4-code contract in [`deterministic-gates.md`](./deterministic-gates.md).
 4. **`grep -E` only.** Windows Git Bash ships a grep without `-P`. Enforced by
    `tests/test_hooks_layout.py::test_no_hook_uses_perl_grep`.
 5. **Cover both directions in `tests/test_hooks_layout.py`** — the engine

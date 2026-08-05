@@ -557,14 +557,39 @@ def test_meta_sidecars_are_skipped(unity):
 def test_invalid_json_blocks_under_unity_assets(unity):
     write(unity, "Assets/Resources/cards.json", '{"a":')
     result = run_hook(VALIDATE_ASSETS, unity, stdin=write_event("Assets/Resources/cards.json"))
-    assert result.returncode == 1
+    assert result.returncode == 2
     assert "not valid JSON" in result.stderr
 
 
 def test_invalid_json_blocks_in_web_layout(web):
     write(web, "assets/data/bad.json", '{"a":')
     result = run_hook(VALIDATE_ASSETS, web, stdin=write_event("assets/data/bad.json"))
-    assert result.returncode == 1
+    assert result.returncode == 2
+
+
+def test_blocking_exit_is_2_not_1(web):
+    """Regression guard for the v0.6.3 fix.
+
+    Until v0.6.3 this hook exited 1 on invalid JSON while printing
+    "ERRORS (Blocking)". In a Claude Code hook only exit 2 feeds stderr back to
+    Claude; exit 1 surfaces to the user and is otherwise ignored. Because this
+    is a PostToolUse hook the write has already landed, so exit 2 is the only
+    path by which Claude learns it must fix the file it just wrote — exit 1
+    meant the "blocking" branch rendered no verdict at all.
+    """
+    write(web, "assets/data/broken.json", "{ not json")
+    result = run_hook(VALIDATE_ASSETS, web, stdin=write_event("assets/data/broken.json"))
+    assert result.returncode == 2, (
+        "invalid JSON must exit 2; exit 1 is not delivered to Claude"
+    )
+    assert "1" != str(result.returncode)
+
+
+def test_naming_violations_never_block(web):
+    """The other half of the contract: style opinions stay advisory (exit 0)."""
+    result = run_hook(VALIDATE_ASSETS, web, stdin=write_event("assets/Sprites/Hero.png"))
+    assert result.returncode == 0
+    assert "must be lowercase with underscores" in result.stderr
 
 
 def test_valid_json_passes(web):
