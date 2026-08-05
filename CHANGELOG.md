@@ -1,5 +1,350 @@
 # Changelog
 
+## v0.6.3 — 2026-08-04
+
+### Added — `gate_report.py`: one machine-readable shape for every gate verdict
+
+`docs/deterministic-gates.md` has forbidden re-deriving a verdict by parsing a
+runner's output since v0.6.0 — "read the exit code, use the text only to explain
+it". But every gate then printed free prose, so a caller who needed *why* had
+exactly one option: parse the prose. **The rule was unfollowable, which is worse
+than absent — it looked like it was holding.**
+
+- **`scripts/gate_report.py`** — four fields, identical across gates: `status`
+  (what), `reason` (why), `next_action` (what to do about it), `evidence` (the
+  findings as data), plus `gate` and `exit_code`. A skill reads `status`, a human
+  reads `reason`, a follow-up reads `next_action`, a report cites `evidence`, and
+  nothing is left to interpret.
+- **`status` is a pure function of `exit_code`** and cannot be passed in. A gate
+  can no longer print ABORT while exiting 0 — which is not hypothetical:
+  `validate-assets.sh` shipped printing "ERRORS (Blocking)" and exiting 1, a code
+  Claude never receives. Deriving one from the other makes that state
+  unrepresentable rather than merely discouraged. An off-contract exit code
+  raises instead of being silently coerced.
+- `--json` added to `verify_policy.py` and `verify_trajectory.py`.
+- For `verify_gates.py` and `check_phase.py` the envelope is **additive** — a new
+  `gate_report` key beside the existing output, whose shape is unchanged.
+  `/project-stage-detect` already consumes those keys, and per `CLAUDE.md`
+  작업 원칙 that is a contract, not an implementation detail. A test asserts the
+  original keys survive.
+- `verify_gates.py` excludes its P4 axis (sentence touch rate) from `evidence`:
+  it is reporting-only and does not move the exit code. Citing a signal that did
+  not contribute to the verdict invites the reader to think it did.
+- Tests: `tests/test_gate_report.py`, 13 cases — including that `build()` has no
+  `status` parameter (the invariant is structural, not documentary), that a
+  hand-forged `status` fails validation, and that the `exit 3` path conforms too,
+  since that is precisely the path most likely to be misread as a pass.
+
+### Added — `rules/verify-route.md`: routing the checking, not the making
+
+`route-hint.md` routes **production** — how many agents make the thing. Nothing
+routed **verification**, so it ran at whatever weight each skill happened to
+hardcode. That fails in both directions at once: a comment typo pulls the full
+`/team-qa` fan-out because the sprint loop says so, while a data migration passes
+on a single `/smoke-check` because nothing said to do more.
+
+- **Route by reversibility, not importance.** "Important" is a feeling and it
+  inflates; *"if this is wrong, what does it take to undo?"* is a property of the
+  change. R1 (one edit undoes it) → the file's own gate · R2 (a revert undoes it)
+  → gates + review · R3 (needs coordination or a re-release) → gates + a
+  **separate** reviewing subagent + `/gate-check` · **R4 (cannot be undone, or
+  costs users) → never runs unattended.**
+- Only the last row takes the decision away from the agent. Escalation is "add
+  this named check", not "be more careful".
+- **Uncertainty escalates** — guessing high costs one extra check, guessing low
+  costs whatever the change breaks. De-escalation requires a stated reason in the
+  output, because an unexplained one is indistinguishable from a skipped check.
+- **At R3+ the reviewer is not the author**, and receives the final state rather
+  than the narrative of how it was produced. An agent asked to check its own work
+  defends it — not from dishonesty, but because the same context reaches the same
+  conclusions twice.
+- `exit 3` at R3+ is itself an escalation trigger: you now know less than planned.
+- Cross-referenced from `route-hint.md`, `subagent-collaboration.md` (new § 8),
+  `CLAUDE.md` and `docs/rules-reference.md`. The two axes are explicitly
+  independent — a one-line edit to a published config is the lightest production
+  route and the heaviest verification route.
+
+### Added — `verify_trajectory.py`: the plugin's own routing is now regression-tested
+
+`/regression-suite` manages tests for the *user's product*. Nothing tested **this
+plugin's own behaviour** — and that behaviour lives in no single file. It is a
+join: `check_phase.py` reads `workflow-catalog.yaml` for the phase, and the
+orchestrator looks that phase up in `agent-packs.yaml` for the staffing.
+
+One line changed in either file silently re-routes every skill running in that
+phase. A renamed phase, a deleted step, a support role quietly promoted to
+primary — none of it failed a test, and none of it was visible in review unless
+someone happened to hold both files in their head at once.
+
+- **`scripts/verify_trajectory.py`** — records the derived routing (steps in
+  order, required steps, `depends_on` edges, primary/support agents) per track
+  and phase as a golden trajectory. `0` match · `2` drift · `3` cannot judge.
+  **Never `1`** — a routing change is not a soft signal.
+- **`tests/trajectories/routing.json`** — 2 tracks, 13 phases. A deliberate
+  change is `--update` in the same commit, which turns an invisible drift into an
+  explicit diff a reviewer reads.
+- **Labels, descriptions and prose are excluded on purpose.** They change often
+  and mean nothing to routing; including them makes the gate noisy, and a noisy
+  gate gets `--update`d without being read — the same as having no gate.
+- Tests: `tests/test_verify_trajectory.py`, 19 cases, both directions — every
+  drift shape is detected (added/removed phase, membership change, **step
+  reordering**, dependency edge change) and an unchanged tree does not false-fire.
+  Also asserts the golden is current, since a stale golden passes while guarding
+  nothing.
+- CI: added to the `policy` job.
+
+### Changed — `self-loop` defends a third failure mode: rewriting without evidence
+
+The rule guarded two traps — score inflation and runaway loops — and both are
+about *stopping*. It had nothing about the opposite pull. "Fix the lowest score
+first" is all the licence a model needs to rewrite a section nobody found fault
+with, and the 5-iteration cap does not catch it: each round dutifully changes
+something while the deliverable keeps moving.
+
+- **`rules/self-loop.md` § 2.1 — the default is preserve, not revise.** Scoring
+  now emits a **defect ticket** (`claim_id` / `defect_type` / `evidence` /
+  `severity`) and only what a ticket names may be touched. Default severity is
+  `국소수정`; `전면재생성` is for structural defects. **No ticket → no edit.**
+- **Verifier ladder: deterministic → tool → model.** If a script settled it, the
+  lower rungs are not used. On the `heavy` route, scoring goes to a *separate*
+  subagent — the agent that produced the work defends the work.
+- **§ 2.2 — iteration input does not accumulate.** From round 2, re-inject four
+  things only: previous output, this round's tickets, the violated criteria with
+  allowed values, and what must be preserved. Re-feeding the whole context makes
+  the model reinterpret the task and undo earlier agreements.
+- **§ 4.1 — failures are classified.** `retryable` consumes a round;
+  `hard_error` (schema, permission, policy `exit 2`) terminates immediately,
+  because the same input yields the same result.
+- **§ 4.2 — three terminal states, not two.** `완료` / `실패` / **`보류`**.
+  Collapsing them recorded "cannot proceed without a permission or a decision" as
+  a failure, and those need opposite responses: one is fixed, the other is
+  escalated. The policy axis also gains standalone blocking power — all criteria
+  at 10 with `verify_policy.py → exit 2` is not DONE.
+- Exit report gains a **판정 주체** column: which script and exit code decided
+  each row, or "모델". A blank means that row was never verified.
+- § 1-§ 6 numbering is unchanged (new material is § 2.1/2.2, § 4.1/4.2) so
+  existing citations still resolve. `skills/self-loop/SKILL.md`,
+  `docs/rules-reference.md` and `CLAUDE.md` updated to match.
+- `scripts/lint_baseline.json`: the `self-loop` entry loses `Check 3: no verdict
+  keyword` — adding `BLOCKED` as a terminal state incidentally satisfied it. The
+  remaining `Check 4` entry (Write/Edit without ask-before-write) stays
+  baselined deliberately: this skill's contract is to iterate autonomously and
+  it says so explicitly, so asking before each write would contradict its design.
+
+### Changed — `CLAUDE.md` is a bias-correction file again (214 → 169 lines)
+
+A context file is not a knowledge store; it is the set of instructions that
+correct what the model would otherwise do by default. Roughly 90 of `CLAUDE.md`'s
+214 lines were things an agent can find by opening a file — stage tables, the
+workflow list, a directory tree, an index of `docs/`. Those lines do not merely
+waste tokens: they dilute the instructions that actually change behaviour, and a
+context window has no table of contents to compensate.
+
+- **New `## 작업 원칙` (8 items).** Every prior "don't do this" in `CLAUDE.md`
+  corrected *orchestration* bias — don't over-spawn, don't bypass hooks, don't
+  trust an agent's summary. There was **nothing about implementation bias**, yet
+  the 45 agents this file routes write code. The eight cover research-before-
+  designing, simplest-sufficient implementation, growing in layers, not
+  reimplementing, checking installed dependencies, and refusing stopgaps.
+- **Backward compatibility is inverted from the usual advice, on purpose.** The
+  common form of this rule is "delete unused paths, don't keep compatibility
+  layers". This repo is an installed distributable: skill names, slash commands
+  and artifact paths are effectively public API, so those must not break — while
+  *internal* implementation (script helpers, hook libs) follows the delete-freely
+  rule. Getting this backwards would break user projects on upgrade.
+- **Stage → agent assignments moved to `docs/agent-packs.yaml` (`stages:`), not
+  deleted.** The audit assumed `workflow-catalog.yaml` was their source of truth.
+  It is not — the catalog carries steps and skills but essentially no agent
+  information (`grep -c agent` → 2), and `agent-packs.yaml` had no stage
+  information. That mapping existed *only* in `CLAUDE.md` prose and would not
+  have been recoverable. It is a team decision, so it moved to the routing SoT.
+- **`tests/test_agent_packs_stages.py` (6 cases) locks the join.** `CLAUDE.md` now
+  says "ask `check_phase.py` for the phase, look that phase up in
+  `agent-packs.yaml`". A verification pass caught that the first draft listed only
+  5 stages while the catalog defines 7 game phases and 6 product phases — so
+  `concept`, `systems-design`, `technical-setup` and `architecture` had no
+  staffing and the lookup would have silently returned nothing. Those four are now
+  staffed; game `live-ops` moved to `post_release:` because the catalog has no
+  such phase; and the test fails if either side drifts again, in both directions.
+- Compressed with pointers, not deletions: `## Development stages` (59 → 21, now a
+  two-SoT table), `## Entry points` (19 → 14), `## File conventions` (20 → 11, now
+  pointing at `docs/directory-structure.md`, which the tree had been duplicating),
+  `## Reference docs` (11 → folded into `## Extending the plugin`), plus trims to
+  the domain-pack member lists and the self-loop protocol, both of which restate
+  files that already hold the full version.
+- Untouched by design: `## Deterministic gates`, `## Route hint`, `## Agent usage
+  rules`, `## Don't do this` — the bias-correction core.
+
+**The 130-line target was dropped rather than met.** It was computed assuming the
+stage tables could be deleted; once they had to be relocated instead, the pointer
+section plus the new principles account for the difference. Line count is a proxy
+for density, and gating on a proxy invites damaging the thing it stands for — so
+the completion gate is now `test_agent_packs_stages.py`, which judges information
+loss directly. Reasoning in full: `docs/design/v0.6.3-context-density-plan.md`.
+
+### Added — `verify_policy.py`: the policy axis `/story-done` was missing
+
+Every gate in this plugin judged the same question — *did the work get done?*
+`/story-done` verifies acceptance criteria, `/smoke-check` runs the suite,
+`check_phase.py` checks artifacts exist. All completion axis.
+
+Nothing asked the second question: *was it done the way we said?* A story that
+reached `Status: Complete` by adding `@pytest.mark.skip`, or by scattering
+artifacts outside the documented tree, recorded exactly the same `exit 0` as one
+that did the work properly. `CLAUDE.md` has a "Don't do this" section, but it is
+prose — no script had ever read it, so nothing enforced it.
+
+That failure mode is **unsafe-success**, and it is worse than a plain failure: a
+plain failure is visible and gets fixed, while an unsafe success is
+indistinguishable from a real one in every record we keep — and the next
+session's agent reads those records as the normal way to work.
+
+- **`scripts/verify_policy.py`** — stdlib-only, 4-code contract:
+  `0` compliant · `1` warning · `2` abort · `3` cannot judge (not a git repo).
+  - **P1** — story is `Complete` but its declared test evidence does not exist,
+    or the evidence block still reads "Not yet created". **ABORT.**
+  - **P2** — the diff *adds* a test-skip marker (pytest, unittest, jest, NUnit,
+    Go, Rust). Pre-existing markers are not flagged; only additions. **ABORT.**
+  - **P3** — `design/gdd/*.md` and `product/prd/*.md` both present, i.e. the
+    pack mixing `CLAUDE.md` warns against. **WARNING.**
+  - **P4** — new files under `design/`/`production/` outside the documented
+    layout. **WARNING.**
+- **P1/P2 abort, P3/P4 warn, deliberately.** P1 and P2 are mechanical and
+  unambiguous. P3 and P4 have legitimate exceptions, and a gate that fires
+  wrongly gets disabled wholesale — which costs more than the check ever earned.
+  Promote them once the false-positive rate is known, not before.
+- **Two-axis verdict in `/story-done`** (new Phase 5b). The axes never cancel
+  each other: a completion PASS beside a policy FAIL is still BLOCKED, and a
+  policy `exit 3` is recorded as "NOT RUN", never as "PASS".
+- **P2 judges code files only.** Its first run on this repo flagged
+  `skills/story-done/SKILL.md` for *explaining what P2 catches* — prose that
+  names a marker is documentation, not a skipped test. P2 now checks an
+  extension allowlist plus a greppable file-level opt-out
+  (`policy-allow-file: skip-marker`) for the gate's own fixtures.
+- CI: new `policy` job in `.github/workflows/test.yml` — runs `--self-test`
+  first, then judges the repo against its own conventions.
+- Tests: `tests/test_verify_policy.py`, 28 cases, including
+  `test_this_repository_passes_its_own_gate` (a plugin that breaks its own
+  policy has no business shipping the gate) and both directions of the P2
+  opt-out, so the escape hatch cannot silently widen.
+
+### Changed — Subagent collaboration is a contract, not just a call
+
+`rules/subagent-collaboration.md` specified what to *send* a subagent and how to
+merge results, but nothing about isolation. The point of a subagent is that it
+holds its own conversation — yet with no return boundary, agents summarised their
+discarded candidates and failed attempts back into main context. The thing being
+isolated came straight back, so the fan-out cost was paid and the benefit lost.
+
+- **§3 gains obligations 6 and 7** — *금지 영역* (what not to read, modify or
+  spawn) and *반환 경계* (what goes back to main context and what does not).
+  New §3.1 explains why, with a two-column default table.
+- **Returns are Artifacts, not summaries** — an agent that wrote a file returns
+  `path — status`, not 400 lines of prose the orchestrator then carries forever.
+- **Read-only agents get read-only tools.** For `qa-lead`, `security-engineer`
+  and `performance-analyst`, narrow `tools` to Read/Glob/Grep rather than
+  relying on a sentence in the prompt — a permission is a stronger guarantee.
+- **§2 is no longer game-only.** The standard four roles now come in a game set
+  and a product set (`product-manager` / `ux-designer` / `frontend-engineer` /
+  `backend-engineer`); the product pack shipped in v0.4.0 and this rule never
+  followed. Also notes that four is a convention, not a quota.
+- **§5 gains two antipatterns** — narrating the whole search back (the
+  orchestrator ends up persuaded by length rather than content), and spawning
+  across tracks.
+
+### Fixed — `validate-assets.sh` printed "Blocking" and did not block
+
+The hook detected invalid JSON, printed `=== Asset Validation: ERRORS (Blocking) ===`,
+and exited **1**. In a Claude Code hook only `exit 2` feeds stderr back to Claude;
+`exit 1` surfaces to the user and is otherwise ignored. Because this is a
+*PostToolUse* hook the write has already landed, so exit 2 was the only path by
+which Claude could learn it must fix the file it just wrote — the "blocking"
+branch had never rendered a verdict at all.
+
+`validate-commit.sh` and `validate-push.sh` were already correct at `exit 2`, and
+`docs/deterministic-gates.md` had declared `2 = abort` since v0.6.0. This was a
+contract violation, not a new policy.
+
+- **`hooks/validate-assets.sh`** — `exit 1` → `exit 2` on invalid JSON. Naming
+  violations stay advisory (`exit 0`), unchanged.
+- **`docs/hooks-reference.md`** — rule 3 for adding a hook now names the code
+  (`exit 2`, and why `exit 1` is not a verdict) instead of saying "non-zero".
+- **New: "Which hooks can actually block" table** — only three of the sixteen
+  hooks render a verdict. The rest exit 0 unconditionally, and a hook that has
+  never judged anything must not be read as a green light. Same rule
+  `deterministic-gates.md` states for gates, applied to hooks.
+- Tests: `tests/test_hooks_layout.py` — the two existing invalid-JSON tests now
+  assert `2`, plus `test_blocking_exit_is_2_not_1` (regression guard) and
+  `test_naming_violations_never_block` (the other half of the contract).
+
+**Upgrade note:** invalid JSON under an asset root now actually stops Claude. A
+project carrying a pre-existing malformed JSON file will see this surface for the
+first time.
+
+### Added — `lint_skills.py` judges `description` as a routing rule (Checks 8-10)
+
+`description` is not documentation. It is the text Claude reads when deciding
+whether to auto-invoke a skill or spawn an agent, and this plugin ships 85 skills
++ 45 agents — 130 choices resolved from description text alone. The linter
+checked only that the field was *non-empty*, so misrouting (a skill firing on the
+wrong task, or the right skill never firing) had no detector.
+
+- **Check 8** — description never says when *not* to use this. WARNING.
+- **Check 9** — description is a near-duplicate of another entry's. WARNING.
+- **Check 10** — description has no explicit trigger clause; it describes rather
+  than routes. WARNING.
+- Checks 8 and 10 recognise Korean as well as English phrasing.
+- **All three are warnings, and warnings never enter `lint_baseline.json`** — so
+  this landed with zero baseline churn. Current roster: 118 of 130 files warn.
+  Run `--strict` to see the backlog; CI stays green and a *new* skill lands with
+  the defect visible.
+- **`NEAR_DUPLICATE_THRESHOLD = 0.30`**, measured not guessed. Over all 8385
+  pairs in the v0.6.2 roster: max 0.438, p99.9 0.216, p99 0.121, median 0.000.
+  The first value tried was 0.60 and it never fired once — a check that cannot
+  fire is worse than no check, because silence reads as "no confusables exist".
+  At 0.30 it selects exactly the pairs a human agrees are confusable, led by
+  `create-prd` ~ `design-system` (0.44), which is the product-track/game-track
+  pack mixing `CLAUDE.md` explicitly warns against.
+- Tests: `tests/test_skill_lint.py` — 13 new cases including
+  `test_threshold_can_actually_fire_on_the_real_roster`, which fails if the
+  threshold is ever raised back out of range.
+
+Rationale and the wider plan: `docs/design/v0.6.3-context-density-plan.md`,
+sourced from `docs/design/ax-labs-blog-audit.md`.
+
+### Added — `/remove-bg`: background removal as a deterministic, cost-gated skill
+
+The plugin had `/api-cost-gate` (a disclosure format) and `/asset-spec` (which
+produces asset rows) but nothing that actually *did* image work. Background
+removal is the most common cutout task in both tracks — game sprites and product
+photography — and it is billable, which makes it a useful shape to get right.
+
+- **`scripts/removebg.py`** — stdlib-only [remove.bg](https://www.remove.bg/api)
+  client with three subcommands: `account` (balance), `estimate` (plan + cost,
+  **zero** billable calls), `run` (execute). Single file, folder batch,
+  recursive, and `http(s)` URL inputs. Emits a JSON report whose
+  `credits_charged_total` is the measured `X-Credits-Charged` sum, not the
+  estimate.
+- **Exit code is the verdict**, per `docs/deterministic-gates.md`: `0` all
+  processed · `1` partial failure or everything skipped · `2` all failed / `402`
+  insufficient credits / `403` auth failure / `--max-calls` ceiling tripped ·
+  `3` cannot run (no key, bad path — nothing called, nothing charged).
+  `402`/`403` abort the whole batch rather than failing per-image, because
+  continuing there only spends money badly.
+- **`skills/remove-bg/SKILL.md`** — embeds the `/api-cost-gate` 4-point
+  disclosure (Phases 2-3) rather than delegating to it, backs point 2 with a real
+  balance lookup, and writes results back to `design/assets/asset-manifest.md` at
+  status `In Progress` (a cutout is a processing step, not an approval).
+- **Cost discipline is structural, not advisory**: `--size preview` (≈0.25
+  credits) is the default against `full` (≈1 credit); `--max-calls` aborts if the
+  input set grew between estimate and run; failed images are never auto-retried.
+- **Keys are never CLI arguments** — environment variable or `--api-key-file`
+  only, so nothing lands in shell history or the process list.
+- Docs: entries in `docs/skills-reference.md` (Art & Asset Pipeline + Creative &
+  Content), a remove.bg row and a "use the dedicated skill" note in
+  `skills/api-cost-gate/SKILL.md`, a third reference implementation in
+  `docs/deterministic-gates.md`, and a README section.
+
 ## v0.6.2 — 2026-07-31
 
 ### Fixed — Hooks stopped assuming a lowercase web layout

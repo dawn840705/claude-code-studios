@@ -53,3 +53,25 @@ jobs:
       # tolerated; anything new fails the build. Fix an entry, then delete it
       # from the baseline — the linter reports stale entries.
       - run: python3 scripts/lint_skills.py skills/ agents/ --baseline
+
+  policy:
+    name: policy compliance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      # The completion axis (tests, phase checks) cannot see unsafe-success:
+      # work that finished by breaking a rule records the same exit 0 as work
+      # that finished properly. This gate is the policy axis — it runs its own
+      # smoke test first, then judges the repo against its own conventions.
+      - run: python3 scripts/verify_policy.py --self-test
+      - run: python3 scripts/verify_policy.py --project-root .
+      # The plugin's own routing is a JOIN of workflow-catalog.yaml (steps) and
+      # agent-packs.yaml (staffing). One line in either file silently re-routes
+      # every skill in that phase, and no other check would notice. The golden
+      # trajectory makes that diff visible; --update re-records it deliberately.
+      - run: python3 scripts/verify_trajectory.py

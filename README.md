@@ -2,9 +2,15 @@
 
 Claude Code 플러그인 형태로 패키징된 *완전한* 소프트웨어 스튜디오. **게임은 물론 앱/웹/서비스 개발까지** 커버 (v0.4.0+).
 
-**전문 에이전트 45종** · **워크플로우 skill 84종** · **production hooks** · **거버넌스/워크플로우 자산 (v0.2.0+)** · **도메인 팩 + 프로젝트 타입 자동 감지 (v0.4.0+)** — 프리프로덕션 → 프로덕션 → QA → 릴리스 → 라이브 옵스 전 단계 커버.
+**전문 에이전트 45종** · **워크플로우 skill 85종** · **production hooks** · **거버넌스/워크플로우 자산 (v0.2.0+)** · **도메인 팩 + 프로젝트 타입 자동 감지 (v0.4.0+)** — 프리프로덕션 → 프로덕션 → QA → 릴리스 → 라이브 옵스 전 단계 커버.
 
-> **v0.6.2 신규:** hook 이 프로젝트 레이아웃을 읽습니다. 그동안 `detect-gaps.sh` · `validate-commit.sh` · `validate-assets.sh` 는 `src/` · `assets/` · `design/gdd/` 를 박아두고 있어서, `Assets/` 와 `ProjectSettings/` 를 강제하는 Unity 프로젝트에서는 스크립트 60개짜리 코드베이스를 "**NEW PROJECT**" 로 진단하거나(그 분기가 `exit 0` 이라 정작 갭 검사 1~5는 한 번도 못 돌았습니다) 커밋마다 아무것도 못 잡고 지나갔습니다. 감지를 [hooks/lib/detect-layout.sh](hooks/lib/detect-layout.sh) 한 곳으로 모으고, 코드 검사는 경로 대신 **확장자** 기준으로 바꿨습니다. 명명 규칙은 엔진별로 갈라집니다 — Unity 의 `PlayerController.cs` 는 클래스명과 맞춰야 하는 올바른 이름이므로 소문자 강제 대상이 아닙니다. 웹/일반 프로젝트 동작은 그대로이고, `.claude/studio-layout.json` 으로 덮어쓸 수 있습니다. PostToolUse matcher 에 `MultiEdit` 도 추가.
+> **v0.6.3 신규:** `CLAUDE.md` 가 다시 **편향 교정 파일**이 됐습니다 (214 → 169줄). 214줄 중 약 90줄은 에이전트가 파일을 열어보면 알 수 있는 것들이었고, 그 줄들은 토큰만 쓰는 게 아니라 **정작 행동을 바꾸는 지시의 밀도를 떨어뜨립니다** — 컨텍스트 창에는 목차도 강조도 없으니까요. 스테이지별 담당 에이전트는 지운 게 아니라 [docs/agent-packs.yaml](docs/agent-packs.yaml) 로 **이관**했습니다(그 매핑은 CLAUDE.md 본문에만 있었고 카탈로그에는 없었습니다). 대신 그동안 없던 **구현 편향 교정 8줄**이 들어갔습니다 — 기존의 "하지 마라"는 전부 오케스트레이션 편향이었지, 이 파일이 라우팅하는 45개 에이전트가 실제로 쓰는 *코드*에 대한 것은 하나도 없었습니다.
+>
+> 그리고 결정적 게이트 계약의 구멍 넷을 막았습니다. **`scripts/verify_policy.py`** — 지금까지 모든 게이트는 "일이 끝났나"만 판정했고 "우리가 말한 방식대로 했나"는 아무도 안 봤습니다. 테스트를 skip 처리해 통과시킨 스토리는 정상 완료와 **기록상 구별되지 않았습니다**(unsafe-success). **`scripts/verify_trajectory.py`** — 이 플러그인의 라우팅은 카탈로그 × agent-packs 의 **조인**이라 어느 한쪽 한 줄이 바뀌면 그 phase 의 모든 스킬이 조용히 다르게 라우팅됩니다. 골든 궤적으로 잠갔습니다. **`scripts/gate_report.py`** — "출력을 파싱해 판정을 재도출하지 말라"는 v0.6.0 의 금지는 게이트가 산문만 뱉는 동안 **지킬 수가 없었습니다**. 4필드 공통 봉투(`status`/`reason`/`next_action`/`evidence`)로 그 나머지 반쪽을 채웠고, `status` 는 `exit_code` 의 순수 함수라 "ABORT 를 출력하며 0 으로 종료"가 표현 불가능해집니다. **[rules/verify-route.md](rules/verify-route.md)** — `route-hint` 는 *생산*만 라우팅했습니다. 검증은 **되돌릴 수 있는가**(R1~R4)로 라우팅하고, R4(되돌릴 수 없거나 사용자에게 비용이 가는 것)는 무인 실행하지 않습니다. 배경: [docs/design/v0.6.3-context-density-plan.md](docs/design/v0.6.3-context-density-plan.md).
+>
+> `hooks/validate-assets.sh` 는 "ERRORS (Blocking)" 을 출력하면서 `exit 1` 로 끝나고 있었습니다 — Claude Code 훅에서 차단은 `exit 2` 이고 1 은 Claude 에게 전달되지 않으므로, 그 분기는 **판정을 낸 적이 없었습니다.** 그리고 `/remove-bg` 합류.
+>
+> **v0.6.2:** hook 이 프로젝트 레이아웃을 읽습니다. 그동안 `detect-gaps.sh` · `validate-commit.sh` · `validate-assets.sh` 는 `src/` · `assets/` · `design/gdd/` 를 박아두고 있어서, `Assets/` 와 `ProjectSettings/` 를 강제하는 Unity 프로젝트에서는 스크립트 60개짜리 코드베이스를 "**NEW PROJECT**" 로 진단하거나(그 분기가 `exit 0` 이라 정작 갭 검사 1~5는 한 번도 못 돌았습니다) 커밋마다 아무것도 못 잡고 지나갔습니다. 감지를 [hooks/lib/detect-layout.sh](hooks/lib/detect-layout.sh) 한 곳으로 모으고, 코드 검사는 경로 대신 **확장자** 기준으로 바꿨습니다. 명명 규칙은 엔진별로 갈라집니다 — Unity 의 `PlayerController.cs` 는 클래스명과 맞춰야 하는 올바른 이름이므로 소문자 강제 대상이 아닙니다. 웹/일반 프로젝트 동작은 그대로이고, `.claude/studio-layout.json` 으로 덮어쓸 수 있습니다. PostToolUse matcher 에 `MultiEdit` 도 추가.
 >
 > **v0.6.1:** 결정론적 흐름이 **product 트랙까지** 확장됐습니다. `docs/workflow-catalog.yaml` 이 game/product **듀얼 트랙**(스키마 v2)이 되고, 스텝 간 의존이 `depends_on` 으로 명시되며, 단계 완료 판정은 새 게이트 **`scripts/check_phase.py`** 가 exit code 로 내립니다(`0` 완료 / `1` 진행중 / `2` 의존 위반 — 건너뛴 스텝 탐지 / `3` 판정불가). `/help` 와 `/project-stage-detect` 는 이제 직접 glob 하지 않고 이 판정을 읽습니다. 약속만 있던 **`/create-prd`** 도 합류 — product 트랙의 `/design-system` 대응물입니다.
 >
@@ -53,7 +59,7 @@ Claude Code 플러그인 형태로 패키징된 *완전한* 소프트웨어 스�
 개발 단계별로 정리:
 
 - **프리프로덕션**: `/start`, `/brainstorm`, `/map-systems`, `/design-system`, `/review-all-gdds`, `/consistency-check`, `/create-architecture`, `/architecture-decision`, `/architecture-review`, `/create-control-manifest`, `/art-bible`, `/ux-design`, `/ux-review`, `/setup-engine`, `/adopt`, `/gate-check`
-- **스프린트/프로덕션**: `/create-epics`, `/create-stories`, `/story-readiness`, `/dev-story`, `/story-done`, `/quick-design`, `/sprint-plan`, `/sprint-status`, `/scope-check`, `/estimate`, `/propagate-design-change`, `/reverse-document`, `/asset-spec`, `/asset-audit`
+- **스프린트/프로덕션**: `/create-epics`, `/create-stories`, `/story-readiness`, `/dev-story`, `/story-done`, `/quick-design`, `/sprint-plan`, `/sprint-status`, `/scope-check`, `/estimate`, `/propagate-design-change`, `/reverse-document`, `/asset-spec`, `/remove-bg`, `/asset-audit`
 - **코드 품질**: `/code-review`, `/tech-debt`, `/design-review`
 - **QA**: `/qa-plan`, `/test-setup`, `/test-helpers`, `/test-evidence-review`, `/test-flakiness`, `/regression-suite`, `/smoke-check`, `/soak-test`, `/bug-report`, `/bug-triage`, `/balance-check`, `/playtest-report`, `/content-audit`
 - **팀 오케스트레이션**: `/team-audio`, `/team-combat`, `/team-level`, `/team-live-ops`, `/team-narrative`, `/team-polish`, `/team-qa`, `/team-release`, `/team-ui`
@@ -193,6 +199,32 @@ Suno / ElevenLabs / Midjourney / Tripo / OpenAI 등 모든 pay-as-you-go AI 호�
 4. 활용 (어디에 저장 / 어떻게 평가 / 채택 기준)
 
 → 사용자 명시 OK 후에만 호출 실행. **Auto mode 도 우회 X.**
+
+### 배경 제거 (`/remove-bg`)
+
+[remove.bg API](https://www.remove.bg/api) 로 스프라이트·캐릭터·제품 이미지의 배경을 제거한다. 단일 파일 / 폴더 배치 / 에셋 매니페스트 연동을 모두 지원하며, 위의 4건 disclosure 게이트가 스킬 안에 내장돼 있다 — `/api-cost-gate` 를 따로 부를 필요가 없다.
+
+```bash
+export REMOVE_BG_API_KEY=<key>       # https://www.remove.bg/dashboard#api-key
+
+/remove-bg design/assets/raw/hero.png            # 단일
+/remove-bg design/assets/raw/ --type graphics    # 폴더 배치
+/remove-bg manifest:tower-defense                # 매니페스트 연동
+```
+
+판정은 스크립트가 내린다 (`scripts/removebg.py`, 표준 라이브러리만 사용):
+
+```bash
+python3 scripts/removebg.py account                      # 잔액 조회 (무과금)
+python3 scripts/removebg.py estimate <경로> --check-balance --json   # 견적 (무과금)
+python3 scripts/removebg.py run <경로> --out <디렉터리> --max-calls 20
+```
+
+- **exit code 가 판정**: `0` 전건 성공 · `1` 부분 실패 · `2` 중단(전건 실패 / 402 크레딧 부족 / 403 인증 실패 / `--max-calls` 초과) · `3` 실행 불가(키 없음 — 통과 아님)
+- **`--size preview` 가 기본값**: preview ≈ 0.25 크레딧, full ≈ 1 크레딧. 4배 차이라 리뷰용은 preview, 최종 프로덕션 아트만 full.
+- **`--max-calls` 는 안전벨트**: 견적과 실행 사이에 입력이 늘어나면 승인 범위를 넘겨 과금하지 않고 중단한다.
+- 확정 과금액은 응답 헤더 `X-Credits-Charged` 실측값으로 리포트(`removebg-report.json`)에 기록된다.
+- API 키는 CLI 인자로 받지 않는다 (셸 히스토리·프로세스 목록 노출). 환경변수 또는 `--api-key-file` 만 허용.
 
 ### 다중 source-of-truth 감사 (`/sot-audit`)
 

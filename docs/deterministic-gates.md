@@ -54,6 +54,51 @@ for exit 3, and must be labeled as such. CI validates the catalog schema with
 `check_phase.py --validate` (broken globs, dangling `depends_on`, missing
 `required:` fields are unmergeable).
 
+**[`scripts/removebg.py`](../scripts/removebg.py) extends the contract to a paid
+external API.** It exits `0` (all images processed) / `1` (partial failure, or
+everything skipped) / `2` (all failed, `402` insufficient credits, `403` auth
+failure, or the `--max-calls` ceiling tripped) / `3` (no API key, bad input
+path — nothing was called and nothing was charged). `/remove-bg` reads the exit
+code and never re-derives success from stdout. Two properties matter for a
+billable gate: the pre-flight (`estimate`) makes **zero** billable calls, so the
+cost disclosure costs nothing; and `2` is reserved for states where continuing
+spends money badly, which is why `402`/`403` abort the whole batch instead of
+failing image-by-image.
+
+**[`scripts/verify_policy.py`](../scripts/verify_policy.py) adds a second axis.**
+Every gate above judges *completion*. This one judges *compliance* — whether the
+work was done the way we said — and exits `0` (compliant) / `1` (warning: track
+mixing, off-convention paths) / `2` (abort: a story is Complete with missing
+evidence, or the diff adds a test-skip marker) / `3` (not a git repo). `/story-done`
+runs it in Phase 5b and reports both axes side by side.
+
+The two must not be collapsed. Work that finished *by breaking a rule* records
+the same `exit 0` on the completion axis as work that finished properly — that
+is **unsafe-success**, and it is worse than a plain failure precisely because
+nothing in the record distinguishes it. A completion PASS beside a policy FAIL
+is BLOCKED.
+
+Its severity split is deliberate: the two mechanical, unambiguous checks abort;
+the two with legitimate exceptions warn. A gate that fires wrongly gets switched
+off wholesale, which costs more than the check ever earned — the first run of
+P2 flagged a *documentation* file for explaining what P2 catches, and that is
+the shape of the mistake to design against.
+
+**[`scripts/verify_trajectory.py`](../scripts/verify_trajectory.py) gates the
+plugin's own routing.** Every gate above judges a *project*. This one judges
+**this repository's behaviour**, which is not written in any single file — it is
+the join of `workflow-catalog.yaml` (which steps, in what order) with
+`agent-packs.yaml` (who staffs each phase). One line changed in either silently
+re-routes every skill that runs in that phase, and review cannot catch it unless
+someone holds both files in their head at once.
+
+The script records that derived routing as a golden trajectory and exits `2` when
+it drifts (`3` if a source is missing — never `1`, because a routing change is not
+a soft signal). A deliberate change is `--update` in the same commit, which turns
+an invisible drift into an explicit diff a reviewer can read. Labels and prose are
+excluded on purpose: a noisy gate gets `--update`d unread, which is the same as
+having no gate.
+
 ## Rules for callers
 
 **The exit code overrides the model.** If the script says FAIL, it is FAIL, no
@@ -63,6 +108,23 @@ overturn it.
 **Never re-derive the verdict from stdout.** Parsing the runner's text to decide
 PASS/FAIL puts the judgment back in the model, which is the thing this document
 exists to prevent. Read the exit code. Use the text only to *explain* it.
+
+For a long time that rule was unfollowable: gates printed prose, so a caller who
+needed *why* had no option but to parse it — and a rule nobody can follow is
+worse than none, because it looks like it is holding.
+**[`scripts/gate_report.py`](../scripts/gate_report.py) is the missing half.**
+Under `--json` every gate emits the same four fields — `status` (what),
+`reason` (why), `next_action` (what to do), `evidence` (the findings as data) —
+alongside `gate` and `exit_code`.
+
+`status` is a **pure function of `exit_code`** and cannot be set independently,
+so a gate can no longer print ABORT while exiting 0. That is not hypothetical:
+`validate-assets.sh` shipped printing "ERRORS (Blocking)" and exiting 1, a code
+Claude never receives. Deriving one from the other makes that unrepresentable.
+
+The envelope was added **alongside** the existing `--json` output of
+`verify_gates.py` and `check_phase.py`, not in place of it — `/project-stage-detect`
+already consumes those keys.
 
 **A gate that cannot run is not a gate that passed.** Distinguish these three
 states explicitly and never collapse them: PASS (ran, exit 0) · FAIL (ran,

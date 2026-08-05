@@ -24,6 +24,7 @@
 | `/propagate-design-change` | When a GDD is revised, find affected ADRs and produce an impact report |
 | `/art-bible` | Guided, section-by-section Art Bible authoring — visual identity spec that gates asset production |
 | `/asset-spec` | Generate per-asset visual specs and AI generation prompts from GDDs/level docs/profiles |
+| `/remove-bg` | Remove image backgrounds via the remove.bg API (single / folder batch / manifest-driven) — cost-gated, exit-code judged, writes results back to the asset manifest |
 | `/governance-bible-init` | Bootstrap a domain-specific governance Bible (Sound, Art, Narrative, etc.) via the Anchor + Bible pattern |
 
 ## Product Design (App/Web/Service)
@@ -127,6 +128,7 @@
 | `/onboard` | Generate contextual onboarding document for a new contributor or agent |
 | `/localize` | Localization workflow: string extraction, validation, translation readiness |
 | `/api-cost-gate` | Pre-flight cost approval gate for any paid AI API call — forces 4-point disclosure before invocation |
+| `/remove-bg` | remove.bg background removal — the 4-point gate already embedded, so call this instead of `/api-cost-gate` for cutout work |
 
 ## Team Orchestration
 
