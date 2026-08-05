@@ -71,8 +71,20 @@ unvalidated signal is kept out of the decision entirely rather than used with a
 caveat. Copy that discipline: if you cannot trust a signal, do not let it pick
 the route.
 
+## What this rule does not decide
+
+Everything above routes **production** — how many agents make the thing. It says
+nothing about how hard the result gets **checked**, and those are independent
+axes: a one-line edit to a published config is the lightest production route and
+the heaviest verification route.
+
+Route the checking separately with [`verify-route.md`](verify-route.md), by
+reversibility (R1-R4). Do not infer one from the other.
+
 ## Related
 
+- [`verify-route.md`](verify-route.md) — routes verification; this file routes
+  production. Decide both, independently
 - [`self-loop.md`](self-loop.md) — iterate until criteria pass; route-hint
   decides how much machinery each iteration gets
 - [`docs/deterministic-gates.md`](../docs/deterministic-gates.md) — heavy-route
