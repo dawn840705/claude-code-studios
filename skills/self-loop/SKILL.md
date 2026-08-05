@@ -82,10 +82,26 @@ Each iteration, in strict order:
    Self-scoring is the fallback, not the default. Every criterion you grade by
    hand that a script could have measured is a criterion you are grading
    generously without knowing it.
+
+   **A score below 8 is not yet a licence to rewrite.** Emit a defect ticket —
+   `claim_id` / `defect_type` / `evidence` / `severity` — and fix only what the
+   ticket names. Default `severity` is `local-fix`; `full-rewrite` is for
+   structural defects only. **No ticket → preserve that part untouched.**
+   Rule: [`rules/self-loop.md`](../../rules/self-loop.md) § 2.1.
 4. **Judge** —
-   - All criteria >= 8 → declare `DONE`, go to Phase 3.
+   - All criteria >= 8 **and** the policy axis clean → declare `DONE`, go to Phase 3.
+   - `scripts/verify_policy.py → exit 2` → `BLOCKED`, whatever the scores say.
+     Criteria met by breaking a rule is unsafe-success, not completion.
+   - Cannot proceed for want of a permission, data, or a human decision →
+     `BLOCKED`, not a failure. Say what would unblock it and where to resume.
    - Otherwise → declare `CONTINUE`, and the next iteration MUST target
      the lowest-scoring criterion first.
+
+**Iteration input does not accumulate.** From iteration 2 on, re-inject only
+four things: the previous output (or just the span being fixed), this round's
+defect tickets, the violated criteria with their allowed values, and what must
+be preserved. Re-feeding the whole context makes the model reinterpret the task
+and undo earlier agreements. See `rules/self-loop.md` § 2.2.
 
 Emit one progress line per iteration so the user can follow along:
 
