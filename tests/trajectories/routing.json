@@ -1,0 +1,485 @@
+{
+  "_comment": "Golden trajectory: the routing derived by joining docs/workflow-catalog.yaml (steps) with docs/agent-packs.yaml (staffing). Regenerate with `python3 scripts/verify_trajectory.py --update` and review the diff — a change here means every skill running in that phase now routes differently.",
+  "tracks": {
+    "game": {
+      "concept": {
+        "depends_on": {
+          "art-bible": [
+            "game-concept"
+          ],
+          "design-review-concept": [
+            "game-concept"
+          ],
+          "map-systems": [
+            "game-concept"
+          ]
+        },
+        "primary": [
+          "game-designer",
+          "creative-director"
+        ],
+        "required": [
+          "engine-setup",
+          "game-concept",
+          "art-bible",
+          "map-systems"
+        ],
+        "steps": [
+          "brainstorm",
+          "engine-setup",
+          "game-concept",
+          "design-review-concept",
+          "art-bible",
+          "map-systems"
+        ],
+        "support": [
+          "narrative-director",
+          "art-director",
+          "producer"
+        ]
+      },
+      "polish": {
+        "depends_on": {
+          "playtest-polish": [
+            "vertical-slice"
+          ]
+        },
+        "primary": [
+          "qa-lead",
+          "qa-tester",
+          "performance-analyst"
+        ],
+        "required": [
+          "playtest-polish",
+          "team-polish"
+        ],
+        "steps": [
+          "perf-profile",
+          "balance-check",
+          "asset-audit",
+          "playtest-polish",
+          "team-polish"
+        ],
+        "support": [
+          "accessibility-specialist",
+          "localization-lead",
+          "security-engineer"
+        ]
+      },
+      "pre-production": {
+        "depends_on": {
+          "asset-spec": [
+            "art-bible"
+          ],
+          "create-epics": [
+            "control-manifest"
+          ],
+          "create-stories": [
+            "create-epics"
+          ],
+          "sprint-plan": [
+            "create-stories"
+          ],
+          "ux-design": [
+            "accessibility-doc"
+          ],
+          "ux-review": [
+            "ux-design"
+          ],
+          "vertical-slice": [
+            "prototype"
+          ]
+        },
+        "primary": [
+          "game-designer",
+          "ux-designer",
+          "art-director",
+          "gameplay-programmer"
+        ],
+        "required": [
+          "ux-design",
+          "ux-review",
+          "prototype",
+          "create-epics",
+          "create-stories",
+          "sprint-plan",
+          "vertical-slice"
+        ],
+        "steps": [
+          "asset-spec",
+          "ux-design",
+          "ux-review",
+          "prototype",
+          "create-epics",
+          "create-stories",
+          "test-setup",
+          "sprint-plan",
+          "vertical-slice"
+        ],
+        "support": [
+          "technical-artist",
+          "level-designer",
+          "world-builder",
+          "producer",
+          "economy-designer"
+        ]
+      },
+      "production": {
+        "depends_on": {
+          "code-review": [
+            "implement"
+          ],
+          "implement": [
+            "\"production:sprint-plan\""
+          ],
+          "sprint-plan": [
+            "\"pre-production:create-stories\""
+          ],
+          "story-done": [
+            "implement"
+          ]
+        },
+        "primary": [
+          "gameplay-programmer",
+          "ui-programmer",
+          "ai-programmer",
+          "lead-programmer"
+        ],
+        "required": [
+          "sprint-plan",
+          "implement",
+          "story-done"
+        ],
+        "steps": [
+          "sprint-plan",
+          "story-readiness",
+          "implement",
+          "code-review",
+          "story-done",
+          "qa-plan",
+          "bug-report",
+          "retrospective",
+          "team-feature",
+          "scope-check",
+          "sprint-status"
+        ],
+        "support": [
+          "technical-artist",
+          "sound-designer",
+          "tools-programmer",
+          "engine-programmer",
+          "network-programmer"
+        ]
+      },
+      "release": {
+        "depends_on": {
+          "launch-checklist": [
+            "release-checklist"
+          ]
+        },
+        "primary": [
+          "release-manager",
+          "devops-engineer",
+          "qa-lead",
+          "producer"
+        ],
+        "required": [
+          "release-checklist",
+          "launch-checklist"
+        ],
+        "steps": [
+          "release-checklist",
+          "patch-notes",
+          "changelog",
+          "launch-checklist"
+        ],
+        "support": []
+      },
+      "systems-design": {
+        "depends_on": {
+          "consistency-check": [
+            "review-all-gdds"
+          ],
+          "design-review": [
+            "design-system"
+          ],
+          "design-system": [
+            "map-systems"
+          ],
+          "review-all-gdds": [
+            "design-system"
+          ]
+        },
+        "primary": [
+          "systems-designer",
+          "game-designer",
+          "economy-designer"
+        ],
+        "required": [
+          "design-system",
+          "design-review",
+          "review-all-gdds"
+        ],
+        "steps": [
+          "design-system",
+          "design-review",
+          "review-all-gdds",
+          "consistency-check"
+        ],
+        "support": [
+          "narrative-director",
+          "world-builder",
+          "technical-director"
+        ]
+      },
+      "technical-setup": {
+        "depends_on": {
+          "architecture-decision": [
+            "create-architecture"
+          ],
+          "architecture-review": [
+            "architecture-decision"
+          ],
+          "control-manifest": [
+            "architecture-decision"
+          ],
+          "create-architecture": [
+            "review-all-gdds"
+          ]
+        },
+        "primary": [
+          "technical-director",
+          "lead-programmer",
+          "engine-programmer"
+        ],
+        "required": [
+          "create-architecture",
+          "architecture-decision",
+          "architecture-review",
+          "control-manifest",
+          "accessibility-doc"
+        ],
+        "steps": [
+          "create-architecture",
+          "architecture-decision",
+          "architecture-review",
+          "control-manifest",
+          "accessibility-doc"
+        ],
+        "support": [
+          "devops-engineer",
+          "tools-programmer"
+        ]
+      }
+    },
+    "product": {
+      "architecture": {
+        "depends_on": {
+          "architecture-decision": [
+            "create-architecture"
+          ],
+          "architecture-review": [
+            "architecture-decision"
+          ],
+          "control-manifest": [
+            "architecture-decision"
+          ],
+          "create-architecture": [
+            "create-prd"
+          ]
+        },
+        "primary": [
+          "technical-director",
+          "lead-programmer",
+          "backend-engineer"
+        ],
+        "required": [
+          "create-architecture",
+          "architecture-decision",
+          "architecture-review",
+          "control-manifest",
+          "accessibility-doc"
+        ],
+        "steps": [
+          "create-architecture",
+          "architecture-decision",
+          "architecture-review",
+          "control-manifest",
+          "accessibility-doc"
+        ],
+        "support": [
+          "devops-engineer",
+          "security-engineer",
+          "data-engineer"
+        ]
+      },
+      "build": {
+        "depends_on": {
+          "code-review": [
+            "implement"
+          ],
+          "create-epics": [
+            "control-manifest"
+          ],
+          "create-stories": [
+            "create-epics"
+          ],
+          "implement": [
+            "sprint-plan"
+          ],
+          "sprint-plan": [
+            "create-stories"
+          ],
+          "story-done": [
+            "implement"
+          ]
+        },
+        "primary": [
+          "frontend-engineer",
+          "backend-engineer",
+          "mobile-engineer",
+          "lead-programmer"
+        ],
+        "required": [
+          "create-epics",
+          "create-stories",
+          "sprint-plan",
+          "implement",
+          "story-done"
+        ],
+        "steps": [
+          "test-setup",
+          "create-epics",
+          "create-stories",
+          "sprint-plan",
+          "story-readiness",
+          "implement",
+          "code-review",
+          "story-done",
+          "scope-check",
+          "sprint-status",
+          "retrospective"
+        ],
+        "support": [
+          "data-engineer",
+          "ui-programmer",
+          "ux-designer",
+          "devops-engineer",
+          "ai-programmer"
+        ]
+      },
+      "discovery": {
+        "depends_on": {
+          "create-prd": [
+            "product-concept"
+          ],
+          "prd-review": [
+            "create-prd"
+          ],
+          "ux-design": [
+            "create-prd"
+          ],
+          "ux-review": [
+            "ux-design"
+          ]
+        },
+        "primary": [
+          "product-manager",
+          "ux-designer"
+        ],
+        "required": [
+          "product-concept",
+          "stack-setup",
+          "create-prd",
+          "ux-design",
+          "ux-review"
+        ],
+        "steps": [
+          "brainstorm",
+          "product-concept",
+          "stack-setup",
+          "create-prd",
+          "prd-review",
+          "ux-design",
+          "ux-review"
+        ],
+        "support": [
+          "technical-director",
+          "art-director",
+          "growth-engineer"
+        ]
+      },
+      "growth": {
+        "depends_on": {},
+        "primary": [
+          "growth-engineer",
+          "analytics-engineer",
+          "data-engineer",
+          "community-manager",
+          "product-manager"
+        ],
+        "required": [],
+        "steps": [
+          "milestone-review",
+          "growth-notes"
+        ],
+        "support": []
+      },
+      "hardening": {
+        "depends_on": {
+          "regression-suite": [
+            "story-done"
+          ]
+        },
+        "primary": [
+          "qa-lead",
+          "qa-tester",
+          "performance-analyst",
+          "security-engineer"
+        ],
+        "required": [
+          "regression-suite",
+          "security-audit"
+        ],
+        "steps": [
+          "qa-plan",
+          "smoke-check",
+          "regression-suite",
+          "security-audit",
+          "perf-profile",
+          "bug-triage",
+          "test-evidence-review"
+        ],
+        "support": [
+          "accessibility-specialist",
+          "localization-lead"
+        ]
+      },
+      "ship": {
+        "depends_on": {
+          "launch-checklist": [
+            "release-checklist"
+          ]
+        },
+        "primary": [
+          "release-manager",
+          "devops-engineer",
+          "qa-lead",
+          "producer",
+          "technical-writer"
+        ],
+        "required": [
+          "release-checklist",
+          "launch-checklist"
+        ],
+        "steps": [
+          "release-checklist",
+          "changelog",
+          "patch-notes",
+          "launch-checklist"
+        ],
+        "support": []
+      }
+    }
+  }
+}
