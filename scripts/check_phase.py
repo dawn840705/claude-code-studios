@@ -40,6 +40,9 @@ import os
 import re
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import gate_report  # noqa: E402
+
 DEFAULT_CATALOG = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "..", "docs", "workflow-catalog.yaml"
 )
@@ -509,6 +512,26 @@ def main(argv: list[str]) -> int:
 
     result = evaluate(root, phases, phase_key)
     if args.as_json:
+        # 공통 4필드 봉투를 **추가**한다 — 기존 키는 그대로.
+        # /project-stage-detect 가 이 출력을 이미 소비하고 있으므로 형태를 바꾸지 않는다.
+        blocker = result.get("blocker")
+        evidence = [
+            {"id": s["id"], "detail": s["status"]}
+            for s in result.get("steps", []) if s.get("status") != "COMPLETE"
+        ]
+        next_action = None
+        if blocker:
+            next_action = f"Next step: {blocker.get('command') or blocker.get('id')}"
+        elif result.get("violations"):
+            next_action = ("A completed step's required dependency is missing. "
+                           "Resolve the dependency before continuing.")
+        result["gate_report"] = gate_report.build(
+            "check_phase", result["exit_code"],
+            reason=f"{track}:{result['phase']} — {result['verdict']}",
+            evidence=evidence + [{"id": "violation", "detail": v}
+                                 for v in result.get("violations", [])],
+            next_action=next_action,
+        )
         print(json.dumps({"track": track, **result}, indent=2, ensure_ascii=False))
     else:
         print_report(track, result)
