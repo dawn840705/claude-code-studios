@@ -421,7 +421,8 @@
         "required": [],
         "steps": [
           "milestone-review",
-          "growth-notes"
+          "growth-notes",
+          "feature-viability"
         ],
         "support": []
       },

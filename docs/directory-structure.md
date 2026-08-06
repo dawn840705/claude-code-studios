@@ -32,6 +32,7 @@
 │   └── ui/                          # UI flow, specs, wireframes
 ├── docs/                            # Technical documentation (architecture, postmortems)
 ├── production/                      # Production management (sprints, milestones)
+│   ├── human-actions.md             # Things only a person can do (rules/work-records.md § 2)
 │   ├── session-state/               # Ephemeral session state (gitignored)
 │   └── session-logs/                # Session audit trail (gitignored)
 └── tests/                           # Editor/PlayMode test assemblies

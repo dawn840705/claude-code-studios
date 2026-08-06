@@ -28,9 +28,12 @@ fi
 echo ""
 echo "## Files Modified (git working tree)"
 
-CHANGED=$(git diff --name-only 2>/dev/null)
-STAGED=$(git diff --staged --name-only 2>/dev/null)
-UNTRACKED=$(git ls-files --others --exclude-standard 2>/dev/null)
+# --no-optional-locks: these are read-only queries; without the flag `git diff`
+# writes .git/index.lock, which is unremovable on unlink-denied mounts and
+# blocks every later commit.
+CHANGED=$(git --no-optional-locks diff --name-only 2>/dev/null)
+STAGED=$(git --no-optional-locks diff --staged --name-only 2>/dev/null)
+UNTRACKED=$(git --no-optional-locks ls-files --others --exclude-standard 2>/dev/null)
 
 if [ -n "$CHANGED" ]; then
     echo "Unstaged changes:"

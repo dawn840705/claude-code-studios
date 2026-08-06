@@ -8,8 +8,11 @@ SESSION_LOG_DIR="production/session-logs"
 mkdir -p "$SESSION_LOG_DIR" 2>/dev/null
 
 # Log recent git activity from this session (check up to 8 hours for long sessions)
-RECENT_COMMITS=$(git log --oneline --since="8 hours ago" 2>/dev/null)
-MODIFIED_FILES=$(git diff --name-only 2>/dev/null)
+# --no-optional-locks on read commands: `git diff` writes .git/index.lock to
+# refresh the stat cache. Where unlink is denied the lock survives and blocks
+# every later commit. See hooks/README or CHANGELOG (2026-08-06).
+RECENT_COMMITS=$(git --no-optional-locks log --oneline --since="8 hours ago" 2>/dev/null)
+MODIFIED_FILES=$(git --no-optional-locks diff --name-only 2>/dev/null)
 
 # --- Archive active session state on shutdown (do NOT delete) ---
 # active.md persists across clean exits so multi-session recovery works.

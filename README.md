@@ -108,6 +108,7 @@ Claude Code 플러그인 형태로 패키징된 *완전한* 소프트웨어 스�
 | 회의록 템플릿 | [docs/templates/meeting-template.md](docs/templates/meeting-template.md) | 헤더 메타박스 + D-table 결정 + 메모리화 프로토콜 |
 | API CLI 템플릿 | [docs/templates/api-cli-template.py](docs/templates/api-cli-template.py) | pay-as-you-go 외부 AI API wrapper 스캐폴드 (env 로드 / 인증 / 비동기 폴링 / 동기 binary / 다운로드) |
 | 제품 PRD 템플릿 | [docs/templates/product-requirements-document.md](docs/templates/product-requirements-document.md) | product 트랙 제품 단위 PRD — 문제·페르소나·코어 루프·MVP 범위·기능/비기능 요구사항·KPI·범위 외. `/create-prd` 의 기능 단위 PRD 와 층위가 다르다 |
+| 사람 액션 큐 템플릿 | [docs/templates/human-action-queue.md](docs/templates/human-action-queue.md) | 에이전트가 대행 못 하는 일만 모으는 상시 큐. 실행(🔴)/판단(🟡) 분리 + "왜 사람인가" 열 + 완료는 삭제 아닌 강등. `production/human-actions.md` 에 두면 SessionStart 훅이 알린다 |
 | 토큰 효율 룰 | [docs/rules/token-efficiency.md](docs/rules/token-efficiency.md) | R1~R6 (커밋 5~15줄 / 회의록 80줄 / 일괄 작업 보고 / 병렬 read / 메모리 규율 / 응답 길이) |
 | 자산 정리 룰 | [docs/rules/artifact-organization.md](docs/rules/artifact-organization.md) | 3-zone 규율 (Workshop / Curated / Engine) + prefix 명명 규칙 + .prompt.txt 동반 룰 |
 

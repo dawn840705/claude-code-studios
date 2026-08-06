@@ -752,3 +752,11 @@ tracks:
             required: false
             repeatable: true
             description: "Ongoing release notes per deploy (marketing-lead framing)"
+
+          - id: feature-viability
+            name: "Feature Viability Review"
+            required: false
+            repeatable: true
+            artifact:
+              glob: "product/prd/viability-*.md"
+            description: "Per shipped feature, decide keep / expand / patch / retire — cost to run, operational burden, the metrics it moved, policy and store risk. Shipping is not the end state of a feature; without this step nothing is ever retired and operating cost only accumulates. Optional and repeatable: it never blocks the phase."

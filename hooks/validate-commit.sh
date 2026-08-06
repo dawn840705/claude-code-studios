@@ -43,8 +43,10 @@ if ! echo "$COMMAND" | grep -qE '^git[[:space:]]+commit'; then
     exit 0
 fi
 
-# Get staged files
-STAGED=$(git diff --cached --name-only 2>/dev/null)
+# Get staged files. --no-optional-locks: this hook runs *before* the commit, so
+# refreshing the index here can leave a lock that makes the commit it is
+# validating fail on unlink-denied mounts.
+STAGED=$(git --no-optional-locks diff --cached --name-only 2>/dev/null)
 if [ -z "$STAGED" ]; then
     exit 0
 fi

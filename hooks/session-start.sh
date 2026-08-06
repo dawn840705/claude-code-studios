@@ -54,6 +54,21 @@ if [ -d "src" ]; then
     fi
 fi
 
+# --- Human action queue (things only a person can do) ---
+# Announce existence only. The file is a round-trip: a person may have written a
+# result into it since the last session, and that result is usually the first
+# task of this one. Silent when the file does not exist.
+HUMAN_ACTIONS="production/human-actions.md"
+if [ -f "$HUMAN_ACTIONS" ]; then
+    echo ""
+    echo "=== HUMAN ACTION QUEUE PRESENT ==="
+    echo "File: $HUMAN_ACTIONS"
+    echo "Read it before starting work. If a person has answered an item since the"
+    echo "last session, that answer is this session's first task. Do not re-ask for"
+    echo "something already recorded as done."
+    echo "Rule: rules/work-records.md section 2"
+fi
+
 # --- Active session state recovery ---
 STATE_FILE="production/session-state/active.md"
 if [ -f "$STATE_FILE" ]; then

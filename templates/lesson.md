@@ -6,6 +6,7 @@ category: vibe-coding | game-design | engine-tech | test-balancing | production-
 difficulty: 입문 | 중급 | 심화
 tags: []
 teachable-moment: "<강의에서 쓸 한 줄 훅 — 학생의 호기심을 여는 질문/문장>"
+supersedes: <선택 — 이 레슨이 대체하는 LES-ID. 옛 레슨은 지우지 않는다>
 ---
 
 # <제목 — 교훈이 드러나는 한 문장>

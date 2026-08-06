@@ -20,11 +20,14 @@ set -e
 EXTS_PATTERN='\.(cs|shader|asset|prefab|mat|controller|inputactions|anim|asmdef|unity|fbx|png|jpg|jpeg|tga|wav|mp3|ogg)$'
 
 # Added/Modified only — Deleted handled separately (paired .meta should be deleted too)
-staged_added_modified=$(git diff --cached --name-only --diff-filter=AM | grep -E "^Assets/" | grep -E "$EXTS_PATTERN" || true)
+# --no-optional-locks: this runs while the commit already holds .git/index.lock.
+# Refreshing the stat cache here is pointless and, on mounts where unlink is
+# denied, leaves a second lock behind that blocks every later commit.
+staged_added_modified=$(git --no-optional-locks diff --cached --name-only --diff-filter=AM | grep -E "^Assets/" | grep -E "$EXTS_PATTERN" || true)
 
 [ -z "$staged_added_modified" ] && exit 0
 
-all_staged=$(git diff --cached --name-only)
+all_staged=$(git --no-optional-locks diff --cached --name-only)
 
 missing=()
 

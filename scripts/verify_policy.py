@@ -154,6 +154,7 @@ CONVENTION_PREFIXES = (
 CONVENTION_FILES = (
     "design/architecture.md",
     "production/review-mode.txt",
+    "production/human-actions.md",
 )
 # Only these two roots are policed. Everything else in a user project is the
 # user's business, and a linter with an opinion about `src/` would be wrong more
@@ -180,9 +181,15 @@ class GitUnavailable(Exception):
 
 
 def _git(root: str, *args: str) -> str:
+    # --no-optional-locks: `git diff` refreshes the stat cache, which writes
+    # .git/index.lock. On a filesystem where unlink is denied (FUSE bridges,
+    # some network mounts) that lock cannot be removed and every later commit
+    # in the repo fails — git reports the cleanup failure as a warning and
+    # still exits 0, so the poisoning is silent. Read-only judgement has no
+    # business touching the index.
     try:
         proc = subprocess.run(
-            ["git", *args],
+            ["git", "--no-optional-locks", *args],
             cwd=root,
             capture_output=True,
             text=True,
