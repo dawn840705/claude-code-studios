@@ -45,6 +45,15 @@ Note: The Level Design Book **deliberately excludes material from other level
 design books** (their fair-use judgment), so Totten's content is not available
 through it. The two sources are separate and must be cited separately.
 
+### Articles, videos and platform documentation
+
+Everything in the "Practice" table below is someone else's copyrighted article,
+video or vendor documentation. Same rule, no exceptions: **link, paraphrase in
+our own words, never paste.** Vendor documentation (Steamworks and the mobile
+stores) has a second failure mode — it changes without notice, so a figure taken
+from it is only true on the date it was read. Where this repo repeats a platform
+number, it carries a read date; when it matters, re-read before relying on it.
+
 ---
 
 ## Primary sources
@@ -69,6 +78,39 @@ through it. The two sources are separate and must be cited separately.
 | Francis D.K. Ching, *Architecture: Form, Space, and Order* | The upstream architectural vocabulary the above borrows from | — |
 | Kevin Lynch, *The Image of the City* (1960) | Path / edge / district / node / landmark — strongest for open world | — |
 | Jay Appleton, *The Experience of Landscape* (1975) | Prospect-refuge, the original formulation | — |
+
+## Practice — techniques with named origins
+
+Cite these by name rather than presenting them as house method. Both are used in
+`docs/templates/player-metrics.md`, `docs/templates/level-design-document.md`
+(Teaching Structure) and `agents/level-designer.md`.
+
+| Source | What it gives us | Link |
+| ---- | ---- | ---- |
+| Luke McMillan, "The Rational Design Handbook: An Intro to RLD" | The RLD method — quantify UX elements to make difficulty comparable | [gamedeveloper.com](https://www.gamedeveloper.com/design/the-rational-design-handbook-an-intro-to-rld) |
+| — "The Rational Design Handbook: Four Primary Metrics" | Which player capabilities to measure first | [gamedeveloper.com](https://www.gamedeveloper.com/design/the-rational-design-handbook-four-primary-metrics) |
+| Chris McEntee, "Rational Design: The Core of *Rayman Origins*" | RLD as practised at Ubisoft on a shipped platformer — scoring each atom of gameplay, pacing spatially | [gamedeveloper.com](https://www.gamedeveloper.com/design/rational-design-the-core-of-i-rayman-origins-i-) |
+| Mark Brown (Game Maker's Toolkit), "Super Mario 3D World's 4 Step Level Design" | Kishōtenketsu as a level structure; the four beats and why the twist is the load-bearing one | [Internet Archive copy](https://archive.org/details/SuperMario3DWorlds4StepLevelDesignGameMakersToolkit) · channel: [Game Maker's Toolkit](https://www.youtube.com/c/MarkBrownGMT) |
+
+**On the kishōtenketsu attribution.** The four-act form is a classical East Asian
+narrative structure (起承転結), not a Nintendo invention; nobody owns 기승전결, so
+cite the *application*, not the form.
+
+That application is credited to Koichi Hayashida (Nintendo), and Brown's video is
+the best-known explanation of it. **We have not read a Hayashida interview
+first-hand** — the attribution here comes through Brown, so it is second-hand
+(`추정` under `rules/claim-confidence.md`). Do not present it as a primary source
+until someone in this repo has cited the interview directly.
+
+## Pre-production — reference gathering
+
+Tools, not theory. Listed because "gather references before you block out" is a
+step designers skip and then rediscover expensively.
+
+| Tool | Role | Note |
+| ---- | ---- | ---- |
+| [noclip.website](https://noclip.website) | Free-fly model viewer for levels from shipped games | Reference shots and layout analysis in the actual geometry. Read-only, in-browser |
+| [PureRef](https://www.pureref.com/) | Always-on-top reference board | Free; the standard tool for the mood-board step |
 
 ---
 

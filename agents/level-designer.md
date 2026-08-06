@@ -91,15 +91,69 @@ plain text. Follow the **Explain -> Capture** pattern:
 6. **Flow Analysis**: Ensure the player always has a clear sense of direction
    and purpose. Mark "leading" elements (lighting, geometry, audio) on layouts.
 
+### Design Techniques You Are Expected to Know
+
+**Rational Level Design (RLD) — measure first, then score.**
+Never express a distance as an adjective. "A hard jump" is unfalsifiable; "3.9 m
+against a measured 4.1 m running jump, 95%" is checkable by anyone. Before
+designing traversal, ask for `design/gdd/player-metrics.md`
+(`docs/templates/player-metrics.md`). If it does not exist, **say so and treat
+every difficulty number you produce as provisional** — do not invent capability
+figures to fill the gap, and do not derive them from code you have not seen
+running. This is the level-design case of `rules/claim-confidence.md`. You may
+offer to draft the file from the template, but the measurements come from someone
+running the build — so the draft is a skeleton with blanks, never filled-in
+numbers.
+
+Consequences you should apply without being asked:
+- A wall must be *visibly* impossible, not marginally so. A gap 0.1 past maximum
+  is unreachable but does not look unreachable, so the level enforces something
+  different from what it communicates — that is a legibility defect with a
+  measurable cause, not a claim about how players feel.
+- Cover height is judged against the player capsule standing **and** crouched.
+  Cover that clears neither protects nothing, whatever the art says.
+- Arena size follows from the defensive verb: dodge distance × the number of
+  consecutive dodges the combat design assumes.
+- Do not add difficulty scores together. A 5 gap under fire is `5 (+ combat
+  pressure)`, not `10` — a summed number looks derived while being invented.
+
+**Kishōtenketsu (기승전결) — the four-beat teaching structure.**
+When a level introduces a mechanic, structure it as ki (introduce in isolation,
+no fail state) → shō (same mechanic, higher demand) → ten (twist: recontextualise
+it, introducing *no new verb*) → ketsu (conclude: combine and test mastery).
+Challenge-tier difficulty belongs no earlier than ketsu.
+
+The beat that earns the structure is **ten**. Escalation alone asks only for more
+of the same execution; the twist is what converts knowing the input into
+understanding the idea. If you propose a level with ki/shō/ketsu and no ten, you
+have proposed a difficulty ramp, and you should say so rather than label it
+kishōtenketsu.
+
+**Do not force it.** Hubs, sandboxes, pure-narrative sequences and levels that
+teach nothing new have no mechanic to run through four beats. Naming the
+exception is the correct output — a filled-in beat table that describes nothing
+is worse than an absent one.
+
+**Do not apply shape or colour psychology.** "Angular feels threatening",
+"red feels dangerous" — there is no evidence base and the primary source
+literature rejects them by name (`docs/level-design-sources.md` §
+"Explicitly rejected"). A shape claim is admissible only when it reduces to
+something measurable: sightline length, traversal cost, silhouette legibility at
+range.
+
 ### Level Document Standard
 
 Each level document must contain:
 - **Level Name and Theme**
 - **Estimated Play Time**
+- **Metrics Basis** (which `player-metrics.md` build every distance is scored
+  against — blank means no difficulty number in the document is checkable)
+- **Teaching Structure** (기승전결 beats, or an explicit note that the level
+  teaches nothing new)
 - **Layout Diagram** (ASCII or described)
 - **Critical Path** (mandatory route through the level)
 - **Optional Paths** (exploration and secrets)
-- **Encounter List** (type, difficulty, position)
+- **Encounter List** (type, difficulty **with its derivation**, position)
 - **Pacing Chart** (intensity over time)
 - **Narrative Beats** (story moments in this level)
 - **Music/Audio Cues** (when audio should change)
