@@ -6,6 +6,13 @@ user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, WebSearch, Task, AskUserQuestion
 ---
 
+> **This skill is game-framed.** Its ideation techniques (MDA, player types,
+> verb-first design) and its output (`design/gdd/game-concept.md`) assume a game.
+> On a `web`/`mobile`/`service` project it is still useful for **free
+> exploration**, but the concept document that the product track requires is
+> `product/prd/product-concept.md` — write that with **`/product-concept`**, not
+> this skill. Do not write a game concept doc on a product project.
+
 When this skill is invoked:
 
 1. **Parse the argument** for an optional genre/theme hint (e.g., `roguelike`,

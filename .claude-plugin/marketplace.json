@@ -7,7 +7,7 @@
     {
       "name": "claude-code-studios",
       "source": "./",
-      "description": "Full software studio for Claude Code: 45 specialist agents across game AND app/web/service development, 86 workflow skills, and production hooks covering pre-production through live-ops. v0.6.3 turns CLAUDE.md back into a bias-correction file (214 to 169 lines, stage staffing moved to agent-packs.yaml) and closes four holes in the deterministic-gate contract: verify_policy.py judges whether work was done the way we said (unsafe-success), verify_trajectory.py regression-tests the plugin's own routing, gate_report.py gives every gate one machine-readable shape, and rules/verify-route.md routes verification by reversibility. Also adds /remove-bg. (v0.6.2 made the hooks layout-aware; v0.6.1 extended the deterministic catalog to the product track and shipped /create-prd.)",
+      "description": "Full software studio for Claude Code: 45 specialist agents across game AND app/web/service development, 87 workflow skills, and production hooks covering pre-production through live-ops. v0.6.3 turns CLAUDE.md back into a bias-correction file (214 to 169 lines, stage staffing moved to agent-packs.yaml) and closes four holes in the deterministic-gate contract: verify_policy.py judges whether work was done the way we said (unsafe-success), verify_trajectory.py regression-tests the plugin's own routing, gate_report.py gives every gate one machine-readable shape, and rules/verify-route.md routes verification by reversibility. Also adds /remove-bg. (v0.6.2 made the hooks layout-aware; v0.6.1 extended the deterministic catalog to the product track and shipped /create-prd.)",
       "version": "0.6.3",
       "author": {
         "name": "Cannon Kingdom Dev"

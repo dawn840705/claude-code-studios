@@ -451,7 +451,7 @@ tracks:
 
           - id: product-concept
             name: "Product Concept Document"
-            command: /brainstorm
+            command: /product-concept
             required: true
             artifact:
               glob: "product/prd/product-concept.md"

@@ -25,8 +25,8 @@ A feature name is **required**. If missing:
    - Options: `[A] Yes — write the PRD for [feature-name]` / `[B] Pick a different feature` / `[C] Stop here`
 3. If no product concept exists, fail with:
    > "Usage: `/create-prd <feature-name>` — e.g., `/create-prd onboarding`
-   > No product concept found. Run `/brainstorm` first and save the concept to
-   > `product/prd/product-concept.md`."
+   > No product concept found. Run `/product-concept` first — it writes
+   > `product/prd/product-concept.md`, which this skill reads."
 
 Normalize the feature name to kebab-case for the filename
 (e.g., "user onboarding" becomes `prd-user-onboarding.md`).

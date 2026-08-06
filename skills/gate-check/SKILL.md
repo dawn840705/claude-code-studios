@@ -1,7 +1,7 @@
 ---
 name: gate-check
-description: "Validate readiness to advance between development phases. Produces a PASS/CONCERNS/FAIL verdict with specific blockers and required artifacts. Use when user says 'are we ready to move to X', 'can we advance to production', 'check if we can start the next phase', 'pass the gate'."
-argument-hint: "[target-phase: systems-design | technical-setup | pre-production | production | polish | release] [--review full|lean|solo]"
+description: "Validate readiness to advance between development phases, on either track. Produces a PASS/CONCERNS/FAIL verdict with specific blockers and required artifacts. Use when user says 'are we ready to move to X', 'can we advance to production', 'check if we can start the next phase', 'pass the gate'."
+argument-hint: "[target-phase — game: systems-design | technical-setup | pre-production | production | polish | release · product: architecture | build | hardening | ship | growth] [--review full|lean|solo]"
 user-invocable: true
 allowed-tools: Read, Glob, Grep, Bash, Write, Task, AskUserQuestion
 model: opus
@@ -15,9 +15,16 @@ phase. It checks for required artifacts, quality standards, and blockers.
 **Distinct from `/project-stage-detect`**: That skill is diagnostic ("where are we?").
 This skill is prescriptive ("are we ready to advance?" with a formal verdict).
 
-## Production Stages (7)
+## Stages — two tracks
 
-The project progresses through these stages:
+**Resolve the track first.** The `detect-project-type.sh` hook prints
+`PROJECT_TYPE`. `game` → game track. `web`/`mobile`/`service` → product track.
+`unknown` → ask the user before running any gate. Phase names are **not
+interchangeable between tracks**, and the two tracks are not 1:1 — product
+`discovery` covers game `concept` + `systems-design`, and product `build` covers
+`pre-production` + `production`. Never translate a phase name by position.
+
+**Game track (7):**
 
 1. **Concept** — Brainstorming, game concept document
 2. **Systems Design** — Mapping systems, writing GDDs
@@ -27,12 +34,37 @@ The project progresses through these stages:
 6. **Polish** — Performance, playtesting, bug fixing
 7. **Release** — Launch prep, certification
 
+**Product track (6):**
+
+1. **Discovery** — Product concept, feature PRDs, UX specs
+2. **Architecture** — Stack pinned, ADRs, accessibility tier
+3. **Build** — Epics, stories, sprints, implementation
+4. **Hardening** — QA, regression, security, performance
+5. **Ship** — Release and launch checklists
+6. **Growth** — Metrics, milestone reviews, feature viability
+
+`live-ops` is **not a gate target** on either track — it is `post_release` in
+`agent-packs.yaml`, entered by human judgement, and `check_phase.py` never
+returns it.
+
 **When a gate passes**, write the new stage name to `production/stage.txt`
-(single line, e.g. `Production`). This updates the status line immediately.
+(single line, e.g. `Production` or `Hardening`). This updates the status line
+immediately.
 
 ---
 
 ## 1. Parse Arguments
+
+**Track first.** Read `PROJECT_TYPE` from the session-start hook output, or run
+`.claude/hooks/detect-project-type.sh`. `game` → game gates. `web`/`mobile`/
+`service` → product gates. `unknown` → ask which the project is with
+`AskUserQuestion` before doing anything else, and do not guess from the
+directory layout — a product project that happens to have a `design/` folder
+would be misrouted into the game gates.
+
+If the target phase names a phase from the **other** track (e.g. `/gate-check
+polish` on a service project), do not translate it. Say which track the project
+is on, list that track's gate targets, and ask.
 
 **Target phase:** `$ARGUMENTS[0]` (blank = auto-detect current stage, then validate next transition)
 
@@ -51,13 +83,23 @@ Note: in `solo` mode, director spawns (CD-PHASE-GATE, TD-PHASE-GATE, PR-PHASE-GA
   - Prompt: "Detected stage: **[current stage]**. Running gate for [Current] → [Next] transition. Is this correct?"
   - Options:
     - `[A] Yes — run this gate`
-    - `[B] No — pick a different gate` (if selected, show a second widget listing all gate options: Concept → Systems Design, Systems Design → Technical Setup, Technical Setup → Pre-Production, Pre-Production → Production, Production → Polish, Polish → Release)
+    - `[B] No — pick a different gate` (if selected, show a second widget listing the gate options **for the resolved track only** —
+      game: Concept → Systems Design, Systems Design → Technical Setup, Technical Setup → Pre-Production, Pre-Production → Production, Production → Polish, Polish → Release;
+      product: Discovery → Architecture, Architecture → Build, Build → Hardening, Hardening → Ship, Ship → Growth)
   
   Do not skip this confirmation step when no argument is provided.
 
 ---
 
 ## 2. Phase Gate Definitions
+
+**Use only the gates for the resolved track.** Running a game gate on a product
+project produces a FAIL made entirely of artifacts that project was never
+supposed to have.
+
+---
+
+# Game Track Gates
 
 ### Gate: Concept → Systems Design
 
@@ -240,6 +282,101 @@ A depends on B). If any cycle is detected (e.g. A→B→A, or A→B→C→A):
 - [ ] Localization verified for all target languages
 - [ ] Legal requirements met (EULA, privacy policy, age ratings if applicable)
 - [ ] Build compiles and packages cleanly
+
+---
+
+# Product Track Gates
+
+These are leaner than the game gates on purpose. The game track accumulated its
+checks over several releases of real use; these encode what the catalog requires
+plus the judgements a script cannot make. **Add to them from observed failures,
+not from symmetry with the game track.**
+
+### Gate: Discovery → Architecture
+
+**Required Artifacts:**
+- [ ] `product/prd/product-concept.md` exists with real content (from `/product-concept`)
+- [ ] `.claude/docs/technical-preferences.md` is populated — stack and versions pinned, not `[CHOOSE]`
+- [ ] At least one feature PRD in `product/prd/prd-*.md` (from `/create-prd`)
+- [ ] UX specs exist in `design/ux/` for the primary flow
+
+**Quality Checks:**
+- [ ] The product concept names the alternatives users have today — including doing it manually. A concept with no named alternative has not been tested against reality
+- [ ] MVP scope tier is defined and is genuinely smaller than the full vision
+- [ ] Out-of-scope section exists and is non-empty
+- [ ] Every MVP-tier feature in the concept either has a PRD or is explicitly deferred — no silent gaps
+- [ ] PRDs do not contradict each other or the concept (`/design-review <prd>` verdict is not MAJOR REVISION NEEDED — that is the catalog's `prd-review` step)
+- [ ] Success metrics name a threshold that would make you stop, not only ones that would make you continue
+- [ ] Market, pricing, and competitor claims are sourced or marked per `rules/claim-confidence.md`
+
+---
+
+### Gate: Architecture → Build
+
+**Required Artifacts:**
+- [ ] Master architecture document exists at `docs/architecture/architecture.md`
+- [ ] At least 3 ADRs in `docs/architecture/` covering foundation decisions (data model, auth, state management, deployment)
+- [ ] `/architecture-review` has been run (a review report exists in `docs/architecture/`)
+- [ ] `design/accessibility-requirements.md` exists with the tier committed
+- [ ] Test framework initialized (`tests/` with at least one running example) and a CI workflow exists
+
+**Quality Checks:**
+- [ ] Every ADR links the PRD requirement it serves — an ADR with no requirement is a preference
+- [ ] No circular ADR dependencies (build the graph from each ADR's "Depends On"; a cycle is a **FAIL** — neither ADR can reach Accepted)
+- [ ] Accessibility tier is defined (even "Basic"; undefined is not acceptable)
+- [ ] Data retention, PII handling, and third-party processors are addressed if the product stores user data — not deferred to Hardening, where changing them means a migration
+- [ ] Per-user cost of any paid API is estimated with the arithmetic shown, and a cap exists (`/api-cost-gate`)
+
+---
+
+### Gate: Build → Hardening
+
+**Required Artifacts:**
+- [ ] Epics in `production/epics/` and stories in `production/stories/`
+- [ ] At least one completed sprint in `production/sprints/`
+- [ ] All Must Have stories are marked done (`/story-done` verdicts recorded)
+- [ ] Test evidence present for Must Have stories (test files pass; UI/visual items have sign-off in `production/qa/evidence/`)
+
+**Quality Checks:**
+- [ ] The MVP feature set from the product concept is implemented — not a different set that emerged along the way. If it diverged, the concept is updated to say so
+- [ ] `/smoke-check` passes on the current build
+- [ ] No test regressions from the previous sprint
+- [ ] Analytics events for the success metrics are actually instrumented — a metric with no event is a plan, not a measurement
+- [ ] Error and empty states exist for the primary flow (the states QA finds last and users hit first)
+
+---
+
+### Gate: Hardening → Ship
+
+**Required Artifacts:**
+- [ ] QA test plan exists (`/qa-plan` output in `production/qa/`)
+- [ ] QA sign-off recorded (`/team-qa` — APPROVED or APPROVED WITH CONDITIONS)
+- [ ] `/security-audit` has been run and its findings are resolved or explicitly accepted
+- [ ] `/perf-profile` results recorded against a stated budget
+- [ ] Regression suite exists and passes (`/regression-suite`)
+
+**Quality Checks:**
+- [ ] No known critical or high-severity bugs open
+- [ ] Performance budget met on the **lowest** target device or connection, not the development machine
+- [ ] Legal surface covered where applicable: privacy policy, terms, data-deletion path, age rating, cookie/consent
+- [ ] Store or platform policy checklist passed if shipping to an app store
+- [ ] Rollback path is written down and has been tried at least once — an untried rollback is an assumption
+
+---
+
+### Gate: Ship → Growth
+
+**Required Artifacts:**
+- [ ] `/release-checklist` and `/launch-checklist` completed
+- [ ] Release notes or changelog published
+- [ ] Store listing / landing copy finalized if applicable
+- [ ] Monitoring in place: error reporting, uptime, and cost alerts
+
+**Quality Checks:**
+- [ ] Someone is named as responsible for the first-week response, and the escalation path exists
+- [ ] Support intake exists — an address, form, or channel a user can actually reach
+- [ ] Success metric baselines are captured **before** launch traffic arrives. After is too late; there is nothing to compare against
+- [ ] Cost per active user is estimated with a cap or an alert threshold set
 
 ---
 
@@ -452,7 +589,22 @@ For all other gates, offer the two most logical next steps for that phase plus "
 
 ## 8. Follow-Up Actions
 
-Based on the verdict, suggest specific next steps:
+Based on the verdict, suggest specific next steps. **Suggest only from the
+resolved track's list** — offering `/art-bible` to a SaaS project is how a gate
+loses the user's trust.
+
+**Product track:**
+
+- **No product concept?** → `/product-concept` to author it (`/create-prd` fails without it)
+- **Concept exists but no feature PRDs?** → `/create-prd <feature>`, one per MVP-tier feature
+- **PRDs not reviewed?** → `/design-review product/prd/prd-<feature>.md` (the catalog's `prd-review` step)
+- **Stack not pinned?** → populate `.claude/docs/technical-preferences.md` (product-track equivalent of `/setup-engine`)
+- **No architecture doc or ADRs?** → `/create-architecture`, then `/architecture-decision (×N)`
+- **Paid API with no cost ceiling?** → `/api-cost-gate`
+- **No analytics for the stated success metrics?** → instrument before Hardening; a metric with no event cannot be reported
+- **Shipped features nobody has re-examined?** → `feature-viability` in the growth phase — keep / expand / patch / retire
+
+**Game track:**
 
 - **No art bible?** → `/art-bible` to create the visual identity specification
 - **Art bible exists but no asset specs?** → `/asset-spec system:[name]` to generate per-asset visual specs and generation prompts from approved GDDs

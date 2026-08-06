@@ -2,6 +2,64 @@
 
 ## Unreleased
 
+### Fixed — product 트랙의 구멍 셋
+
+v0.6.1 이 카탈로그를 듀얼 트랙으로 만들었지만, 그 트랙을 실제로 걸어갈 때 필요한
+것 셋이 빠져 있었다. 세 구멍은 서로 무관해 보이지만 원인이 같다 — **카탈로그가
+product 트랙을 선언한 뒤, 그것을 참조하는 쪽들이 따라오지 않았다.**
+
+**⑴ `product/prd/product-concept.md` 를 쓰는 스킬이 없었다.**
+`/create-prd` 는 이 문서를 읽고 **없으면 실패**하는데, 카탈로그의 `product-concept`
+스텝은 `command: /brainstorm` 을 가리키고 있었다. 그런데 `/brainstorm` 은 MDA·
+플레이어 타입·verb-first 로 짜인 **게임 발상 스킬**이고 산출물은
+`design/gdd/game-concept.md` 다. product 트랙 시작점이 게임 문서를 쓰라고
+지시하고 있었던 셈이다.
+
+- **`/product-concept` 신설** — 9개 절(한 줄 정의 · 문제와 기회 · 타깃 사용자 ·
+  가치와 차별점 · 코어 루프 · 범위 티어 · 성공 지표 · 리스크와 가정 · 범위 외).
+  절 단위로 사용자와 합의하며 쓴다. 이 문서의 잘못된 가정은 이후 모든 기능 PRD 로
+  전파되므로 통째로 생성하지 않는다.
+- 카탈로그 `product-concept` 스텝의 `command` 를 `/product-concept` 로 교정.
+  **스텝 id 는 그대로**라 `check_phase.py` 판정과 골든 궤적은 바뀌지 않는다.
+- `/create-prd` 의 실패 안내문을 `/brainstorm` → `/product-concept` 로 교정.
+- `/brainstorm` 상단에 게임 전용임을 명시. product 프로젝트에서 자유 탐색용으로
+  쓰는 것은 여전히 유효하되, 게임 컨셉 문서를 쓰지 않도록 경계를 그었다.
+- verdict 는 COMPLETE / CONCERNS / **BLOCKED** 셋. BLOCKED 는 문서를 억지로
+  완성하지 않고 `production/human-actions.md` 에 남기고 멈춘다.
+
+**⑵ `/gate-check` 가 game 트랙 phase 이름만 받았다.**
+product 프로젝트에서 `/gate-check` 를 부르면 art bible·GDD·vertical slice 를
+찾는 FAIL 이 나왔다 — 그 프로젝트가 애초에 가질 이유가 없는 산출물들이다.
+
+- **product 게이트 5종 신설**: Discovery → Architecture → Build → Hardening →
+  Ship → Growth.
+- **트랙을 먼저 판별한다.** `PROJECT_TYPE` 이 `unknown` 이면 묻고, 디렉터리
+  레이아웃으로 추측하지 않는다 — `design/` 폴더가 있는 product 프로젝트가 game
+  게이트로 오라우팅되는 경로다. 다른 트랙의 phase 이름이 인자로 오면 **번역하지
+  않고** 트랙과 선택지를 알린 뒤 묻는다.
+- **두 트랙은 1:1 이 아니다**라고 스킬 본문에 명시. product `discovery` 는 game
+  `concept` + `systems-design` 을, product `build` 는 `pre-production` +
+  `production` 을 덮는다. 위치로 대응시키면 틀린다.
+- 게임 게이트보다 **의도적으로 얇다.** 게임 쪽은 여러 릴리스를 거치며 쌓인
+  검사이고, 이쪽은 카탈로그가 요구하는 것 + 스크립트가 판정 못 하는 판단만이다.
+  대칭성이 아니라 **관측된 실패**로 늘릴 것.
+- § 8 후속 조치도 트랙별로 갈랐다 — SaaS 프로젝트에 `/art-bible` 을 권하는 것이
+  게이트가 신뢰를 잃는 방식이다.
+
+**⑶ `CLAUDE.md` 스테이지 목록이 카탈로그와 어긋나 있었다.**
+`product` 목록에서 `architecture` 가 빠져 있었고(6단계를 5단계로 적고 있었다),
+`game` 목록은 `concept`·`systems-design`·`technical-setup` 셋이 빠진 채 카탈로그에
+존재하지 않는 `live-ops` 를 포함하고 있었다. "product 트랙은 game 트랙을
+stage-for-stage 미러한다"는 문장도 사실이 아니었다(7 대 6).
+
+- 두 목록을 카탈로그와 일치시키고, **1:1 이 아니라는 사실**과 그 대응 관계를 적었다.
+- `live-ops` 는 `agent-packs.yaml` 의 `post_release` 이지 카탈로그 phase 가
+  아니다 — `check_phase.py` 는 이것을 반환하지 않는다. 이 사실을 명시했다.
+
+**검증 중에 잡은 것**: 초안에서 `/prd-review` 를 참조했는데 그런 스킬은 없다.
+카탈로그의 `prd-review` 스텝은 `command: /design-review` 다. 카탈로그의 모든
+`command` 를 `skills/` 실제 디렉터리와 전수 대조해 교정했다(나머지는 전부 실재).
+
 ### Fixed — 훅과 게이트가 저장소를 잠그고 있었다 (`--no-optional-locks`)
 
 `git diff` 는 읽기 명령처럼 보이지만 stat 캐시를 갱신하려고 `.git/index.lock` 을

@@ -2,7 +2,7 @@
 
 Claude Code 플러그인 형태로 패키징된 *완전한* 소프트웨어 스튜디오. **게임은 물론 앱/웹/서비스 개발까지** 커버 (v0.4.0+).
 
-**전문 에이전트 45종** · **워크플로우 skill 86종** · **production hooks** · **거버넌스/워크플로우 자산 (v0.2.0+)** · **도메인 팩 + 프로젝트 타입 자동 감지 (v0.4.0+)** — 프리프로덕션 → 프로덕션 → QA → 릴리스 → 라이브 옵스 전 단계 커버.
+**전문 에이전트 45종** · **워크플로우 skill 87종** · **production hooks** · **거버넌스/워크플로우 자산 (v0.2.0+)** · **도메인 팩 + 프로젝트 타입 자동 감지 (v0.4.0+)** — 프리프로덕션 → 프로덕션 → QA → 릴리스 → 라이브 옵스 전 단계 커버.
 
 > **v0.6.3 신규:** `CLAUDE.md` 가 다시 **편향 교정 파일**이 됐습니다 (214 → 169줄). 214줄 중 약 90줄은 에이전트가 파일을 열어보면 알 수 있는 것들이었고, 그 줄들은 토큰만 쓰는 게 아니라 **정작 행동을 바꾸는 지시의 밀도를 떨어뜨립니다** — 컨텍스트 창에는 목차도 강조도 없으니까요. 스테이지별 담당 에이전트는 지운 게 아니라 [docs/agent-packs.yaml](docs/agent-packs.yaml) 로 **이관**했습니다(그 매핑은 CLAUDE.md 본문에만 있었고 카탈로그에는 없었습니다). 대신 그동안 없던 **구현 편향 교정 8줄**이 들어갔습니다 — 기존의 "하지 마라"는 전부 오케스트레이션 편향이었지, 이 파일이 라우팅하는 45개 에이전트가 실제로 쓰는 *코드*에 대한 것은 하나도 없었습니다.
 >
@@ -54,7 +54,7 @@ Claude Code 플러그인 형태로 패키징된 *완전한* 소프트웨어 스�
 - **QA/Ops**: `qa-lead`, `qa-tester`, `performance-analyst`, `security-engineer`, `accessibility-specialist`, `localization-lead`, `release-manager`, `devops-engineer`
 - **UX/커뮤니티/분석**: `ux-designer`, `community-manager`, `analytics-engineer`
 
-### Skill (86종)
+### Skill (87종)
 
 개발 단계별로 정리:
 
@@ -67,6 +67,7 @@ Claude Code 플러그인 형태로 패키징된 *완전한* 소프트웨어 스�
 - **메타 감사 (v0.2.0 신규)**: `/sot-audit` (다중 source-of-truth 정합성 감사), `/legacy-purge` (피봇/마이그레이션 잔재 청소)
 - **공간 감사 (신규)**: `/spatial-audit` — 이미 만들어진 Unity 레벨을 건축 4렌즈(매싱·동선·조망은신·길찾기)로 감사. 읽기 전용, 장르별(`sp`/`pvp`/`open`) 판정
 - **거버넌스 (v0.2.0 신규)**: `/governance-bible-init` (사운드/아트/내러티브 등 도메인 Bible 부트스트랩), `/api-cost-gate` (유료 AI API 호출 전 4건 명시 승인 게이트)
+- **product 트랙 (앱/웹/서비스)**: `/product-concept` (제품 단위 개념 — 문제·사용자·가치·범위 티어. `/create-prd` 가 이걸 읽고, 없으면 실패한다) → `/create-prd` (기능 단위 PRD) → `/ux-design` → `/gate-check architecture`
 
 ### Hooks
 

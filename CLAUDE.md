@@ -1,6 +1,6 @@
 # Claude Code Studios — Plugin Guide
 
-When this plugin is active, you have access to a full software studio: **45 specialist agents**, 86 workflow skills, and production hooks. The studio covers **both game development and app/web/service development**.
+When this plugin is active, you have access to a full software studio: **45 specialist agents**, 87 workflow skills, and production hooks. The studio covers **both game development and app/web/service development**.
 
 ## 작업 원칙
 
@@ -50,9 +50,15 @@ Two questions, two sources of truth. Read them; do not re-derive either here.
 | **Who** works this stage — primary vs support agents | `docs/agent-packs.yaml` → `stages:` (+ `cross_stage:`) |
 | **What** happens in what order — steps, skills, dependencies | `docs/workflow-catalog.yaml` (judged by `scripts/check_phase.py`) |
 
-Stages by track — `game`: pre-production → production → polish → release → live-ops.
-`product` (web/mobile/service): discovery → build → hardening → ship → growth.
-The product track mirrors the game track stage-for-stage.
+Stages by track —
+`game`: concept → systems-design → technical-setup → pre-production → production → polish → release.
+`product` (web/mobile/service): discovery → architecture → build → hardening → ship → growth.
+
+**The two tracks are not 1:1.** product `discovery` covers game `concept` +
+`systems-design`; product `build` covers `pre-production` + `production`. Do not
+translate a phase name by position. `live-ops` is **not a catalog phase** — it is
+`post_release` in `agent-packs.yaml`, entered by human judgement after release, so
+`check_phase.py` never returns it.
 
 `/help` and `/project-stage-detect` report the current phase and the next step
 from `check_phase.py`'s exit code. Ask them rather than guessing from a table.
@@ -186,6 +192,6 @@ that is the check that will disagree with you.
 - **Project-local rules**: add files to `.claude/rules/` in the user project. Plugin rules in `rules/` are the default baseline.
 
 Everything else is in `docs/` — list that directory rather than carrying its index
-here. The two you will want by name: **`docs/skills-reference.md`** (all 86 skills;
+here. The two you will want by name: **`docs/skills-reference.md`** (all 87 skills;
 some, like `/day-one-patch` and `/soak-test`, are not workflow steps and appear
 nowhere in the catalog) and **`docs/agent-roster.md`** (one line per agent).

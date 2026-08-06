@@ -31,6 +31,7 @@
 
 | Command | Purpose |
 |---------|---------|
+| `/product-concept` | Product-level concept for an app/web/service — problem, users, value proposition, core loop, scope tiers, success metrics, out of scope. Writes `product/prd/product-concept.md`, which `/create-prd` reads and fails without. Product-track counterpart of `/brainstorm` |
 | `/create-prd` | Guided, section-by-section PRD authoring for a single product feature — writes `product/prd/prd-<feature>.md`. Product-track counterpart of `/design-system` |
 
 ## UX & Interface Design
