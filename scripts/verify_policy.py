@@ -137,10 +137,16 @@ PRODUCT_TRACK_GLOB = ("product/prd", ".md")
 
 # --- P4: path conventions (CLAUDE.md "File conventions the plugin expects") ---
 
+# Kept in sync with the artifact globs in docs/workflow-catalog.yaml. A path the
+# catalog declares as a canonical artifact location must not warn here — a gate
+# that fires on its own conventions is the false-positive case this file's
+# docstring says gets gates disabled wholesale.
 CONVENTION_PREFIXES = (
     "design/gdd/",
     "design/adr/",
+    "design/art/",
     "design/assets/",
+    "design/ux/",
     "product/prd/",
     "production/sprints/",
     "production/milestones/",
@@ -148,6 +154,7 @@ CONVENTION_PREFIXES = (
     "production/epics/",
     "production/stories/",
     "production/qa/",
+    "production/playtests/",
     "production/session-state/",
     "production/retrospectives/",
 )

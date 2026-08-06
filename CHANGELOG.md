@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Fixed — P4 허용 경로가 카탈로그를 따라오지 못했다
+
+`verify_policy.py` P4 의 `CONVENTION_PREFIXES` 에 `design/art/` `design/ux/`
+`production/playtests/` 가 없었다. 셋 다 `docs/workflow-catalog.yaml` 이
+**정규 산출물 위치로 선언한** 경로다 — 게이트가 자기 규약에 오탐을 내고 있었다.
+P4 docstring 자체가 "잘못 발화하는 게이트는 통째로 꺼진다"고 적은 그 경우다.
+카탈로그와 동기화한다는 주석을 함께 달았다.
+
+`/video-brief` 가 쓰는 `production/marketing/` 은 그 스킬 커밋에서 추가된다.
+
 ### Fixed — product 트랙의 구멍 셋
 
 v0.6.1 이 카탈로그를 듀얼 트랙으로 만들었지만, 그 트랙을 실제로 걸어갈 때 필요한
