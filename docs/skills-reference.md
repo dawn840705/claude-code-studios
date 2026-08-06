@@ -1,6 +1,8 @@
 # Available Skills (Slash Commands)
 
-84 slash commands organized by phase. Type `/` in Claude Code to access any of them.
+88 slash commands organized by phase. Type `/` in Claude Code to access any of them.
+A few are cross-listed under more than one section, so the row count is higher
+than the command count.
 
 ## Onboarding & Navigation
 
@@ -115,6 +117,7 @@
 
 | Command | Purpose |
 |---------|---------|
+| `/video-brief` | Plan a video before capture — audience, structure, shot list, rights, and the target platform's requirements re-read live from the vendor page. Four kinds (store trailer / product demo / short form / devlog). Briefs only; editing is delegated (`docs/video-production-sources.md`) |
 | `/release-checklist` | Generate and validate a pre-release checklist for the current build |
 | `/launch-checklist` | Complete launch readiness validation across all departments |
 | `/changelog` | Auto-generate changelog from git commits and sprint data |

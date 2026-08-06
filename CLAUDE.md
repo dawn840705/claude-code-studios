@@ -1,6 +1,6 @@
 # Claude Code Studios — Plugin Guide
 
-When this plugin is active, you have access to a full software studio: **45 specialist agents**, 87 workflow skills, and production hooks. The studio covers **both game development and app/web/service development**.
+When this plugin is active, you have access to a full software studio: **45 specialist agents**, 88 workflow skills, and production hooks. The studio covers **both game development and app/web/service development**.
 
 ## 작업 원칙
 
@@ -88,6 +88,17 @@ Installed alongside, not merged in. Declared in `.claude/settings.json`.
   "brief and review the `/seo-*` output", not "do the audit". Do not add `seo-*`
   skills or agents to this repo; the names would collide. First use on a new
   machine needs `/seo setup` (one-time venv + Chromium provisioning).
+
+**External tools we delegate to but do not install.**
+
+- **`browser-use/video-use`** (MIT) — agent-driven video editing. This repo owns
+  the *brief* (`/video-brief`: why the video exists, its structure, the shot
+  list, rights, platform requirements); that tool owns the *cut*. Do not
+  reimplement its ffmpeg helpers. It is a **skill repo, not a plugin
+  marketplace** — it installs by symlinking a clone into `~/.claude/skills/`, so
+  it does not belong in `.claude/settings.json`. It makes a paid transcription
+  call per source file: gate it with `/api-cost-gate`. Details:
+  `docs/video-production-sources.md`.
 
 ## Entry points
 
@@ -192,6 +203,6 @@ that is the check that will disagree with you.
 - **Project-local rules**: add files to `.claude/rules/` in the user project. Plugin rules in `rules/` are the default baseline.
 
 Everything else is in `docs/` — list that directory rather than carrying its index
-here. The two you will want by name: **`docs/skills-reference.md`** (all 87 skills;
+here. The two you will want by name: **`docs/skills-reference.md`** (all 88 skills;
 some, like `/day-one-patch` and `/soak-test`, are not workflow steps and appear
 nowhere in the catalog) and **`docs/agent-roster.md`** (one line per agent).

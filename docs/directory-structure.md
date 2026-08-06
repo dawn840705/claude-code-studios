@@ -32,6 +32,8 @@
 │   └── ui/                          # UI flow, specs, wireframes
 ├── docs/                            # Technical documentation (architecture, postmortems)
 ├── production/                      # Production management (sprints, milestones)
+│   ├── marketing/                   # Video briefs and other go-to-market artifacts (/video-brief)
+│   ├── qa/                          # Audit and QA reports (/spatial-audit, /qa-plan)
 │   ├── human-actions.md             # Things only a person can do (rules/work-records.md § 2)
 │   ├── session-state/               # Ephemeral session state (gitignored)
 │   └── session-logs/                # Session audit trail (gitignored)

@@ -155,6 +155,7 @@ CONVENTION_PREFIXES = (
     "production/stories/",
     "production/qa/",
     "production/playtests/",
+    "production/marketing/",
     "production/session-state/",
     "production/retrospectives/",
 )

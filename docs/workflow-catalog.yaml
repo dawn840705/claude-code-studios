@@ -426,6 +426,14 @@ tracks:
             required: false
             description: "Auto-generate internal changelog from commits, sprints, and design docs"
 
+          - id: video-brief
+            name: "Store Video Brief"
+            command: /video-brief
+            required: false
+            artifact:
+              glob: "production/marketing/video-brief-*.md"
+            description: "Plan the store trailer before capture — structure, shot list, rights, and the platform's live requirements. Optional because not every game ships with a trailer, but capture without it is the expensive path"
+
           - id: launch-checklist
             name: "Launch Checklist"
             command: /launch-checklist
@@ -726,6 +734,14 @@ tracks:
             command: /patch-notes
             required: false
             description: "Generate user-facing release notes from git history and sprint data"
+
+          - id: video-brief
+            name: "Demo Video Brief"
+            command: /video-brief
+            required: false
+            artifact:
+              glob: "production/marketing/video-brief-*.md"
+            description: "Plan the product demo or store preview before capture — structure, shot list, rights, and the platform's live requirements (App Store and Google Play reject footage, not edits)"
 
           - id: launch-checklist
             name: "Launch Checklist"

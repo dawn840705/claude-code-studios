@@ -191,6 +191,7 @@
           "release-checklist",
           "patch-notes",
           "changelog",
+          "video-brief",
           "launch-checklist"
         ],
         "support": []
@@ -477,6 +478,7 @@
           "release-checklist",
           "changelog",
           "patch-notes",
+          "video-brief",
           "launch-checklist"
         ],
         "support": []
