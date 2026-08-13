@@ -82,6 +82,7 @@ than the command count.
 | `/self-loop` | Iterate a deliverable until all pass criteria score 8+/10 — evidence-cited scoring, fix lowest first, max 5 iterations, stall detection (see `rules/self-loop.md`) |
 | `/sot-audit` | Audit a Single Source of Truth for cross-witness consistency across design doc, code enum, engine asset, and runtime usage |
 | `/legacy-purge` | Audit a codebase for legacy residue after a pivot/deprecation/migration — produces a categorized suspect table (never auto-deletes) |
+| `/doc-relink` | Documentation reorganization without breaking links — baseline the rot, `git mv`, then `scripts/doc_relink.py` rewrites affected markdown links in two passes; exit code is the gate (new breaks = FAIL) |
 | `/spatial-audit` | Audit a built Unity level against four architectural lenses (massing, circulation, prospect-refuge, wayfinding). Read-only, genre-aware (`sp`/`pvp`/`open`); extracts via `hera-agent-unity` with a sentinel contract, falls back to scene YAML. Judges legibility and fairness, not fun |
 
 ## QA & Testing

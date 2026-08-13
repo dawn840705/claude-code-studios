@@ -64,7 +64,7 @@ Claude Code 플러그인 형태로 패키징된 *완전한* 소프트웨어 스�
 - **QA**: `/qa-plan`, `/test-setup`, `/test-helpers`, `/test-evidence-review`, `/test-flakiness`, `/regression-suite`, `/smoke-check`, `/soak-test`, `/bug-report`, `/bug-triage`, `/balance-check`, `/playtest-report`, `/content-audit`
 - **팀 오케스트레이션**: `/team-audio`, `/team-combat`, `/team-level`, `/team-live-ops`, `/team-narrative`, `/team-polish`, `/team-qa`, `/team-release`, `/team-ui`
 - **릴리스/Ops**: `/release-checklist`, `/launch-checklist`, `/day-one-patch`, `/hotfix`, `/patch-notes`, `/changelog`, `/milestone-review`, `/retrospective`, `/security-audit`, `/perf-profile`, `/localize`, `/onboard`, `/project-stage-detect`, `/help`, `/prototype`, `/skill-test`, `/skill-improve`
-- **메타 감사 (v0.2.0 신규)**: `/sot-audit` (다중 source-of-truth 정합성 감사), `/legacy-purge` (피봇/마이그레이션 잔재 청소)
+- **메타 감사 (v0.2.0 신규)**: `/sot-audit` (다중 source-of-truth 정합성 감사), `/legacy-purge` (피봇/마이그레이션 잔재 청소), `/doc-relink` (문서 재편 시 링크 무파손 이동 — baseline → git mv → 스크립트 2패스 재계산, exit code 게이트)
 - **공간 감사 (신규)**: `/spatial-audit` — 이미 만들어진 Unity 레벨을 건축 4렌즈(매싱·동선·조망은신·길찾기)로 감사. 읽기 전용, 장르별(`sp`/`pvp`/`open`) 판정
 - **영상 (신규)**: `/video-brief` — 촬영 **전에** 결정한다. 목적·구조·샷 리스트·권리·플랫폼 요건(스토어 트레일러 / 제품 데모 / 숏폼 / 데브로그). 편집은 외부 도구에 위임([docs/video-production-sources.md](docs/video-production-sources.md))
 - **거버넌스 (v0.2.0 신규)**: `/governance-bible-init` (사운드/아트/내러티브 등 도메인 Bible 부트스트랩), `/api-cost-gate` (유료 AI API 호출 전 4건 명시 승인 게이트)

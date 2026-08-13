@@ -54,6 +54,31 @@ Do **not** escalate because the task merely sounds important, or to look
 thorough. Fan-out that produces four summaries of the same file is not
 diligence — it is the 4.5× above.
 
+## Model axis — standing policy only
+
+Call count is the first axis; model tier is the second. The no-silent-downgrade
+principle above stands: **the orchestrator never picks a cheaper model on its
+own judgment.** What unlocks tier routing is a **standing policy the user has
+set** — a line in the project's `CLAUDE.md` naming which lanes run on which
+tier. With that line in place, routing is obedience, not initiative.
+
+The recommended standing policy (adopt by copying into project `CLAUDE.md`):
+
+| Lane | Tier | Why |
+|---|---|---|
+| Mechanical sweeps — exhaustive grep/inventory, format checks, link/path audits, file listing | low tier (e.g. Haiku), low effort | The output is an enumeration; judgment adds nothing |
+| Exploration/scouting with a defined question | mid tier or session model | Misreading the codebase here poisons every later step |
+| Design judgment, code review, anything adjacent to a user decision | **session model, never downgraded** | This is what the user is paying the premium tier for |
+| Deterministic transforms (renames, link rewrites, bulk edits) | **no model at all — a script** | Exit code beats token spend; see `doc_relink.py` |
+
+Two guards:
+
+- When unsure which lane a task is in, it is not a mechanical sweep. Inherit
+  the session model.
+- A downgraded agent that starts making judgment calls (proposing designs,
+  resolving ambiguity) is a routing error — pull the work back up, don't let
+  the cheap lane's answer stand.
+
 ## Reference implementation
 
 `scripts/prepare_monolith_input.py` routes Korean rewriting deterministically:
