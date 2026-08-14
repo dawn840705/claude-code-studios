@@ -7,6 +7,16 @@ allowed-tools: Read, Glob, Grep
 agent: ux-designer
 ---
 
+> **Track check — this skill is game-framed.** Resolve `production/track.txt` (or the
+> session's `PROJECT_TYPE` line) before Phase 0.
+>
+> - **`game`** — run as written.
+> - **`product`** (web / mobile / service) — substitute as you read: player becomes user,
+>   game becomes product, GDD becomes PRD (`design/gdd/` → `product/prd/`), engine becomes
+>   the stack pinned in `.claude/docs/technical-preferences.md`. Validate against the PRD. "Accessibility tier" means WCAG 2.1 AA conformance, not controller remapping and subtitle scaling.
+> - **Unresolved** — ask which track this is before doing anything. A greenfield project
+>   has no signal either way; do not infer one from the repository contents.
+
 ## Overview
 
 Validates UX design documents before they enter the implementation pipeline.

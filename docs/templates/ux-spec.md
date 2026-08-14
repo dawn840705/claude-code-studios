@@ -3,18 +3,28 @@
 > **Status**: Draft | In Review | Approved | Implemented
 > **Author**: [Name or agent — e.g., ui-designer]
 > **Last Updated**: [Date]
-> **Screen / Flow Name**: [Short identifier used in code and tickets — e.g., `InventoryScreen`, `NewGameFlow`]
-> **Platform Target**: [PC | Console | Mobile | All — list all that this spec covers]
-> **Related GDDs**: [Links to the GDD sections that generated this UI requirement — e.g., `design/gdd/inventory.md § UI Requirements`]
+> **Screen / Flow Name**: [Short identifier used in code and tickets — game: `InventoryScreen`, `NewGameFlow`; product: `CheckoutStep2`, `OnboardingFlow`]
+> **Platform Target**: [game: PC | Console | Mobile | All — product: Desktop web | Mobile web | iOS | Android | All]
+> **Related Requirements**: [game: the GDD sections that generated this UI requirement, e.g. `design/gdd/inventory.md § UI Requirements` — product: the PRD sections, e.g. `product/prd/prd-checkout.md § Requirements`]
 > **Related ADRs**: [Any architectural decisions that constrain this screen — e.g., `ADR-0012: UI Framework Selection`]
 > **Related UX Specs**: [Sibling and parent screens — e.g., `ux-spec-pause-menu.md`, `ux-spec-settings.md`]
 > **Accessibility Tier**: Basic | Standard | Comprehensive | Exemplary
+
+> **Note — Track.** This template is written in game vocabulary because the game track
+> came first. On a **product** project (`production/track.txt` = `product`) read it with
+> these substitutions: player → user, GDD → PRD, "game feel" → "product feel", pillars →
+> product principles. Input means pointer, touch and keyboard — skip every controller,
+> gamepad and console-certification prompt, and read "Accessibility Tier" as a WCAG 2.1 AA
+> conformance level. Sections 1-N are otherwise track-neutral: a screen has a purpose,
+> states, an entry point and an exit on either track.
 
 > **Note — Scope boundary**: This template covers discrete screens and flows (menus,
 > dialogs, inventory, settings, cutscene UI, etc.). For persistent in-game overlays
 > that exist during active gameplay, use `hud-design.md` instead. If a screen is a
 > hybrid (e.g., a pause menu that overlays the game world), treat it as a screen spec
-> and note the overlay relationship in Navigation Position.
+> and note the overlay relationship in Navigation Position. **Product track**: `hud-design.md`
+> has no product equivalent — a persistent overlay (toast region, nav chrome, command bar)
+> is a screen spec here.
 
 ---
 

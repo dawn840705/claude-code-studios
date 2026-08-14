@@ -6,6 +6,16 @@ user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Bash, Task, AskUserQuestion
 ---
 
+> **Track check — this skill is game-framed.** Resolve `production/track.txt` (or the
+> session's `PROJECT_TYPE` line) before Phase 0.
+>
+> - **`game`** — run as written.
+> - **`product`** (web / mobile / service) — substitute as you read: player becomes user,
+>   game becomes product, GDD becomes PRD (`design/gdd/` → `product/prd/`), engine becomes
+>   the stack pinned in `.claude/docs/technical-preferences.md`. Read the PRD requirement in place of the GDD requirement, and use the **product** routing table in Phase 3 — the game table routes to `gameplay-programmer`, which this track must never spawn. There is no `Engine:` value; read the pinned stack instead.
+> - **Unresolved** — ask which track this is before doing anything. A greenfield project
+>   has no signal either way; do not infer one from the repository contents.
+
 # Dev Story
 
 This skill bridges planning and code. It reads a story file in full, assembles
@@ -132,7 +142,12 @@ specialist to spawn via Task.
 **Config/Data stories — skip agent spawning entirely:**
 If the story's Type is `Config/Data`, no programmer agent or engine specialist is needed. Jump directly to Phase 4 (Config/Data note). The implementation is a data file edit — no routing table evaluation, no engine specialist.
 
-### Primary agent routing table
+**Read the track first — the two tables below are not interchangeable.** Resolve
+`production/track.txt` (or the session's `PROJECT_TYPE`). On a product project the
+game table below routes to `gameplay-programmer`, a `game`-pack agent, which
+`CLAUDE.md` forbids. If the track will not resolve, ask before spawning anything.
+
+### Primary agent routing table — `game` track
 
 | Story context | Primary agent |
 |---|---|
@@ -144,7 +159,28 @@ If the story's Type is `Config/Data`, no programmer agent or engine specialist i
 | Core or Feature — networking, replication | `network-programmer` |
 | Config/Data — no code | No agent needed (see Phase 4 Config note) |
 
+### Primary agent routing table — `product` track (web / mobile / service)
+
+| Story context | Primary agent |
+|---|---|
+| Foundation layer — data model, auth, infrastructure | `backend-engineer` |
+| Any layer — Type: UI, web | `frontend-engineer` |
+| Any layer — Type: UI, mobile | `mobile-engineer` |
+| Core or Feature — API, server logic, persistence | `backend-engineer` |
+| Core or Feature — LLM integration, prompt/response handling | `ai-programmer` (see `/web-ai-patterns`, gate paid calls with `/api-cost-gate`) |
+| Core or Feature — event schema, pipeline, warehouse | `data-engineer` |
+| Core or Feature — realtime, websockets, replication | `backend-engineer`, with `network-programmer` as secondary |
+| Config/Data — no code | No agent needed (see Phase 4 Config note) |
+
+Never spawn `gameplay-programmer`, `level-designer` or any other `game`-pack agent
+on this track. `lead-programmer` remains available on both as the review/architecture
+partner — it is core, not game.
+
 ### Engine specialist — always spawn as secondary for code stories
+
+**Game track only.** On the product track there is no engine specialist; the stack
+pinned in `.claude/docs/technical-preferences.md` (framework, hosting, data store)
+plays that role, and the governing ADR carries the version risk. Skip to Phase 4.
 
 Read the `Engine Specialists` section of `.claude/docs/technical-preferences.md`
 to get the configured primary specialist. Spawn them alongside the primary agent

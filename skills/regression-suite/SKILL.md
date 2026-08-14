@@ -6,6 +6,16 @@ user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Edit
 ---
 
+> **Track check — this skill is game-framed.** Resolve `production/track.txt` (or the
+> session's `PROJECT_TYPE` line) before Phase 0.
+>
+> - **`game`** — run as written.
+> - **`product`** (web / mobile / service) — substitute as you read: player becomes user,
+>   game becomes product, GDD becomes PRD (`design/gdd/` → `product/prd/`), engine becomes
+>   the stack pinned in `.claude/docs/technical-preferences.md`. Map coverage to the PRD's critical user journeys, not GDD critical paths.
+> - **Unresolved** — ask which track this is before doing anything. A greenfield project
+>   has no signal either way; do not infer one from the repository contents.
+
 # Regression Suite
 
 This skill ensures that every bug fix is backed by a test that would have

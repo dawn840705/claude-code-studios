@@ -7,6 +7,16 @@ allowed-tools: Read, Glob, Grep, Bash, Write, Task
 agent: security-engineer
 ---
 
+> **Track check — this skill is game-framed.** Resolve `production/track.txt` (or the
+> session's `PROJECT_TYPE` line) before Phase 0.
+>
+> - **`game`** — run as written.
+> - **`product`** (web / mobile / service) — substitute as you read: player becomes user,
+>   game becomes product, GDD becomes PRD (`design/gdd/` → `product/prd/`), engine becomes
+>   the stack pinned in `.claude/docs/technical-preferences.md`. Save tampering and cheat vectors do not apply. Audit authn/authz, injection (SQL / XSS / SSRF), secrets in the repo and in transit, PII handling and retention, dependency CVEs, and rate limiting.
+> - **Unresolved** — ask which track this is before doing anything. A greenfield project
+>   has no signal either way; do not infer one from the repository contents.
+
 # Security Audit
 
 Security is not optional for any shipped game. Even single-player games have

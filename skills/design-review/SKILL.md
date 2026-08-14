@@ -6,6 +6,16 @@ user-invocable: true
 allowed-tools: Read, Glob, Grep, Write, Edit, Task, AskUserQuestion
 ---
 
+> **Track check — this skill is game-framed.** Resolve `production/track.txt` (or the
+> session's `PROJECT_TYPE` line) before Phase 0.
+>
+> - **`game`** — run as written.
+> - **`product`** (web / mobile / service) — substitute as you read: player becomes user,
+>   game becomes product, GDD becomes PRD (`design/gdd/` → `product/prd/`), engine becomes
+>   the stack pinned in `.claude/docs/technical-preferences.md`. You are reviewing a PRD, not a GDD. The completeness check maps onto the PRD template's sections; "implementable" means an engineer can build it from the doc alone, and every success metric must be measurable.
+> - **Unresolved** — ask which track this is before doing anything. A greenfield project
+>   has no signal either way; do not infer one from the repository contents.
+
 ## Phase 0: Parse Arguments
 
 Extract `--depth [full|lean|solo]` if present. Default is `full` when no flag is given.

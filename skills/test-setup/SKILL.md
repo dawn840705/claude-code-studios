@@ -6,6 +6,16 @@ user-invocable: true
 allowed-tools: Read, Glob, Grep, Bash, Write
 ---
 
+> **Track check — this skill is game-framed.** Resolve `production/track.txt` (or the
+> session's `PROJECT_TYPE` line) before Phase 0.
+>
+> - **`game`** — run as written.
+> - **`product`** (web / mobile / service) — substitute as you read: player becomes user,
+>   game becomes product, GDD becomes PRD (`design/gdd/` → `product/prd/`), engine becomes
+>   the stack pinned in `.claude/docs/technical-preferences.md`. Scaffold the pinned stack's runner (vitest / jest / pytest / go test), not a game engine. Skip the Unity and Godot CI jobs. Integration tests run against a dev server or a test database, never a game scene.
+> - **Unresolved** — ask which track this is before doing anything. A greenfield project
+>   has no signal either way; do not infer one from the repository contents.
+
 # Test Setup
 
 This skill scaffolds the automated testing infrastructure for the project.

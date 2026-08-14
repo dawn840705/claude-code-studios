@@ -7,6 +7,16 @@ allowed-tools: Read, Glob, Grep, Write, Edit, AskUserQuestion, Task
 agent: ux-designer
 ---
 
+> **Track check — this skill is game-framed.** Resolve `production/track.txt` (or the
+> session's `PROJECT_TYPE` line) before Phase 0.
+>
+> - **`game`** — run as written.
+> - **`product`** (web / mobile / service) — substitute as you read: player becomes user,
+>   game becomes product, GDD becomes PRD (`design/gdd/` → `product/prd/`), engine becomes
+>   the stack pinned in `.claude/docs/technical-preferences.md`. Read the feature's PRD in place of a GDD. Input is pointer, touch and keyboard — skip the controller-mapping and HUD sections entirely. Output still lands in `design/ux/`.
+> - **Unresolved** — ask which track this is before doing anything. A greenfield project
+>   has no signal either way; do not infer one from the repository contents.
+
 When this skill is invoked:
 
 ## 1. Parse Arguments & Determine Mode
@@ -588,12 +598,18 @@ Specify how the screen enters and exits, and how it responds to state changes.
 - "How does this screen appear? (fade in, slide from right, instant pop, scale from button)"
 - "How does it dismiss? (fade out, slide back, cut)"
 - "Are there any in-screen state transitions that need animation? (loading spinner, success state, error flash)"
-- "Is there any animation that could cause motion sickness — and does the game have a reduced-motion option?"
+- "Is there any animation that could cause motion sickness — and does the product have a reduced-motion option?"
 
 Minimum required:
 - Screen enter transition
 - Screen exit transition
 - At least one state-change animation if the screen has multiple states
+
+**Product track — specify the physics, not just the duration.** A fixed duration has no
+idea where an interruption left it, so a second click or a fast scroll makes it snap. Say
+which transitions are interruptible and give those a spring (stiffness / damping) rather
+than a duration-plus-easing pair. `docs/motion-design-sources.md` has the reference
+gallery and the briefing format — read it, do not copy its code (licence unverified).
 
 ---
 

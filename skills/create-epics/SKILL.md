@@ -7,6 +7,16 @@ allowed-tools: Read, Glob, Grep, Write, Task, AskUserQuestion
 agent: technical-director
 ---
 
+> **Track check — this skill is game-framed.** Resolve `production/track.txt` (or the
+> session's `PROJECT_TYPE` line) before Phase 0.
+>
+> - **`game`** — run as written.
+> - **`product`** (web / mobile / service) — substitute as you read: player becomes user,
+>   game becomes product, GDD becomes PRD (`design/gdd/` → `product/prd/`), engine becomes
+>   the stack pinned in `.claude/docs/technical-preferences.md`. Read `product/prd/prd-*.md` in place of `design/gdd/*.md`. "Engine risk" becomes stack and dependency version risk.
+> - **Unresolved** — ask which track this is before doing anything. A greenfield project
+>   has no signal either way; do not infer one from the repository contents.
+
 # Create Epics
 
 An epic is a named, bounded body of work that maps to one architectural module.

@@ -7,6 +7,16 @@ allowed-tools: Read, Glob, Grep, Write, Bash, AskUserQuestion, Task
 agent: technical-director
 ---
 
+> **Track check — this skill is game-framed.** Resolve `production/track.txt` (or the
+> session's `PROJECT_TYPE` line) before Phase 0.
+>
+> - **`game`** — run as written.
+> - **`product`** (web / mobile / service) — substitute as you read: player becomes user,
+>   game becomes product, GDD becomes PRD (`design/gdd/` → `product/prd/`), engine becomes
+>   the stack pinned in `.claude/docs/technical-preferences.md`. Read `product/prd/product-concept.md` and every `product/prd/prd-*.md` in place of `design/gdd/game-concept.md` and the GDDs. There is no systems-index; the concept's scope tiers bound the layers. The engine section becomes the pinned stack — framework, hosting, data store.
+> - **Unresolved** — ask which track this is before doing anything. A greenfield project
+>   has no signal either way; do not infer one from the repository contents.
+
 # Create Architecture
 
 This skill produces `docs/architecture/architecture.md` — the master architecture

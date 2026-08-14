@@ -7,6 +7,16 @@ allowed-tools: Read, Glob, Grep, Write, Task, AskUserQuestion
 agent: lead-programmer
 ---
 
+> **Track check — this skill is game-framed.** Resolve `production/track.txt` (or the
+> session's `PROJECT_TYPE` line) before Phase 0.
+>
+> - **`game`** — run as written.
+> - **`product`** (web / mobile / service) — substitute as you read: player becomes user,
+>   game becomes product, GDD becomes PRD (`design/gdd/` → `product/prd/`), engine becomes
+>   the stack pinned in `.claude/docs/technical-preferences.md`. The epic's source document is its PRD (`product/prd/prd-<feature>.md`). TR-IDs come from the PRD's requirements table.
+> - **Unresolved** — ask which track this is before doing anything. A greenfield project
+>   has no signal either way; do not infer one from the repository contents.
+
 # Create Stories
 
 A story is a single implementable behaviour — small enough to complete in one

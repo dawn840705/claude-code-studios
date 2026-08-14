@@ -8,6 +8,16 @@ model: haiku
 agent: community-manager
 ---
 
+> **Track check — this skill is game-framed.** Resolve `production/track.txt` (or the
+> session's `PROJECT_TYPE` line) before Phase 0.
+>
+> - **`game`** — run as written.
+> - **`product`** (web / mobile / service) — substitute as you read: player becomes user,
+>   game becomes product, GDD becomes PRD (`design/gdd/` → `product/prd/`), engine becomes
+>   the stack pinned in `.claude/docs/technical-preferences.md`. The audience is users and customers, not players. These are release notes tied to a deploy, not an update to a live game.
+> - **Unresolved** — ask which track this is before doing anything. A greenfield project
+>   has no signal either way; do not infer one from the repository contents.
+
 ## Phase 1: Parse Arguments
 
 - `version`: the release version to generate notes for (e.g., `1.2.0`)

@@ -451,11 +451,11 @@ tracks:
         description: "Define the product: concept, PRDs per feature, UX specs"
         next_phase: architecture
         steps:
-          - id: brainstorm
-            name: "Brainstorm"
-            command: /brainstorm
-            required: false
-            description: "Explore the product concept — problem, users, differentiation, riskiest assumptions"
+          # No /brainstorm step here on purpose. That skill is game-framed and refuses a
+          # product project outright ("Do not write a game concept doc on a product
+          # project"), and following it anyway writes design/gdd/game-concept.md — which
+          # trips both track markers and drops check_phase.py into CANNOT JUDGE.
+          # /product-concept below does the exploration and the formalisation in one pass.
 
           - id: product-concept
             name: "Product Concept Document"

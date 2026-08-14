@@ -396,6 +396,10 @@ For each item in the target gate:
 - Don't just check existence — verify the file has real content (not just a template header)
 - For code checks, verify directory structure and file counts
 
+**Game track only** — this gate exists on the game track, so a product project never
+reaches it. Everything else in section 3 runs on both tracks; where it names a game
+path, read the product equivalent (`design/gdd/` → `product/prd/`, GDD → PRD).
+
 **Systems Design → Technical Setup gate — cross-GDD review check**:
 Use `Glob('design/gdd/gdd-cross-review-*.md')` to find the `/review-all-gdds` report.
 If no file matches, mark the "cross-GDD review report exists" artifact as **FAIL** and
@@ -406,13 +410,16 @@ cross-GDD consistency check failed and must be resolved before advancing.
 
 ### Quality Checks
 - For test checks: Run the test suite via `Bash` if a test runner is configured
-- For design review checks: `Read` the GDD and check for the 8 required sections
+- For design review checks: game — `Read` the GDD and check for the 8 required sections;
+  product — `Read` the PRD in `product/prd/` and check its template sections, with every
+  success metric measurable and every acceptance criterion testable
 - For performance checks: `Read` technical-preferences.md and compare against any
   profiling data in `tests/performance/` or recent `/perf-profile` output
 - For localization checks: `Grep` for hardcoded strings in `src/`
 
 ### Cross-Reference Checks
-- Compare `design/gdd/` documents against `src/` implementations
+- Compare the requirement documents against `src/` implementations — `design/gdd/` on the
+  game track, `product/prd/` on the product track
 - Check that every system referenced in architecture docs has corresponding code
 - Verify sprint plans reference real work items
 

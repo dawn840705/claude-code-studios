@@ -396,7 +396,6 @@
           "ux-review"
         ],
         "steps": [
-          "brainstorm",
           "product-concept",
           "stack-setup",
           "create-prd",
