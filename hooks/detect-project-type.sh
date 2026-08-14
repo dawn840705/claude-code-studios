@@ -8,7 +8,7 @@
 #          Handles monorepos by scanning one level into apps/* and packages/*.
 #
 # Output: prints a single PROJECT_TYPE line the orchestrator reads.
-#         Format: PROJECT_TYPE=<type>[+ai]   types: game | web | mobile | service | unknown
+#         Format: PROJECT_TYPE=<type>[+ai]   types: game | product | web | mobile | service | unknown
 #         Routing only distinguishes game vs product (web/mobile/service all → product pack).
 # Never fails the session.
 
@@ -18,6 +18,18 @@ TYPE=""
 AI_FLAG=""
 
 has() { grep -qiE "$1" "$2" 2>/dev/null; }
+
+# --- 0. Explicit override — production/track.txt beats every heuristic ---
+# Every signal below is a build artifact of a stack already chosen, so a greenfield
+# project detects as `unknown` — which is exactly when /start and /brainstorm run.
+# When the orchestrator asks the user which track this is, it writes the answer here
+# so the decision survives the session. scripts/check_phase.py reads the same file.
+# Contents: one line, `game` | `product` | `web` | `mobile` | `service`.
+if [ -f "production/track.txt" ]; then
+  case "$(tr -d '[:space:]' < production/track.txt 2>/dev/null)" in
+    game|product|web|mobile|service) TYPE="$(tr -d '[:space:]' < production/track.txt)" ;;
+  esac
+fi
 
 # Candidate roots: current dir + monorepo workspaces (one level deep)
 ROOTS="."
@@ -32,8 +44,8 @@ done
 AI_RE='@anthropic-ai|anthropic|@google/genai|@google/generative-ai|google-generativeai|generative-ai|gemini|openai|langchain|@mistralai'
 
 # --- 1. GAME (engine signals win first — strongest, root-only) ---
-if { [ -d "Assets" ] && [ -d "ProjectSettings" ]; } || [ -f "project.godot" ] \
-   || ls ./*.uproject >/dev/null 2>&1 || ls ./*.yyp >/dev/null 2>&1; then
+if [ -z "$TYPE" ] && { { [ -d "Assets" ] && [ -d "ProjectSettings" ]; } || [ -f "project.godot" ] \
+   || ls ./*.uproject >/dev/null 2>&1 || ls ./*.yyp >/dev/null 2>&1; }; then
   TYPE="game"
 fi
 
@@ -83,10 +95,11 @@ echo "PROJECT_TYPE=${TYPE}${AI_FLAG}"
 case "$TYPE" in
   game)
     echo "→ Active packs: core + game. Orchestrator: use game agents (game-designer, level-designer, etc.). Skip product-pack." ;;
-  web|mobile|service)
+  product|web|mobile|service)
     echo "→ Active packs: core + product. Orchestrator: use product agents (product-manager, frontend/backend/mobile/data/growth-engineer, technical-writer). Skip game-pack." ;;
   unknown)
-    echo "→ Could not auto-detect domain. All packs available — ask the user whether this is a game or an app/web/service project." ;;
+    echo "→ Could not auto-detect domain. All packs available — ask the user whether this is a game or an app/web/service project."
+    echo "→ Then LOCK it: write the answer (game | product) to production/track.txt. Agents with conditional domain framing read that file; leaving it unwritten leaves them unresolved." ;;
 esac
 
 if [ -n "$AI_FLAG" ]; then

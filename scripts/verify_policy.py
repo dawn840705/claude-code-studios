@@ -27,7 +27,8 @@ Checks
 ------
     P1  story is Complete but its declared test evidence does not exist   ABORT
     P2  the diff *adds* a test-skip marker                                ABORT
-    P3  game-track and product-track design artifacts both exist          WARN
+    P3  design artifacts contradict production/track.txt, or both tracks'
+        artifacts exist with no declared track                             WARN
     P4  new files under design/ or production/ break the path convention  WARN
 
 P1 and P2 abort because both are mechanical and unambiguous: a file is there or
@@ -65,6 +66,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gate_report import build as build_report, emit as emit_report  # noqa: E402
+from check_phase import read_track_file  # noqa: E402  (one reader for production/track.txt)
 
 # --- exit codes (docs/deterministic-gates.md) --------------------------------
 
@@ -330,7 +332,16 @@ def check_p2_skip_markers(root: str, base: str | None) -> list[Finding]:
 
 
 def check_p3_track_mixing(root: str) -> list[Finding]:
-    """Both tracks' design artifacts present — a pack was mixed somewhere."""
+    """Design artifacts that contradict the track, or that leave it undecidable.
+
+    Two shapes, and the first one only became checkable when production/track.txt
+    arrived. Before that the declared track existed nowhere on disk, so a product
+    project misrouted into `/brainstorm` or `/design-system` — writing design/gdd/
+    and nothing else — was indistinguishable from a game project doing its job, and
+    this check could only fire on the symmetric case where both roots were present.
+    With the track declared, one root plus a contradicting declaration is no longer
+    a guess: the project says one thing and its artifacts say another.
+    """
     def has(spec: tuple[str, str]) -> bool:
         directory, suffix = spec
         full = os.path.join(root, directory)
@@ -338,12 +349,31 @@ def check_p3_track_mixing(root: str) -> list[Finding]:
             return False
         return any(n.endswith(suffix) for n in os.listdir(full))
 
-    if has(GAME_TRACK_GLOB) and has(PRODUCT_TRACK_GLOB):
+    game, product = has(GAME_TRACK_GLOB), has(PRODUCT_TRACK_GLOB)
+    track = read_track_file(root)
+
+    if track == "product" and game:
+        return [
+            Finding("P3", WARN, "design/gdd",
+                    "production/track.txt declares `product` but design/gdd/*.md "
+                    "exists — a game-track skill wrote here. Check what produced it "
+                    "(/brainstorm and /design-system are game-framed) and move the "
+                    "content to product/prd/, or correct track.txt")
+        ]
+    if track == "game" and product:
+        return [
+            Finding("P3", WARN, "product/prd",
+                    "production/track.txt declares `game` but product/prd/*.md "
+                    "exists — a product-track skill wrote here. Move the content to "
+                    "design/gdd/, or correct track.txt")
+        ]
+    if game and product:
         return [
             Finding("P3", WARN, ".",
                     "both design/gdd/*.md (game track) and product/prd/*.md "
-                    "(product track) exist — confirm this is deliberate, "
-                    "CLAUDE.md says not to mix packs")
+                    "(product track) exist, and production/track.txt does not say "
+                    "which is intended — write `game` or `product` to that file so "
+                    "this is decidable. CLAUDE.md says not to mix packs")
         ]
     return []
 

@@ -239,8 +239,32 @@ def _marker_hit(root: str, kind: str, a: str, kind2, b) -> bool:
     return True
 
 
+def read_track_file(root: str) -> str | None:
+    """Explicit track decision written by the orchestrator, or None.
+
+    Markers are build artifacts of a stack already chosen, so a greenfield project
+    has none and the two detectors here and in hooks/detect-project-type.sh used to
+    disagree (hook: 'unknown', this: 'game'). production/track.txt is where the
+    user's answer is recorded; both readers now honour it first.
+    """
+    path = os.path.join(root, "production", "track.txt")
+    try:
+        with open(path, encoding="utf-8") as f:
+            raw = f.read().strip().lower()
+    except OSError:
+        return None
+    if raw == "game":
+        return "game"
+    if raw in ("product", "web", "mobile", "service"):
+        return "product"
+    return None
+
+
 def detect_track(root: str) -> str | None:
     """Returns 'game', 'product', or None when ambiguous/undetectable."""
+    explicit = read_track_file(root)
+    if explicit:
+        return explicit
     game = any(_marker_hit(root, *m) for m in GAME_MARKERS)
     product = any(_marker_hit(root, *m) for m in PRODUCT_MARKERS)
     if game and product:
@@ -492,7 +516,8 @@ def main(argv: list[str]) -> int:
     if track == "auto":
         detected = detect_track(root)
         if detected is None:
-            print("CANNOT JUDGE: both game and product markers present — pass --track explicitly")
+            print("CANNOT JUDGE: both game and product markers present — "
+                  "write game|product to production/track.txt, or pass --track explicitly")
             print("EXIT: 3")
             return 3
         track = detected

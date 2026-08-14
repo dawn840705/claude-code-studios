@@ -211,6 +211,41 @@ class TestP3TrackMixing(RepoCase):
         os.makedirs(os.path.join(self.root, "product/prd"))
         self.assertEqual(vp.check_p3_track_mixing(self.root), [])
 
+    # --- declared track vs artifacts: the asymmetric case, undetectable before
+    # production/track.txt existed ------------------------------------------
+
+    def test_product_track_with_gdd_artifacts_warns(self):
+        """The misrouting this check used to miss entirely: only design/gdd/ present."""
+        write(self.root, "production/track.txt", "product\n")
+        write(self.root, "design/gdd/game-concept.md", "# Concept\n")
+        findings = vp.check_p3_track_mixing(self.root)
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0].check, "P3")
+        self.assertIn("design/gdd", findings[0].path)
+        self.assertEqual(self.run_all(), vp.EXIT_WARNING)
+
+    def test_game_track_with_prd_artifacts_warns(self):
+        write(self.root, "production/track.txt", "game\n")
+        write(self.root, "product/prd/prd-login.md", "# Login\n")
+        findings = vp.check_p3_track_mixing(self.root)
+        self.assertEqual(len(findings), 1)
+        self.assertIn("product/prd", findings[0].path)
+
+    def test_declared_track_matching_its_artifacts_is_clean(self):
+        write(self.root, "production/track.txt", "product\n")
+        write(self.root, "product/prd/prd-login.md", "# Login\n")
+        self.assertEqual(vp.check_p3_track_mixing(self.root), [])
+
+    def test_track_alias_web_counts_as_product(self):
+        write(self.root, "production/track.txt", "web\n")
+        write(self.root, "design/gdd/combat.md", "# Combat\n")
+        self.assertEqual(len(vp.check_p3_track_mixing(self.root)), 1)
+
+    def test_unparseable_track_file_falls_back_to_symmetric_check(self):
+        write(self.root, "production/track.txt", "banana\n")
+        write(self.root, "design/gdd/combat.md", "# Combat\n")
+        self.assertEqual(vp.check_p3_track_mixing(self.root), [])
+
 
 class TestP4PathConventions(RepoCase):
     def _commit_new(self, relpath: str) -> None:

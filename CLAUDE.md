@@ -27,13 +27,23 @@ Agents live in four packs. **Membership is in `docs/agent-packs.yaml` (`packs:`)
 - **game** / **product** — mutually exclusive, chosen by domain.
 - **writing** — Korean AI-tell removal. **Active on every project type**; kept out of `core` only because it is Korean-specific.
 
-**At session start, the `detect-project-type.sh` hook prints `PROJECT_TYPE=<game|web|mobile|service|unknown>`.** Use it to pick the active packs:
+**At session start, the `detect-project-type.sh` hook prints `PROJECT_TYPE=<game|product|web|mobile|service|unknown>`.** Use it to pick the active packs:
 
 | PROJECT_TYPE | Active packs | Use these agents |
 |---|---|---|
 | `game` | core + **game** + writing | game agents + core. Do NOT spawn product agents. |
-| `web` / `mobile` / `service` | core + **product** + writing | product agents + core. Do NOT spawn game agents (level-designer, world-builder, etc.). |
-| `unknown` | all | Ask the user: game, or app/web/service? Then lock the pack. |
+| `product` / `web` / `mobile` / `service` | core + **product** + writing | product agents + core. Do NOT spawn game agents (level-designer, world-builder, etc.). |
+| `unknown` | all | Ask the user: game, or app/web/service? Then **write the answer to `production/track.txt`** — see below. |
+
+**`production/track.txt` is how the answer is locked.** One line, `game` or `product`.
+Every detection signal is a build artifact of a stack already chosen, so a greenfield
+project reads as `unknown` — which is exactly when `/start` and `/brainstorm` run. Both
+readers honour this file above their own heuristics: the hook, and
+`scripts/check_phase.py` (which otherwise silently defaulted a fresh project to `game`).
+
+Write it as soon as the user answers. **20 core agents carry conditional domain framing**
+that reads this file to decide whether "player" means a player or a user; leave it
+unwritten and they stop to ask instead of proposing.
 
 The `writing` pack is never gated by domain — reach for it whenever Korean prose is
 going out to readers. Verdicts come from `scripts/verify_gates.py` exit codes, not
@@ -99,6 +109,13 @@ Installed alongside, not merged in. Declared in `.claude/settings.json`.
   it does not belong in `.claude/settings.json`. It makes a paid transcription
   call per source file: gate it with `/api-cost-gate`. Details:
   `docs/video-production-sources.md`.
+
+- **Kinetics** (`kinetics.colorion.co`) — spring-physics micro-interaction gallery
+  for web/app UI. A **reading source for `/ux-design` on the product track**, not a
+  dependency: nothing is installed or vendored. Its per-effect AI prompts double as a
+  briefing format worth imitating. **Licence unverified** — the site footer claims MIT,
+  the repository carries no `LICENSE`. Read the prompts, write our own implementation.
+  Details: `docs/motion-design-sources.md`.
 
 ## Entry points
 
