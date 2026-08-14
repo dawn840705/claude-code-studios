@@ -99,6 +99,13 @@ post_release:
     live-ops:
       primary: [live-ops-designer, analytics-engineer, community-manager, economy-designer]
       support: []
+  product:
+    # growth 는 카탈로그의 마지막 phase 라 릴리스 직후부터 돌지만, 운영이 안정 궤도에
+    # 오른 뒤의 국면은 성격이 다르다 — 신규 기능이 아니라 이미 나간 것의 유지·개선.
+    # growth-engineer 가 live-ops-designer 를 mirrors 하는데 갈 곳이 없어 비어 있었다.
+    operations:
+      primary: [growth-engineer, analytics-engineer, community-manager, product-manager]
+      support: [data-engineer, backend-engineer, devops-engineer, security-engineer]
 
 # 스테이지와 무관하게 언제든 부를 수 있는 역할.
 cross_stage:

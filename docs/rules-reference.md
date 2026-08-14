@@ -26,6 +26,8 @@ Rules in `.claude/rules/` are automatically enforced when editing files in match
 | `ai-code.md` | `src/ai/**` | Performance budgets, debuggability, data-driven params |
 | `network-code.md` | `src/networking/**` | Server-authoritative, versioned messages, security |
 | `ui-code.md` | `src/ui/**` | No game state ownership, localization-ready, accessibility |
+| `frontend-code.md` | `src/app/**`, `src/components/**`, `src/pages/**`, `app/**`, `components/**` | **Product track.** Server/client state separation, i18n from day one, keyboard operability, four render states, no layout shift, nothing secret in the bundle |
+| `api-code.md` | `src/api/**`, `src/server/**`, `src/routes/**`, `api/**` | **Product track.** Boundary validation, per-resource authorization, additive versioning, idempotent mutations, no PII in logs, migrations only |
 | `design-docs.md` | `design/gdd/**` | Required 8 sections, formula format, edge cases |
 | `narrative.md` | `design/narrative/**` | Lore consistency, character voice, canon levels |
 | `data-files.md` | `assets/data/**` | JSON validity, naming conventions, schema rules |
