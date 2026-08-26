@@ -45,6 +45,11 @@ import urllib.error
 import urllib.request
 import uuid
 
+_CONSOLE_DIR = os.path.dirname(os.path.abspath(__file__))
+if _CONSOLE_DIR not in sys.path:
+    sys.path.insert(0, _CONSOLE_DIR)
+from console_encoding import force_utf8  # noqa: E402
+
 API_BASE = "https://api.remove.bg/v1.0"
 ENDPOINT_REMOVEBG = f"{API_BASE}/removebg"
 ENDPOINT_ACCOUNT = f"{API_BASE}/account"
@@ -593,6 +598,7 @@ def add_call_args(p: argparse.ArgumentParser) -> None:
 
 
 def main(argv: list[str]) -> int:
+    force_utf8()  # 판정이 콘솔 코드페이지에 좌우되지 않게 (console_encoding 참조)
     ap = argparse.ArgumentParser(
         prog="removebg.py",
         description="remove.bg 배경 제거 — 결정적 CLI (exit code 가 판정이다)",

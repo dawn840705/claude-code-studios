@@ -35,6 +35,7 @@ import sys
 _HERE = os.path.dirname(os.path.abspath(__file__))
 if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
+from console_encoding import force_utf8  # noqa: E402
 
 # 파서 재사용 — quick-rules 빌더와 같은 SSOT 계약(카테고리·패턴 헤더·_quick 메타).
 from build_quick_rules import (  # noqa: E402
@@ -209,6 +210,7 @@ def build() -> tuple[str, list[dict]]:
 
 
 def main(argv: list[str] | None = None) -> int:
+    force_utf8()  # 판정이 콘솔 코드페이지에 좌우되지 않게 (console_encoding 참조)
     ap = argparse.ArgumentParser(description="diagnosis-rules.md 생성기")
     ap.add_argument(
         "--check",

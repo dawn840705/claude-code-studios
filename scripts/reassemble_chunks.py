@@ -29,6 +29,11 @@ import json
 import sys
 from pathlib import Path
 
+_CONSOLE_DIR = str(Path(__file__).resolve().parent)
+if _CONSOLE_DIR not in sys.path:
+    sys.path.insert(0, _CONSOLE_DIR)
+from console_encoding import force_utf8  # noqa: E402
+
 
 def _leading_ws(s: str) -> str:
     return s[: len(s) - len(s.lstrip())]
@@ -39,6 +44,7 @@ def _trailing_ws(s: str) -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
+    force_utf8()  # 판정이 콘솔 코드페이지에 좌우되지 않게 (console_encoding 참조)
     p = argparse.ArgumentParser(description="Humanize KR chunk reassembler")
     p.add_argument("--run-dir", required=True, help="chunk_manifest.json 이 있는 런 디렉토리")
     p.add_argument("--output", default="03_reassembled.md", help="병합 결과 파일명")

@@ -39,6 +39,10 @@ _HEADER = os.path.join(_REFS, "quick-rules.header.md")
 _FOOTER = os.path.join(_REFS, "quick-rules.footer.md")
 _OUT = os.path.join(_REFS, "quick-rules.md")
 
+if _HERE not in sys.path:
+    sys.path.insert(0, _HERE)
+from console_encoding import force_utf8  # noqa: E402
+
 # ## A. 번역투 (Translation-ese) — S1~S2
 _CATEGORY_RE = re.compile(r"^## ([A-J])\.\s+(.+?)\s*$")
 # ### A-1. "~에 대하여" 남발 [S1]
@@ -157,6 +161,7 @@ def build() -> tuple[str, list[dict]]:
 
 
 def main(argv: list[str] | None = None) -> int:
+    force_utf8()  # 판정이 콘솔 코드페이지에 좌우되지 않게 (console_encoding 참조)
     ap = argparse.ArgumentParser(description="quick-rules.md 생성기")
     ap.add_argument(
         "--check",

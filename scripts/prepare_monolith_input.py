@@ -55,6 +55,9 @@ METRICS_DIR = PROJECT_ROOT / "skills" / "humanize-korean" / "reference"
 
 # Make metrics.py importable without polluting global state.
 sys.path.insert(0, str(METRICS_DIR))
+if str(HERE) not in sys.path:
+    sys.path.insert(0, str(HERE))
+from console_encoding import force_utf8  # noqa: E402
 # v2.0 우선 import — compute_all 별칭으로 v1.6 호환. metrics_v2 부재·로드 실패 시
 # v1.6 metrics fallback. graceful degrade로 monolith 동작은 항상 보장.
 try:
@@ -754,6 +757,7 @@ def run_chunk_mode(args: argparse.Namespace, diagnosis: str | None) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
+    force_utf8()  # 판정이 콘솔 코드페이지에 좌우되지 않게 (console_encoding 참조)
     p = argparse.ArgumentParser(description="Humanize KR v2.0 monolith input shim")
     p.add_argument("--run-dir", help="Existing run directory (relative ok)")
     p.add_argument("--text", help="Inline text input (creates new run dir)")

@@ -251,7 +251,8 @@ def test_run_defaults_to_preview(images, tmp_path, stub):
 def test_api_key_is_not_a_cli_argument():
     """Keys on the command line leak into shell history and `ps` output."""
     proc = subprocess.run([sys.executable, SCRIPT, "run", "--help"],
-                          capture_output=True, text=True, check=True)
+                          capture_output=True, text=True, check=True,
+                          encoding="utf-8", errors="replace")
     assert "--api-key " not in proc.stdout
     assert "--api-key-env" in proc.stdout
     assert "--api-key-file" in proc.stdout

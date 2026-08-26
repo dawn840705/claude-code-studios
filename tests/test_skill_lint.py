@@ -195,7 +195,7 @@ class TestBaseline(unittest.TestCase):
 
         # 'broken' 하나만 린트 — 'other' 는 검사하지 않았을 뿐 고쳐진 게 아니다
         one = os.path.join(self.skills, "broken")
-        buf, sys.stdout = sys.stdout, open(os.devnull, "w")
+        buf, sys.stdout = sys.stdout, open(os.devnull, "w", encoding="utf-8")
         try:
             code = self._run(one, "--baseline", self.baseline)
         finally:

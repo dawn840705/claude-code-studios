@@ -38,6 +38,11 @@ import subprocess
 import sys
 import urllib.parse
 
+_CONSOLE_DIR = os.path.dirname(os.path.abspath(__file__))
+if _CONSOLE_DIR not in sys.path:
+    sys.path.insert(0, _CONSOLE_DIR)
+from console_encoding import force_utf8  # noqa: E402
+
 LINK_RE = re.compile(r"\]\(([^)\s#]+)(#[^)]*)?\)")
 CHECKED_EXT = re.compile(
     r"\.(md|markdown|html?|png|jpe?g|webp|gif|svg|csv|tsv|pdf|txt|sh|py|cs|json"
@@ -236,6 +241,7 @@ def cmd_relink(args) -> int:
 
 
 def main() -> int:
+    force_utf8()  # 판정이 콘솔 코드페이지에 좌우되지 않게 (console_encoding 참조)
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     sub = ap.add_subparsers(dest="cmd", required=True)
 

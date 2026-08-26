@@ -138,7 +138,9 @@ def test_explicit_phase_must_exist(tmp_path):
 def run_cli(root, *extra):
     proc = subprocess.run(
         [sys.executable, SCRIPT, "--root", str(root), *extra],
-        capture_output=True, text=True,
+        # 게이트는 UTF-8 로 찍는다. text=True 만으로는 locale 인코딩을 타서
+        # 한국어 Windows 에서 하네스가 디코딩하다 죽는다.
+        capture_output=True, text=True, encoding="utf-8", errors="replace",
     )
     return proc.returncode, proc.stdout
 
@@ -213,7 +215,8 @@ def test_manual_required_step_blocks_exit_0(tmp_path):
 
 def test_validate_cli():
     proc = subprocess.run(
-        [sys.executable, SCRIPT, "--validate"], capture_output=True, text=True
+        [sys.executable, SCRIPT, "--validate"], capture_output=True, text=True,
+        encoding="utf-8", errors="replace",
     )
     assert proc.returncode == 0, proc.stdout
     assert "VALID" in proc.stdout

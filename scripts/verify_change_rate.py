@@ -41,6 +41,10 @@ if _REFS not in sys.path:
 
 import metrics_v2 as _m  # noqa: E402  (sys.path mutation is intentional)
 
+if _HERE not in sys.path:
+    sys.path.insert(0, _HERE)
+from console_encoding import force_utf8  # noqa: E402
+
 # final.md 본문 끝의 메타데이터 주석 블록. 여는 마커부터 파일 끝까지.
 _SUMMARY_BLOCK_RE = re.compile(r"<!--\s*HUMANIZE-SUMMARY\b.*", re.DOTALL)
 
@@ -59,6 +63,7 @@ def _read(path: str) -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
+    force_utf8()  # 판정이 콘솔 코드페이지에 좌우되지 않게 (console_encoding 참조)
     p = argparse.ArgumentParser(description="철칙 #4 변경률 게이트")
     p.add_argument("--before", required=True, help="원문 경로 (01_input.txt)")
     p.add_argument("--after", required=True, help="윤문본 경로 (final.md)")

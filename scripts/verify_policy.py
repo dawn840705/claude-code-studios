@@ -67,6 +67,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gate_report import build as build_report, emit as emit_report  # noqa: E402
 from check_phase import read_track_file  # noqa: E402  (one reader for production/track.txt)
+from console_encoding import force_utf8  # noqa: E402
 
 # --- exit codes (docs/deterministic-gates.md) --------------------------------
 
@@ -203,6 +204,12 @@ def _git(root: str, *args: str) -> str:
             cwd=root,
             capture_output=True,
             text=True,
+            # 한국어 저장소의 diff 는 UTF-8 이다. text=True 만 주면
+            # locale.getencoding() (한국어 Windows 에서 cp949) 로 디코딩하다
+            # 리더 스레드가 죽고 stdout 이 None 이 된다 — 게이트가 판정 대신
+            # AttributeError 로 무너진다. 판정을 인코딩에 걸지 않는다.
+            encoding="utf-8",
+            errors="replace",
         )
     except (OSError, FileNotFoundError) as exc:  # git not installed
         raise GitUnavailable(f"git could not be run: {exc}") from exc
@@ -501,6 +508,7 @@ def self_test() -> int:
 
 
 def main(argv: list[str]) -> int:
+    force_utf8()  # 판정이 콘솔 코드페이지에 좌우되지 않게 (console_encoding 참조)
     ap = argparse.ArgumentParser(
         description="Policy compliance gate — the axis completion checks miss"
     )

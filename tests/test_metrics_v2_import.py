@@ -46,6 +46,8 @@ class MetricsV2ImportTests(unittest.TestCase):
             cwd=_REPO_ROOT,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
         self.assertEqual(proc.returncode, 0, f"metrics_v2 self-import 실패:\n{proc.stderr}")
         self.assertIn("OK", proc.stdout)

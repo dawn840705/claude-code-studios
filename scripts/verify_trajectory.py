@@ -58,6 +58,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from gate_report import build as build_report, emit as emit_report  # noqa: E402
+from console_encoding import force_utf8  # noqa: E402
 
 EXIT_OK = 0
 EXIT_DRIFT = 2
@@ -256,6 +257,7 @@ def write_golden(traj: dict) -> None:
 
 
 def main(argv: list[str]) -> int:
+    force_utf8()  # 판정이 콘솔 코드페이지에 좌우되지 않게 (console_encoding 참조)
     ap = argparse.ArgumentParser(description="Golden-trajectory gate for plugin routing")
     ap.add_argument("--update", action="store_true", help="re-record the golden trajectory")
     ap.add_argument("--print", dest="dump", action="store_true", help="print current routing")

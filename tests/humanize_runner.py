@@ -44,6 +44,8 @@ def run_humanize(text: str, *, strict: bool = False, timeout: int = 300) -> str:
             stdin=subprocess.DEVNULL,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=timeout,
         )
     except subprocess.TimeoutExpired as exc:

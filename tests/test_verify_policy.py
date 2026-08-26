@@ -27,7 +27,8 @@ import verify_policy as vp  # noqa: E402
 
 
 def git(root: str, *args: str) -> None:
-    subprocess.run(["git", *args], cwd=root, check=True, capture_output=True)
+    subprocess.run(["git", *args], cwd=root, check=True, capture_output=True,
+                   encoding="utf-8", errors="replace")
 
 
 def write(root: str, relpath: str, content: str = "") -> str:

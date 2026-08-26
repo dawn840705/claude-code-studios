@@ -42,6 +42,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import gate_report  # noqa: E402
+from console_encoding import force_utf8  # noqa: E402
 
 DEFAULT_CATALOG = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "..", "docs", "workflow-catalog.yaml"
@@ -478,6 +479,7 @@ def print_report(track: str, result: dict) -> None:
 
 
 def main(argv: list[str]) -> int:
+    force_utf8()  # 판정이 콘솔 코드페이지에 좌우되지 않게 (console_encoding 참조)
     ap = argparse.ArgumentParser(description="Deterministic workflow-phase gate")
     ap.add_argument("--catalog", default=DEFAULT_CATALOG)
     ap.add_argument("--root", default=".", help="project root (default: cwd)")

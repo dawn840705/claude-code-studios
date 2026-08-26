@@ -41,6 +41,11 @@ import sys
 
 DEFAULT_BASELINE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "lint_baseline.json")
 
+_CONSOLE_DIR = os.path.dirname(os.path.abspath(__file__))
+if _CONSOLE_DIR not in sys.path:
+    sys.path.insert(0, _CONSOLE_DIR)
+from console_encoding import force_utf8  # noqa: E402
+
 # --- frontmatter conventions -------------------------------------------------
 
 SKILL_REQUIRED_FIELDS = (
@@ -405,6 +410,7 @@ def write_baseline(path: str, results: list[Result]) -> int:
 
 
 def main(argv: list[str]) -> int:
+    force_utf8()  # 판정이 콘솔 코드페이지에 좌우되지 않게 (console_encoding 참조)
     ap = argparse.ArgumentParser(description="Structural linter for studios skills and agents")
     ap.add_argument("targets", nargs="+", help="skills/ agents/ or a specific path")
     ap.add_argument("--strict", action="store_true", help="treat warnings as failures")
