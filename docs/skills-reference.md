@@ -1,6 +1,6 @@
 # Available Skills (Slash Commands)
 
-88 slash commands organized by phase. Type `/` in Claude Code to access any of them.
+90 slash commands organized by phase. Type `/` in Claude Code to access any of them.
 A few are cross-listed under more than one section, so the row count is higher
 than the command count.
 
@@ -113,6 +113,7 @@ than the command count.
 | `/playtest-report` | Generate a structured playtest report or analyze existing playtest notes |
 | `/lesson-log` | Extract lecture-worthy lessons from recent work into `Documents/Lessons/` (standard format) and update INDEX (see `rules/lesson-capture.md`) |
 | `/lesson-review` | Retrospective scan of commits/notes for missed lessons; regenerates INDEX and the curriculum map |
+| `/socratic` | Socratic tutoring on any artifact or concept — questions only, never the answer (safety override for data-loss/security/money) |
 
 ## Release
 
