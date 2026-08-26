@@ -27,6 +27,7 @@
 #   STUDIO_SRC_EXTS      space-separated extensions, no dot (e.g. "cs")
 #   STUDIO_DESIGN_ROOTS  newline-separated dirs holding design/spec markdown
 #   STUDIO_ASSET_ROOTS   newline-separated dirs holding art/data assets
+#   STUDIO_PRODUCTION_ROOTS  newline-separated dirs holding sprint/milestone plans
 #   STUDIO_ASSET_NAMING  pascal | snake | any  — file-naming convention to enforce
 #   STUDIO_LAYOUT_SOURCE detected | config | env  — where the layout came from
 #
@@ -41,16 +42,23 @@
 #   studio_path_has_ext <path>     exit 0 if the path ends in a known source ext
 #   studio_asset_root_regex        print an anchored asset-path regex
 #   studio_naming_violation <name> print a reason if the file name breaks convention
+#   studio_production_planning_exists  exit 0 if any production root exists
 #
 # OVERRIDES (highest priority first)
 #   1. environment: STUDIO_ENGINE / STUDIO_SRC_ROOTS / STUDIO_SRC_EXTS /
-#      STUDIO_DESIGN_ROOTS / STUDIO_ASSET_ROOTS / STUDIO_ASSET_NAMING
+#      STUDIO_DESIGN_ROOTS / STUDIO_ASSET_ROOTS / STUDIO_ASSET_NAMING /
+#      STUDIO_PRODUCTION_ROOTS
 #      (colon-separated for the list-valued ones)
 #   2. .claude/studio-layout.json   — dedicated config, preferred
 #   3. .claude/settings.json        — "studio": { "layout": { ... } }
-#   Keys: engine, srcRoots, srcExtensions, designRoots, assetRoots, assetNaming.
+#   Keys: engine, srcRoots, srcExtensions, designRoots, assetRoots, assetNaming,
+#   productionRoots.
 #   List values accept a JSON array or a colon-separated string. Without jq
 #   installed only the string form is readable; arrays fall back to detection.
+#   That jq caveat matters most for productionRoots: a project that moves its
+#   planning docs and writes the override as an array will silently keep the
+#   default on a machine without jq. Use the colon-separated string form to be
+#   portable:  "productionRoots": "Documents/Plan:Documents/Queue"
 #
 # Cross-platform: Windows Git Bash compatible — grep -E only, never grep -P.
 
@@ -244,6 +252,10 @@ studio__resolve_list() {
     printf '%s\n' "$3"
 }
 
+# 엔진과 무관한 기본값. 템플릿이 만드는 경로다.
+studio__def_production_roots="production/sprints
+production/milestones"
+
 STUDIO_SRC_ROOTS=$(studio__resolve_list "${STUDIO_SRC_ROOTS:-}" "srcRoots" "$studio__def_src_roots")
 STUDIO_ASSET_ROOTS=$(studio__resolve_list "${STUDIO_ASSET_ROOTS:-}" "assetRoots" "$studio__def_asset_roots")
 
@@ -280,8 +292,23 @@ else
 fi
 [ -n "$STUDIO_DESIGN_ROOTS" ] || STUDIO_DESIGN_ROOTS="design/gdd"
 
+# Production planning roots. Engine-independent: where a project keeps its
+# sprint / milestone / work-queue documents is a workflow choice, not an
+# engine one. This used to be hardcoded inside detect-gaps.sh Check 5, which
+# meant a project that keeps its plans anywhere else had no way to silence a
+# false alarm it got every session — the one layout question left outside the
+# override system that every other root already went through.
+#
+# Unlike design roots these are NOT filtered to existing dirs: Check 5 asks
+# precisely whether any of them exists, so filtering would answer the question
+# before it was asked.
+STUDIO_PRODUCTION_ROOTS=$(studio__resolve_list \
+    "${STUDIO_PRODUCTION_ROOTS:-}" "productionRoots" "$studio__def_production_roots")
+[ -n "$STUDIO_PRODUCTION_ROOTS" ] || STUDIO_PRODUCTION_ROOTS="$studio__def_production_roots"
+
 export STUDIO_ENGINE STUDIO_SRC_ROOTS STUDIO_SRC_EXTS STUDIO_DESIGN_ROOTS
 export STUDIO_ASSET_ROOTS STUDIO_ASSET_NAMING STUDIO_LAYOUT_SOURCE
+export STUDIO_PRODUCTION_ROOTS
 
 studio__debug "engine=$STUDIO_ENGINE source=$STUDIO_LAYOUT_SOURCE naming=$STUDIO_ASSET_NAMING"
 studio__debug "src_roots=$(printf '%s' "$STUDIO_SRC_ROOTS" | tr '\n' ',')"
@@ -394,6 +421,18 @@ studio_design_doc_exists() {
         [ -n "$studio__dde_hit" ] && return 0
     done <<EOF
 $STUDIO_DESIGN_ROOTS
+EOF
+    return 1
+}
+
+# studio_production_planning_exists — exit 0 if any production root is a
+# directory. Check 5 of detect-gaps.sh asks this and nothing more.
+studio_production_planning_exists() {
+    while IFS= read -r studio__ppe_root; do
+        [ -n "$studio__ppe_root" ] || continue
+        [ -d "$studio__ppe_root" ] && return 0
+    done <<EOF
+$STUDIO_PRODUCTION_ROOTS
 EOF
     return 1
 }

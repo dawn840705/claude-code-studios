@@ -54,6 +54,11 @@ def run_hook(script, cwd, stdin="", env=None):
         input=stdin,
         capture_output=True,
         text=True,
+        # 훅은 UTF-8 로 찍는다(⚠️ 등). text=True 만 주면 locale.getencoding()
+        # 을 타서 한국어 Windows 에서 디코딩하다 죽는다 — PYTHONIOENCODING 으로는
+        # 안 고쳐지는 별개의 실패다 (tests/test_console_encoding.py 참조).
+        encoding="utf-8",
+        errors="replace",
         env=full_env,
     )
 
@@ -68,6 +73,8 @@ def probe(cwd, snippet, env=None, prelude=""):
         cwd=str(cwd),
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
         env=full_env,
     )
 
@@ -86,15 +93,15 @@ def write_event(file_path):
 
 def git_init(root):
     subprocess.run(["git", "init", "-q"], cwd=str(root), check=True,
-                   capture_output=True)
+                   capture_output=True, encoding="utf-8", errors="replace")
     for key, value in (("user.email", "t@example.com"), ("user.name", "t")):
         subprocess.run(["git", "config", key, value], cwd=str(root), check=True,
-                       capture_output=True)
+                       capture_output=True, encoding="utf-8", errors="replace")
 
 
 def git_add_all(root):
     subprocess.run(["git", "add", "-A"], cwd=str(root), check=True,
-                   capture_output=True)
+                   capture_output=True, encoding="utf-8", errors="replace")
 
 
 # --------------------------------------------------------------------------
@@ -374,6 +381,70 @@ def test_design_doc_presence_silences_the_gameplay_check(web):
     assert "GAP" not in out
 
 
+# --------------------------------------------------------------------------
+# Check 5: production planning roots are overridable like every other root
+# --------------------------------------------------------------------------
+# lib/detect-layout.sh lets a project redeclare srcRoots / designRoots /
+# assetRoots, but the production path was hardcoded inside Check 5 — so a
+# project that keeps its plans elsewhere got the same false alarm every
+# session with no way to turn it off, even while the same helper counted its
+# design docs correctly.
+
+@pytest.fixture
+def big_codebase(tmp_path):
+    """>100 source files — the threshold Check 5 fires above."""
+    root = tmp_path / "big"
+    for i in range(110):
+        write(root, f"src/mod{i}.ts", f"export const a{i} = {i};\n")
+    write(root, "design/gdd/combat-system.md", "# Combat\n")
+    return root
+
+
+PRODUCTION_GAP = "no production planning found"
+
+
+def test_production_gap_fires_without_planning_docs(big_codebase):
+    out = run_hook(DETECT_GAPS, big_codebase).stdout
+    assert PRODUCTION_GAP in out
+    # 어디를 봤는지 말해줘야 사용자가 끄는 법을 알 수 있다.
+    assert "production/sprints" in out
+
+
+def test_default_production_roots_still_silence_the_check(big_codebase):
+    """기존 동작 회귀 방어 — 템플릿 경로는 그대로 통해야 한다."""
+    os.makedirs(big_codebase / "production" / "sprints")
+    out = run_hook(DETECT_GAPS, big_codebase).stdout
+    assert PRODUCTION_GAP not in out
+
+
+def test_production_roots_override_via_config(big_codebase):
+    """계획을 Documents/ 에 두는 프로젝트가 경고를 끌 수 있다.
+
+    콜론 구분 문자열로 쓴다 — jq 없는 환경에서는 배열 형식을 못 읽는다
+    (lib/detect-layout.sh 헤더에 명시된 제약).
+    """
+    write(big_codebase, "Documents/Plan.md", "# Plan\n")
+    write(big_codebase, ".claude/studio-layout.json",
+          '{"productionRoots": "Documents"}\n')
+    out = run_hook(DETECT_GAPS, big_codebase).stdout
+    assert PRODUCTION_GAP not in out
+
+
+def test_production_roots_override_via_env(big_codebase):
+    write(big_codebase, "Documents/Plan.md", "# Plan\n")
+    out = run_hook(DETECT_GAPS, big_codebase,
+                   env={"STUDIO_PRODUCTION_ROOTS": "Documents"}).stdout
+    assert PRODUCTION_GAP not in out
+
+
+def test_production_roots_override_does_not_silence_a_missing_directory(big_codebase):
+    """override 는 경고를 끄는 스위치가 아니라 볼 곳을 바꾸는 것이다."""
+    out = run_hook(DETECT_GAPS, big_codebase,
+                   env={"STUDIO_PRODUCTION_ROOTS": "Documents"}).stdout
+    assert PRODUCTION_GAP in out
+    assert "Documents" in out
+
+
 def test_meta_sidecars_do_not_inflate_the_system_file_count(unity):
     """Every Unity asset has a .meta twin — counting both halves the threshold."""
     shutil.rmtree(unity / "Documents")
@@ -644,6 +715,60 @@ def test_animator_lint_still_flags_string_access(unity):
                       stdin=write_event("Assets/02.Scripts/Anim.cs"))
     assert result.returncode == 0
     assert "Animator string-access detected" in result.stderr
+
+
+# 이 훅이 강제하는 규칙은 「Animator 파라미터는 해시로 접근」이다. 그런데 패턴이
+# 수신자 이름을 `animator` 로 못박아 둬서, 실제 프로젝트가 쓰는 이름 5변형 중
+# 1개만 잡았다 — 훅이 조용했던 건 잘 잡아서가 아니라 잡을 게 없어서였다.
+# 넓히는 쪽과 오탐을 늘리지 않는 쪽을 양방향으로 건다.
+
+ANIMATOR_RECEIVERS = [
+    ("_anim", '_anim.SetBool("IsRunning", true);'),
+    ("_animator", '_animator.SetTrigger("Attack");'),
+    ("playerAnimator", 'playerAnimator.SetFloat("Speed", 1f);'),
+    ("playerAnim", 'playerAnim.SetInteger("State", 2);'),
+    ("animator", 'animator.SetBool("IsRunning", true);'),
+    ("GetComponent<Animator>()", 'GetComponent<Animator>().SetTrigger("Hit");'),
+]
+
+
+@pytest.mark.parametrize("name,call", ANIMATOR_RECEIVERS,
+                         ids=[n for n, _ in ANIMATOR_RECEIVERS])
+def test_animator_lint_catches_every_receiver_name(unity, name, call):
+    write(unity, "Assets/02.Scripts/Anim.cs", "void Update() { %s }\n" % call)
+    result = run_hook(os.path.join(HOOKS, "unity-animator-string-lint.sh"), unity,
+                      stdin=write_event("Assets/02.Scripts/Anim.cs"))
+    assert result.returncode == 0
+    assert "Animator string-access detected" in result.stderr, (
+        "수신자 이름이 %s 이면 린트가 놓친다. 이름을 `animator` 로 못박은 회귀." % name
+    )
+
+
+NON_ANIMATOR_CALLS = [
+    # Material 셰이더 프로퍼티 — 첫 인자가 `"_` 로 시작한다.
+    ("material", 'mat.SetFloat("_BaseColor", 1f);'),
+    # 수신자에 anim 이 들어가도 셰이더 프로퍼티면 통과해야 한다.
+    ("anim-named-material", 'animMaterial.SetFloat("_Glow", 1f);'),
+    # 에디터 설정 저장.
+    ("editor-prefs", 'EditorPrefs.SetBool("MyPref", true);'),
+    # SerializedObject 계열 — StarDiver KoreanFontBaker.cs:332 형태.
+    ("serialized-property", 'serializedFontAsset.SetBool("m_IsMultiAtlasTextures", true);'),
+    # 이 훅이 권장하는 해법 자체를 잡으면 안 된다.
+    ("hash-access", 'animator.SetBool(IsRunningHash, true);'),
+    ("string-to-hash", 'int h = Animator.StringToHash("IsRunning");'),
+]
+
+
+@pytest.mark.parametrize("name,call", NON_ANIMATOR_CALLS,
+                         ids=[n for n, _ in NON_ANIMATOR_CALLS])
+def test_animator_lint_does_not_flag_non_animator_calls(unity, name, call):
+    write(unity, "Assets/02.Scripts/Other.cs", "void Update() { %s }\n" % call)
+    result = run_hook(os.path.join(HOOKS, "unity-animator-string-lint.sh"), unity,
+                      stdin=write_event("Assets/02.Scripts/Other.cs"))
+    assert result.returncode == 0
+    assert "Animator string-access detected" not in result.stderr, (
+        "%s 는 Animator 호출이 아닌데 잡혔다 — 넓히면서 오탐이 늘었다." % name
+    )
 
 
 # --------------------------------------------------------------------------

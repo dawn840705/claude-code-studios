@@ -96,8 +96,8 @@ can be lowercased. Under `pascal` only whitespace and hyphens are flagged. Under
 Highest priority first:
 
 1. **Environment** — `STUDIO_ENGINE`, `STUDIO_SRC_ROOTS`, `STUDIO_SRC_EXTS`,
-   `STUDIO_DESIGN_ROOTS`, `STUDIO_ASSET_ROOTS`, `STUDIO_ASSET_NAMING`
-   (colon-separated for list values).
+   `STUDIO_DESIGN_ROOTS`, `STUDIO_ASSET_ROOTS`, `STUDIO_ASSET_NAMING`,
+   `STUDIO_PRODUCTION_ROOTS` (colon-separated for list values).
 2. **`.claude/studio-layout.json`** — the preferred file.
 3. **`.claude/settings.json`** → `"studio": { "layout": { … } }`.
 
@@ -106,14 +106,30 @@ Highest priority first:
   "engine": "unity",
   "srcRoots": ["Assets/02.Scripts"],
   "designRoots": ["Documents/Specs", "design/gdd"],
+  "productionRoots": "Documents/Plan:production/sprints",
   "assetNaming": "pascal"
 }
 ```
 
 Keys: `engine`, `srcRoots`, `srcExtensions`, `designRoots`, `assetRoots`,
-`assetNaming`. List values accept a JSON array or a colon-separated string;
-without `jq` installed only the string form is readable, and an unreadable value
-falls through to detection rather than to an empty layout.
+`assetNaming`, `productionRoots`. List values accept a JSON array or a
+colon-separated string; without `jq` installed only the string form is readable,
+and an unreadable value falls through to detection rather than to an empty
+layout.
+
+> **`jq` caveat, concretely.** Git Bash on Windows usually has no `jq`. If you
+> write `"productionRoots": ["Documents"]` there, the array is unreadable and
+> the default `production/sprints` is silently kept — the warning you were
+> trying to silence keeps firing. Use the string form to be portable:
+> `"productionRoots": "Documents:Documents/Queue"`.
+
+`productionRoots` is what `detect-gaps.sh` Check 5 looks in before reporting
+"large codebase but no production planning". It defaults to `production/sprints`
+and `production/milestones`. A project that keeps its plans somewhere else — a
+`Documents/Plan.md`, a work queue, an ordering board — sets this instead of
+living with a false alarm every session. It changes *where the check looks*, not
+whether it runs: point it at a directory that does not exist and the warning
+still fires, naming that directory.
 
 `assetNaming` accepts `pascal`, `snake` or `any` — `any` disables the naming
 check entirely for projects that carry a third-party asset store tree.

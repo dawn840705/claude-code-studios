@@ -185,11 +185,19 @@ if [ -n "$GAMEPLAY_DIRS" ]; then
 fi
 
 # --- Check 5: Production planning ---
+# The roots come from detect-layout.sh so a project that keeps its plans
+# somewhere else can say so, the same way it already can for src/design/asset
+# roots. They used to be hardcoded here, which made this the one check a
+# project could not silence: a project whose planning lives in Documents/ got
+# the warning every session while the same helper counted its design docs
+# correctly.
+PRODUCTION_ROOT_LIST=$(printf '%s' "$STUDIO_PRODUCTION_ROOTS" | tr '\n' ' ')
 if [ "$SRC_FILES" -gt 100 ]; then
   # For projects with substantial code, check for production planning
-  if [ ! -d "production/sprints" ] && [ ! -d "production/milestones" ]; then
+  if ! studio_production_planning_exists; then
     echo "⚠️  GAP: Large codebase ($SRC_FILES files) but no production planning found"
-    echo "    Suggested action: /sprint-plan or create production/ directory"
+    echo "    Looked in: $PRODUCTION_ROOT_LIST"
+    echo "    Suggested action: /sprint-plan, or set \"productionRoots\" in .claude/studio-layout.json"
   fi
 fi
 
