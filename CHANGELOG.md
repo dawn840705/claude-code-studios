@@ -1,6 +1,91 @@
 # Changelog
 
-## Unreleased
+## v0.6.4 — 2026-08-26
+
+### Fixed — cp949 콘솔에서 게이트가 거짓 FAIL: 「종료 코드가 판정이다」가 인코딩 하나로 뒤집혔다
+
+`CLAUDE.md § Deterministic gates` 는 stdout 을 읽고 판정을 재해석하지 말라고
+못박는다. 그런데 Windows 한국어 콘솔(cp949)에서 게이트 스크립트가 리포트의
+em-dash(—) 를 인코딩하지 못해 `UnicodeEncodeError` 로 죽었고, 그 죽음이 `exit 1`
+로 나왔다. 규칙대로 종료 코드를 믿은 호출자는 **통과한 작업을 FAIL 로 읽었다.**
+`/humanize` · `/dev-story` · `/remove-bg` 가 각자의 게이트를 부르는 순간 그대로
+맞는 자리였다 (`grep -rn PYTHONIOENCODING skills/` → 0건).
+
+**증상 수리** — `scripts/console_encoding.py` 의 `force_utf8()` 을 CLI 진입점 12개
+`main()` 첫 줄에서 부른다. 모듈 최상단이 아니라 `main()` 인 이유 = argparse 의
+한국어 `--help` 도 같은 보호를 받아야 하고, 스크립트를 import 해서 `main()` 을
+부르는 호출자도 같은 경로를 밟아야 한다. `errors="replace"` 는 인코딩을 바꿀 수
+없는 예외 환경에서도 게이트가 「못 읽는 글자」때문에 판정을 못 내리는 일이
+없게 하려는 것이다. 비ASCII 를 지우는 해법은 쓰지 않았다 — 출력이 한국어인 것은
+사양이고, 글자를 없애면 사람이 게이트 리포트를 못 읽는다. 표준 라이브러리만 썼다.
+
+**반대 방향의 같은 병** — 스크립트는 출력을 *인코딩*하다 죽고, 하네스는 자식
+출력을 *디코딩*하다 죽었다. `subprocess.run(..., text=True)` 는
+`locale.getencoding()` 을 타므로 `PYTHONIOENCODING=utf-8` 로는 고쳐지지 않는
+**별개의 실패**다. `tests/` 와 `scripts/` 의 해당 호출 전부에 `encoding="utf-8"`
+을 명시했다. 여기에는 배포 코드 인스턴스도 하나 있었다 — `verify_policy.py` 가
+`git diff` 를 locale 인코딩으로 읽다가 리더 스레드가 죽어 `stdout` 이 `None` 이
+됐고, 게이트는 판정 대신 `AttributeError` 로 무너졌다. 한국어가 섞인 diff 에서만
+터지므로 **커밋할 내용이 있을 때만** 무너지는, 작업 트리가 깨끗한 동안에는
+보이지 않는 결함이었다.
+
+**재발 방지가 본체** — 기존 테스트는 이 버그를 못 잡았다. 검사 대상 스크립트를
+`import` 해서 함수를 직접 불렀고, **import 경로에는 콘솔 인코딩이라는 것이
+존재하지 않는다.** 그래서 `verify_trajectory.py` 가 CLI 로는 exit 1 로 죽는
+순간에도 스위트는 초록이었다. 없던 층을 하나 만들었다 —
+`tests/test_console_encoding.py` 는 `scripts/*.py` 를 훑어 진입점을 찾고(목록
+하드코딩 금지 — 하드코딩하면 다음 스크립트를 놓친다), cp949 와 ascii 로 **실제
+실행 경로를** 태워 ①죽지 않는지 ②종료 코드가 인코딩과 무관한지 ③비ASCII 가
+글자 그대로 살아 있는지를 본다. `--help` 만 때리지 않는다 —
+`verify_gates` · `verify_trajectory` 는 `--help` 는 멀쩡하고 정상 실행 경로에서
+죽었다. 시나리오 없는 새 진입점은 그 자체로 실패한다.
+
+역방향 검증: `force_utf8()` 호출을 되돌리면 이 층의 124건 중 64건이 FAIL 한다.
+
+**부수 효과** — 스위트가 26 failed / 411 passed 에서 **0 failed / 562 passed** 로.
+한국어 Windows 에서 통째로 죽어 있던 `test_hooks_layout.py` 21건이 살아났고,
+그래야 bash 훅에 회귀 방어가 생긴다.
+
+### Fixed — Animator 문자열 린트가 5개 중 1개만 잡았다
+
+`hooks/unity-animator-string-lint.sh` 의 패턴이 수신자 이름을 `animator` 로
+못박아 뒀다. 앞의 `\b` 때문에 밑줄·접두사가 붙은 이름에는 경계가 생기지 않아
+`_anim` · `_animator` · `playerAnimator` · `playerAnim` 이 전부 통과했다. 훅이
+조용했던 건 잘 잡아서가 아니라 잡을 게 없어서였다.
+
+판단 축은 원래 수신자의 **타입**이 Animator 인가인데 bash 정규식은 타입을
+모른다. 이름 휴리스틱(`anim` 을 포함하는 식별자)으로 넓히되 오탐을 두 가드로
+막았다 — 첫 인자가 `"_` 로 시작하면 셰이더 프로퍼티로 보고 제외
+(`animMaterial.SetFloat("_BaseColor")` 를 살린다), 수신자에 `anim` 이 없으면
+애초에 안 잡힌다 (`EditorPrefs.SetBool`, `serializedObject.SetBool("m_...")`).
+타입이 그 자리에 드러난 `GetComponent<Animator>()` 도 함께 잡는다. 권장 해법인
+`Animator.StringToHash("...")` 와 해시 접근은 그대로 통과한다.
+6변형 × 6부정 = 12건의 픽스처로 양방향을 건다.
+
+### Fixed — `detect-gaps` Check 5 가 우회 불가였다
+
+`lib/detect-layout.sh` 는 `srcRoots` · `designRoots` · `assetRoots` 를 덮을 수
+있게 해뒀는데 production 경로만 그 체계 밖에 하드코딩돼 있었다. 계획 문서를 다른
+데 두는 프로젝트는 매 세션 오경보를 받으면서 끌 방법이 없었다 — 같은 헬퍼가 그
+프로젝트의 design 문서는 정확히 세는데도.
+
+`productionRoots` 키를 같은 override 체계에 추가하고 Check 5 가 그것을 읽는다
+(env `STUDIO_PRODUCTION_ROOTS` · `.claude/studio-layout.json` ·
+`.claude/settings.json` 3경로 모두). 경고를 끄는 스위치가 아니라 **볼 곳을 바꾸는
+것**이다 — 없는 디렉토리를 가리키면 그 경로를 이름 대며 여전히 경고한다.
+⚠️ `jq` 없는 환경(Windows Git Bash 기본)에서는 배열 형식을 못 읽고 조용히
+기본값으로 돌아간다. 콜론 구분 문자열을 쓸 것 —
+`"productionRoots": "Documents:Documents/Queue"`. 이 제약은
+`docs/hooks-reference.md` 에 실측과 함께 적었다.
+
+### 함정 — 내용이 바뀌어도 version 이 그대로면 캐시가 안 따라온다
+
+이 항목들은 `version` 을 올리지 않은 채 `0.6.3` 아래에 쌓인다 (이 저장소 관례 —
+`test_manifest_sync.py` 가 CHANGELOG 최상단으로 `Unreleased` 를 허용한다).
+**설치된 쪽은 자동으로 갱신되지 않는다.** 2026-08-26 StarDiver 가 4커밋 뒤처져
+있던 이유가 정확히 이것이었다 — `plugin.json` 의 version 이 그대로여서 자동
+업데이트가 안 걸렸다. 릴리스할 때 `plugin.json` 과 `marketplace.json` 의 version
+을 같이 올릴 것. 그 전까지 소비자는 수동으로 당겨야 한다.
 
 ### Added — `/socratic`: 레슨을 기록하는 쪽만 있고 가르치는 쪽이 없었다
 
