@@ -1,6 +1,6 @@
 # Unity MCP Workflow Patterns
 
-> **컨텍스트**: Claude Code + CoplayDev/unity-mcp (HTTP localhost:8080) 통한 Unity Editor 자동화 패턴. 씬 / GameObject / 컴포넌트 / Build Settings 까지 자동.
+> **컨텍스트**: Codex + CoplayDev/unity-mcp (HTTP localhost:8080) 통한 Unity Editor 자동화 패턴. 씬 / GameObject / 컴포넌트 / Build Settings 까지 자동.
 
 ---
 
@@ -20,15 +20,17 @@
 
 ## § 2 — 핵심 패턴
 
-### 2.1 ToolSearch 으로 schema 사전 로드
+### 2.1 MCP 연결을 먼저 확인
 
-Claude Code 의 deferred tool 시스템 — schema 미로드 시 호출 실패. 작업 시작 전 `ToolSearch` 으로 일괄 로드:
+Codex에 MCP 서버가 등록되어 있고 Unity Editor가 서버를 제공 중인지 먼저 확인한다:
 
+```bash
+codex mcp list
+codex mcp get unityMCP
 ```
-ToolSearch select:mcp__unityMCP__manage_prefabs,mcp__unityMCP__manage_scene,mcp__unityMCP__manage_components,mcp__unityMCP__manage_gameobject,mcp__unityMCP__refresh_unity,mcp__unityMCP__execute_code,mcp__unityMCP__batch_execute,mcp__unityMCP__read_console
-```
 
-작업 중간 추가 도구 필요 시 ToolSearch 재호출.
+연결된 태스크에서 Unity MCP 도구가 보이지 않으면 Unity Editor와 서버 상태를
+확인한 뒤 Codex 태스크를 다시 시작한다.
 
 ### 2.2 batch_execute — 다수 명령 1회
 
@@ -90,14 +92,15 @@ Button.Transition 변경 (예: Sprite Swap → Color Tint) 시 Unity 가 targetG
 Play 중 `EditorSceneManager.OpenScene` 호출 시 *InvalidOperationException*. 사장님께 Play 종료 안내.
 
 ### 3.4 MCP session "Session not found"
-MCP server stale 또는 Unity Editor 미활성. Unity Editor focus / Claude Code `/mcp` reset.
+MCP server stale 또는 Unity Editor 미활성. Unity Editor를 활성화하고
+`codex mcp get unityMCP`로 등록 상태를 확인한 뒤 태스크 연결을 새로 시작한다.
 
 ---
 
 ## § 4 — 작업 흐름 (UI 신설 예시)
 
 ```
-1. ToolSearch — 도구 schema 로드
+1. `codex mcp get unityMCP` — 서버 등록 및 URL 확인
 2. read_console — 컴파일 에러 0 확인
 3. manage_scene create + load — 신규 씬
 4. batch_execute:
@@ -126,13 +129,10 @@ MCP server stale 또는 Unity Editor 미활성. Unity Editor focus / Claude Code
 
 ## § 6 — 권장 setup
 
-`~/.claude.json` 의 unityMCP entry:
-```json
-{
-  "unityMCP": {
-    "type": "http",
-    "url": "http://localhost:8080"
-  }
-}
+Codex CLI에서 HTTP MCP 서버를 등록한다:
+
+```bash
+codex mcp add unityMCP --url http://localhost:8080
 ```
-**`"type": "http"` 필드 필수** — 누락 시 silent fail (deferred tool 0건).
+
+등록 결과는 `~/.codex/config.toml`에 저장되며 `codex mcp get unityMCP`로 확인한다.

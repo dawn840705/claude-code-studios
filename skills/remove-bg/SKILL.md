@@ -1,9 +1,6 @@
 ---
 name: remove-bg
-description: "Remove image backgrounds via the remove.bg API — single image, folder batch, or straight from the asset manifest. Enforces the /api-cost-gate 4-point disclosure before any paid call, runs scripts/removebg.py (exit code is the verdict), and writes results back to design/assets/asset-manifest.md. Use when the user says 'remove background', '배경 제거', '누끼', 'cut out', 'transparent PNG', or wants sprite/product/character art alpha-cut for production."
-argument-hint: "<file | folder | url | manifest:<context>> [--size preview|full] [--type auto|person|product|car] [--out <dir>] [--execute]"
-user-invocable: true
-allowed-tools: Read, Glob, Grep, Bash, Write, Edit, AskUserQuestion
+description: "Remove image backgrounds via the remove.bg API — single image, folder batch, or straight from the asset manifest. Enforces the $api-cost-gate 4-point disclosure before any paid call, runs scripts/removebg.py (exit code is the verdict), and writes results back to design/assets/asset-manifest.md. Use when the user says 'remove background', '배경 제거', '누끼', 'cut out', 'transparent PNG', or wants sprite/product/character art alpha-cut for production."
 ---
 
 # Remove Background (remove.bg)
@@ -19,7 +16,7 @@ The split of labor is deliberate:
 - **This skill narrates.** It composes the cost disclosure, gets approval, and
   translates the script's JSON report into the project's asset manifest.
 
-**Exit code contract** (`docs/deterministic-gates.md`):
+**Exit code contract** (`../../docs/deterministic-gates.md`):
 
 | Code | Meaning | What you report |
 |---|---|---|
@@ -32,7 +29,7 @@ The split of labor is deliberate:
 
 ## Phase 0: Parse arguments and check the key
 
-Parse `$ARGUMENTS`:
+Parse `the invocation arguments`:
 
 - **Target** — a file path, a folder, an `http(s)` URL, or `manifest:<context>`
   (pull the asset list from `design/assets/asset-manifest.md`).
@@ -49,11 +46,11 @@ Parse `$ARGUMENTS`:
 If no argument is given, check whether `design/assets/asset-manifest.md` exists:
 
 - If it exists, find assets whose category is a 2D/sprite/UI type and use
-  `AskUserQuestion`: "Run background removal on **[context]** ([N] assets)?"
+  a direct user question: "Run background removal on **[context]** ([N] assets)?"
   with options `[A] Yes` / `[B] Pick a different context` / `[C] Point me at a folder instead`.
 - If it does not exist, fail with:
-  > "Usage: `/remove-bg <file|folder|url>` — e.g. `/remove-bg design/assets/raw/hero.png`
-  > Or `/remove-bg manifest:tower-defense` once you have an asset manifest."
+  > "Usage: `$remove-bg <file|folder|url>` — e.g. `$remove-bg design/assets/raw/hero.png`
+  > Or `$remove-bg manifest:tower-defense` once you have an asset manifest."
 
 **Key check — run this first, before anything else:**
 
@@ -103,7 +100,7 @@ If the estimate exceeds the balance, stop with **FAIL** before calling anything:
 
 ## Phase 2: Compose the cost disclosure
 
-This is `/api-cost-gate`'s 4-point block, filled from the Phase 1 JSON. Do not
+This is `$api-cost-gate`'s 4-point block, filled from the Phase 1 JSON. Do not
 paraphrase it into a casual sentence — the format is the point.
 
 ```
@@ -197,7 +194,7 @@ Wait for confirmation before writing. If the user declines, leave the manifest
 alone — the JSON report is already on disk and nothing is lost.
 
 If no manifest exists, skip this phase silently. Do not create one here; that is
-`/asset-spec`'s job.
+`$asset-spec`'s job.
 
 ---
 
@@ -206,7 +203,7 @@ If no manifest exists, skip this phase silently. Do not create one here; that is
 Report in this shape:
 
 ```
-=== /remove-bg — <PASS | CONCERNS | FAIL | BLOCKED> ===
+=== $remove-bg — <PASS | CONCERNS | FAIL | BLOCKED> ===
   gate      : scripts/removebg.py run → exit <code>
   processed : <ok> ok · <failed> failed · <skipped> skipped
   charged   : <credits_charged_total> credits (estimated ~<estimate>)
@@ -214,15 +211,15 @@ Report in this shape:
   report    : <out-dir>/removebg-report.json
 ```
 
-Then use `AskUserQuestion`:
+Then ask the user directly:
 
-- `[A] Review the cutouts — /asset-audit` (validate delivered assets against specs)
+- `[A] Review the cutouts — $asset-audit` (validate delivered assets against specs)
 - `[B] Re-run the failures with a tighter --type / --roi`
 - `[C] Re-run at --size full for the ones that passed review` (charges again)
 - `[D] Stop here`
 
 **Follow-up handoff:** cutouts are raw output, not approved art. Route them
-through `/asset-audit` before they are treated as production-ready, and let
+through `$asset-audit` before they are treated as production-ready, and let
 `art-director` judge edge quality if the project has an art bible.
 
 ---

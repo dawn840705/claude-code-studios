@@ -1,13 +1,9 @@
 ---
 name: lesson-review
 description: "레슨 원장 회고 — 지정 기간의 커밋/회의록/스펙 변경을 스캔해 누락된 교육용 레슨을 발굴하고, INDEX 와 커리큘럼 맵을 재생성한다. 강의 준비 전 정리 도구."
-argument-hint: "[기간: 예 '2026-07' 또는 'last-week', 비우면 마지막 레슨 이후]"
-user-invocable: true
-allowed-tools: Read, Glob, Grep, Bash, Write, Edit, Agent
-context: |
-  !ls Documents/Lessons/ 2>/dev/null
-  !git log --oneline -30 2>/dev/null
 ---
+
+먼저 `Documents/Lessons/` 전체 목록과 최근 커밋 30개를 확인한다.
 
 ## Phase 1: 스캔 범위 결정
 
@@ -17,7 +13,7 @@ context: |
 
 ## Phase 2: 소스 스캔
 
-기간 내 다음을 훑어 캡처 트리거 5종 (rules/lesson-capture.md) 후보를 수집한다:
+기간 내 다음을 훑어 캡처 트리거 5종 (../../rules/lesson-capture.md) 후보를 수집한다:
 
 - `git log` — fix/재수정/revert 패턴 (같은 영역 반복 커밋 = 함정 신호), 커밋 메시지의 "사장님/사용자 피드백" 언급
 - `Documents/Meetings/*.md` — 기각 옵션 근거, 검증 결과가 가정을 뒤집은 기록

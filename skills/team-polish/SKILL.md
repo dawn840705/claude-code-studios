@@ -1,16 +1,13 @@
 ---
 name: team-polish
 description: "Orchestrate the polish team: coordinates performance-analyst, technical-artist, sound-designer, and qa-tester to optimize, polish, and harden a feature or area for release quality."
-argument-hint: "[feature or area to polish]"
-user-invocable: true
-allowed-tools: Read, Glob, Grep, Write, Edit, Bash, Task, AskUserQuestion, TodoWrite
 ---
 If no argument is provided, output usage guidance and exit without spawning any agents:
-> Usage: `/team-polish [feature or area]` — specify the feature or area to polish (e.g., `combat`, `main menu`, `inventory system`, `level-1`). Do not use `AskUserQuestion` here; output the guidance directly.
+> Usage: `$team-polish [feature or area]` — specify the feature or area to polish (e.g., `combat`, `main menu`, `inventory system`, `level-1`). Do not ask the user directly here; output the guidance directly.
 
 When this skill is invoked with an argument, orchestrate the polish team through a structured pipeline.
 
-**Decision Points:** At each phase transition, use `AskUserQuestion` to present
+**Decision Points:** At each phase transition, ask the user directly to present
 the user with the subagent's proposals as selectable options. Write the agent's
 full analysis in conversation, then capture the decision with concise labels.
 The user must approve before moving to the next phase.
@@ -25,7 +22,7 @@ The user must approve before moving to the next phase.
 
 ## How to Delegate
 
-Use the Task tool to spawn each team member as a subagent:
+Use the Codex subagent mechanism to spawn each team member as a subagent:
 - `subagent_type: performance-analyst` — Profiling, optimization, memory analysis
 - `subagent_type: engine-programmer` — Engine-level fixes for rendering, memory, resource loading
 - `subagent_type: technical-artist` — VFX polish, shader optimization, visual quality
@@ -39,7 +36,7 @@ Always provide full context in each agent's prompt (target feature/area, perform
 
 ### Phase 1: Assessment
 Delegate to **performance-analyst**:
-- Profile the target feature/area using `/perf-profile`
+- Profile the target feature/area using `$perf-profile`
 - Identify performance bottlenecks and frame budget violations
 - Measure memory usage and check for leaks
 - Benchmark against target hardware specs
@@ -91,11 +88,11 @@ Delegate to **qa-tester**:
 
 ## Error Recovery Protocol
 
-If any spawned agent (via Task) returns BLOCKED, errors, or cannot complete:
+If any spawned agent (as a Codex subagent) returns BLOCKED, errors, or cannot complete:
 
 1. **Surface immediately**: Report "[AgentName]: BLOCKED — [reason]" to the user before continuing to dependent phases
 2. **Assess dependencies**: Check whether the blocked agent's output is required by subsequent phases. If yes, do not proceed past that dependency point without user input.
-3. **Offer options** via AskUserQuestion with choices:
+3. **Offer options** via direct user question with choices:
    - Skip this agent and note the gap in the final report
    - Retry with narrower scope
    - Stop here and resolve the blocker first
@@ -103,14 +100,14 @@ If any spawned agent (via Task) returns BLOCKED, errors, or cannot complete:
 
 Common blockers:
 - Input file missing (story not found, GDD absent) → redirect to the skill that creates it
-- ADR status is Proposed → do not implement; run `/architecture-decision` first
-- Scope too large → split into two stories via `/create-stories`
+- ADR status is Proposed → do not implement; run `$architecture-decision` first
+- Scope too large → split into two stories via `$create-stories`
 - Conflicting instructions between ADR and story → surface the conflict, do not guess
 
 ## File Write Protocol
 
 All file writes (performance reports, test results, evidence docs) are delegated to
-sub-agents spawned via Task. Each sub-agent enforces the "May I write to [path]?"
+sub-agents spawned as a Codex subagent. Each sub-agent enforces the "May I write to [path]?"
 protocol. This orchestrator does not write files directly.
 
 ## Output
@@ -119,6 +116,6 @@ A summary report covering: performance before/after metrics, visual polish chang
 
 ## Next Steps
 
-- If READY FOR RELEASE: run `/release-checklist` for the final pre-release validation.
-- If NEEDS MORE WORK: schedule remaining issues in `/sprint-plan update` and re-run `/team-polish` after fixes.
-- Run `/gate-check` for a formal phase gate verdict before handing off to release.
+- If READY FOR RELEASE: run `$release-checklist` for the final pre-release validation.
+- If NEEDS MORE WORK: schedule remaining issues in `$sprint-plan update` and re-run `$team-polish` after fixes.
+- Run `$gate-check` for a formal phase gate verdict before handing off to release.

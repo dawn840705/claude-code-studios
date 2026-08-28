@@ -1,10 +1,6 @@
 ---
 name: governance-bible-init
 description: "Bootstrap a domain-specific governance Bible (Sound, Art, Narrative, etc.) using the Anchor + Bible pattern. Sets up the folder, README spec template, and decision protocol so a 1-person dev (or small team) can keep AI-generated assets tonally consistent without drift. Use when user says 'set up sound bible', 'art governance', 'establish narrative bible', 'bootstrap design system'."
-argument-hint: "<domain> [chapter-scope]"
-user-invocable: true
-allowed-tools: Read, Write, Glob, Bash
-agent: art-director
 ---
 
 ## Purpose
@@ -23,7 +19,7 @@ Every new asset is judged *against the anchor*, not against a remembered ideal.
 
 ## Phase 1: Identify the domain
 
-From `$ARGUMENTS[0]`, determine the domain. Common values:
+From `the first invocation argument`, determine the domain. Common values:
 
 - `sound` (or `audio`) — music, voice, SFX, ambient
 - `art` (or `visual`) — characters, environments, props, UI, VFX, icons
@@ -31,7 +27,7 @@ From `$ARGUMENTS[0]`, determine the domain. Common values:
 - `ui` — interaction patterns, motion language, copy tone
 - `code-style` — coding conventions, naming, idioms (less common but valid)
 
-If `$ARGUMENTS[1]` provided, it scopes the initial Bible to a chapter / area / phase (e.g. `chapter-1`, `area-honeydew`). Recommend starting *narrow* (one chapter) and expanding gradually — drift comes from premature scope.
+If `the second invocation argument` provided, it scopes the initial Bible to a chapter / area / phase (e.g. `chapter-1`, `area-honeydew`). Recommend starting *narrow* (one chapter) and expanding gradually — drift comes from premature scope.
 
 If no args, ask the user:
 
@@ -43,7 +39,7 @@ If no args, ask the user:
 ## Phase 2: Read existing project context
 
 Read in parallel:
-- Project root README / CLAUDE.md (overall tone, references)
+- Project root README / AGENTS.md (overall tone, references)
 - Any existing memory / decision logs (e.g. `narrative meetings`, `concept doc`, `tone references`)
 - Existing assets in the workshop folders (`Tools/*/output/`) — anchor candidates
 - Reference games / inspirations (often listed in concept docs)
@@ -119,7 +115,7 @@ If no candidates exist yet, leave all categories as `⏳ TBD`. Anchors are popul
 ## Phase 7: Write the governance memory + meeting record
 
 Optionally:
-- Create a meeting record at `Documents/Meetings/YYYY-MM-DD-<Domain>-Governance.md` documenting the decision (use [`docs/templates/meeting-template.md`](../../docs/templates/meeting-template.md)).
+- Create a meeting record at `Documents/Meetings/YYYY-MM-DD-<Domain>-Governance.md` documenting the decision (use [`../../docs/templates/meeting-template.md`](../../docs/templates/meeting-template.md)).
 - Record the rule in agent memory so it's recalled in future sessions: "all new `<domain>` assets follow Anchor + Bible at `Documents/<DomainTitleCase>Design/Anchors/`".
 
 ---
@@ -132,5 +128,5 @@ A folder structure ready for first asset, a populated Bible README, and (optiona
 
 ## Sister skills
 
-- `/api-cost-gate` — required before any paid AI call (Suno/ElevenLabs/Midjourney/etc.). Runs in front of asset generation.
-- `/sot-audit` — once anchors exist, periodically audit that all *production* assets match anchor tone (variant of N-witness audit, where the anchor is the canonical witness).
+- `$api-cost-gate` — required before any paid AI call (Suno/ElevenLabs/Midjourney/etc.). Runs in front of asset generation.
+- `$sot-audit` — once anchors exist, periodically audit that all *production* assets match anchor tone (variant of N-witness audit, where the anchor is the canonical witness).

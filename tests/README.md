@@ -6,14 +6,14 @@ LLM 기반 윤문 스킬은 출력이 비결정적이라 "골든 출력 문자�
 
 ## 계층
 
-| 파일 | 계층 | claude 필요 | 무엇을 잡나 |
+| 파일 | 계층 | codex 필요 | 무엇을 잡나 |
 |---|---|:---:|---|
 | `test_humanize_asserts.py` | 1. 단위 | ✗ | 판정 헬퍼(`humanize_asserts.py`) 로직 |
 | `test_humanize_e2e.py` | 2. 얼린 fixture | ✗ | 오프라인 스모크·골든 스냅샷 |
 | `test_humanize_live.py` | 3. live 통합 | ✓ | **실제 스킬 회귀** |
 
 - `humanize_asserts.py` — 순수 판정 함수(change_rate·fidelity·register·metrics 시그널). stdlib only.
-- `humanize_runner.py` — `claude -p`로 스킬 실행(Claude Code 구독 인증, 별도 API 키 불필요).
+- `humanize_runner.py` — `codex exec`로 스킬 실행(Codex 인증, 별도 API 키 불필요).
 - `fixtures.json` — (입력, 얼린 출력, 판정 기준) 데이터 + LLM-judge 루브릭.
 - `generate_fixtures.py` — 스킬로 출력 재생성.
 
@@ -21,12 +21,12 @@ LLM 기반 윤문 스킬은 출력이 비결정적이라 "골든 출력 문자�
 
 ```
 cd tests
-python3 -m unittest test_humanize_asserts test_humanize_e2e          # 오프라인, 빠름 (claude 무)
-python3 -m unittest test_humanize_live                              # 살아있는 스킬 (claude 필요, 느림)
+python3 -m unittest test_humanize_asserts test_humanize_e2e          # 오프라인, 빠름 (codex 무)
+python3 -m unittest test_humanize_live                              # 살아있는 스킬 (codex 필요, 느림)
 HUMANIZE_LIVE_IDS=fx_b_heavy python3 -m unittest test_humanize_live  # 부분 실행
 HUMANIZE_LIVE_K=3 python3 -m unittest test_humanize_live            # 반복(flaky 탐지)
 ```
-계층3은 `claude` CLI 없으면 자동 skip → 크레덴셜 없는 CI에서도 안전.
+계층3은 `codex` CLI 없으면 자동 skip → 크레덴셜 없는 CI에서도 안전.
 
 ## 판정 차원
 

@@ -294,7 +294,7 @@ def main(argv: list[str] | None = None) -> int:
     report["gate"] = {"verdict": verdict, "exit_code": code}
     # 공통 4필드 봉투를 **추가**한다 — 기존 키는 그대로 둔다.
     # `--json` 출력은 이미 소비자가 있는 계약이라 형태를 바꾸지 않는다
-    # (CLAUDE.md 작업 원칙: 새 경로를 더하고 기존 경로는 유지).
+    # (Code Studios policy 작업 원칙: 새 경로를 더하고 기존 경로는 유지).
     # P4(sentence_touch)는 보고 전용이라 exit code 에 영향을 주지 않는다 —
     # 증거에도 넣지 않는다. 판정에 쓰이지 않은 신호를 근거로 제시하면
     # 읽는 쪽이 그것이 판정에 기여했다고 오해한다.

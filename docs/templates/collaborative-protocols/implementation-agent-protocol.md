@@ -21,7 +21,7 @@ Before writing any code:
    - "Where should [data] live? (CharacterStats? Equipment class? Config file?)"
    - "The design doc doesn't specify [edge case]. What should happen when...?"
    - "This will require changes to [other system]. Should I coordinate with that first?"
-   - *Use `AskUserQuestion` to batch constrained architecture questions*
+   - *Ask up to 3 short constrained architecture questions together*
 
 3. **Propose architecture before implementing:**
    - Show class structure, file organization, data flow
@@ -38,13 +38,13 @@ Before writing any code:
    - Show the code or a detailed summary
    - Explicitly ask: "May I write this to [filepath(s)]?"
    - For multi-file changes, list all affected files
-   - Wait for "yes" before using Write/Edit tools
+   - Wait for "yes" before using file editing
 
-6. **Complete the story with `/story-done`:**
-   - When implementation (and tests, if written) is complete, invoke `/story-done [story-file-path]`
+6. **Complete the story with `$story-done`:**
+   - When implementation (and tests, if written) is complete, invoke `$story-done [story-file-path]`
    - This verifies acceptance criteria, checks for GDD/ADR deviations, prompts code review, and updates the story status
-   - Do NOT mark a story complete manually — always go through `/story-done`
-   - If no story file exists for this work (ad-hoc task), offer `/code-review` directly instead
+   - Do NOT mark a story complete manually — always go through `$story-done`
+   - If no story file exists for this work (ad-hoc task), offer `$code-review` directly instead
 
 #### Example Interaction Pattern
 
@@ -104,7 +104,7 @@ I moved it to assets/data/combat_config.json as 'critical_damage_multiplier': 2.
 File is ready. Would you like me to:
  A) Write tests now (recommended)
  B) Let you review the code first
- C) Run /code-review for architecture validation"
+ C) Run $code-review for architecture validation"
 
 User: "A, write tests"
 
@@ -112,9 +112,9 @@ You: [creates tests/combat/test_damage_calculator.gd]
      "Created test file with 6 test cases covering the acceptance criteria from the design doc.
       All tests passing.
 
-      Running /story-done to verify acceptance criteria and close out the story."
+      Running $story-done to verify acceptance criteria and close out the story."
 
-[/story-done runs — verifies criteria, checks deviations, prompts code review, updates story status]
+[$story-done runs — verifies criteria, checks deviations, prompts code review, updates story status]
 ```
 
 #### Collaborative Mindset
@@ -125,30 +125,30 @@ You: [creates tests/combat/test_damage_calculator.gd]
 - Flag deviations from design docs explicitly — designer should know if implementation differs
 - Rules are your friend — when they flag issues, they're usually right
 - Tests prove it works — offer to write them proactively
-- Story completion is explicit — use `/story-done` to close every story, never assume done because code is written
+- Story completion is explicit — use `$story-done` to close every story, never assume done because code is written
 
 #### Structured Decision UI
 
-Use the `AskUserQuestion` tool for architecture decisions and next-step choices.
+Ask the user directly for architecture decisions and next-step choices.
 Follow the **Explain → Capture** pattern:
 
 1. **Explain first** — Describe the architectural options and trade-offs in
    conversation text.
-2. **Capture the decision** — Call `AskUserQuestion` with concise option labels.
+2. **Capture the decision** — Ask a concise direct question with short option labels.
 
 **When to use it:**
 - Architecture questions with constrained answers (step 2)
 - Next-step choices ("Write tests, review code, or run code-review?")
-- Batch up to 4 independent architecture questions in one call
+- Batch no more than 3 independent architecture questions in one turn
 
 **When NOT to use it:**
 - Open-ended spec clarifications — use conversation
 - Single confirmations ("May I write to file?")
-- When running as a Task subagent — structure text for orchestrator
+- When running as a Codex subagent — structure text for orchestrator
 
 **Example — architecture questions (batch):**
 
-  AskUserQuestion with questions:
+  Ask the user:
     1. question: "Where should DamageCalculator live?"
        header: "Architecture"
        options: "Static Utility (Recommended)", "Autoload Singleton", "Scene Node"

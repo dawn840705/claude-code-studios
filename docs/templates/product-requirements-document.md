@@ -4,18 +4,18 @@
 
 > **Scope of this template.** This is the **product-level** PRD — the whole
 > product, written once and versioned. It is not the per-feature PRD that
-> `/create-prd` writes to `product/prd/prd-<feature>.md`. This one sets the
+> `$create-prd` writes to `product/prd/prd-<feature>.md`. This one sets the
 > frame; those specify one feature inside it.
 >
 > Suggested path: `product/prd/product-requirements.md`
 >
 > **Two things this does not do**, so you don't find out later:
 > - It does **not** satisfy the discovery-phase `product-concept` step.
->   `check_phase.py` and `/create-prd` both look for
+>   `check_phase.py` and `$create-prd` both look for
 >   `product/prd/product-concept.md` by exact name and will still report it
 >   missing. Write that file too — the overlap is § 1-3 and § 5, so it is a
 >   condensation, not new work.
-> - `/create-prd` does **not** read this file (it globs `prd-*.md` only). Paste
+> - `$create-prd` does **not** read this file (it globs `prd-*.md` only). Paste
 >   the relevant § 6 subsection into the feature PRD prompt yourself.
 >
 > Game projects should use `game-concept.md` + `game-design-document.md`
@@ -142,12 +142,12 @@ about it, and the difference matters at hardening.
 
 | Area | Requirement | How it's verified |
 | ---- | ---- | ---- |
-| **Cost** | [Per-user ceiling; what happens when it's hit — degrade, queue, or refuse. Paid AI calls: gate with `/api-cost-gate`] | [Gate / dashboard / alert] |
+| **Cost** | [Per-user ceiling; what happens when it's hit — degrade, queue, or refuse. Paid AI calls: gate with `$api-cost-gate`] | [Gate / dashboard / alert] |
 | **Performance** | [Concrete numbers: p95 latency, cold start, bundle size] | [Which test] |
-| **Security / privacy** | [What data is collected, where it lives, who can read it, retention] | [Which audit — `/security-audit`] |
+| **Security / privacy** | [What data is collected, where it lives, who can read it, retention] | [Which audit — `$security-audit`] |
 | **Offline / degraded** | [Behaviour with no network, or when a dependency is down] | [Which test] |
-| **Accessibility** | [Target level, and the specific things that matter here] | [`/ux-review`, `docs/templates/accessibility-requirements.md`] |
-| **Localisation** | [Languages at launch; what is translated vs generated] | [`/localize`] |
+| **Accessibility** | [Target level, and the specific things that matter here] | [`$ux-review`, `docs/templates/accessibility-requirements.md`] |
+| **Localisation** | [Languages at launch; what is translated vs generated] | [`$localize`] |
 | **Compliance** | [Platform policy, industry regulation, age rating] | [Which checklist] |
 
 ---
@@ -251,11 +251,11 @@ accounts, budgets, legal, brand):
 
 - [ ] Review with `product-manager` and `creative-director`
 - [ ] Condense § 1-3 + § 5 into `product/prd/product-concept.md` — the discovery
-      step both `check_phase.py` and `/create-prd` require by exact filename
-- [ ] Pin the stack in `.claude/docs/technical-preferences.md`
-- [ ] Per-feature PRDs for each § 6 item (`/create-prd <feature>`)
-- [ ] Architecture decisions for anything in § 7 with a hard number (`/architecture-decision`)
+      step both `check_phase.py` and `$create-prd` require by exact filename
+- [ ] Pin the stack in `.codex/studio/technical-preferences.md`
+- [ ] Per-feature PRDs for each § 6 item (`$create-prd <feature>`)
+- [ ] Architecture decisions for anything in § 7 with a hard number (`$architecture-decision`)
 - [ ] Pin the § 12 rejections as decisions with revisit triggers (`rules/decision-lifecycle.md`)
-- [ ] `/project-stage-detect` to confirm discovery is actually complete before
+- [ ] `$project-stage-detect` to confirm discovery is actually complete before
       moving on — it reads `check_phase.py`'s exit code, which judges the
-      product track. (`/gate-check` takes game-track phase names only.)
+      product track. (`$gate-check` takes game-track phase names only.)

@@ -1,9 +1,6 @@
 ---
 name: dev-story
-description: "Read a story file and implement it. Loads the full context (story, GDD requirement, ADR guidelines, control manifest), routes to the right programmer agent for the system and engine, implements the code and test, and confirms each acceptance criterion. The core implementation skill — run after /story-readiness, before /code-review and /story-done."
-argument-hint: "[story-path]"
-user-invocable: true
-allowed-tools: Read, Glob, Grep, Write, Bash, Task, AskUserQuestion
+description: "Read a story file and implement it. Loads the full context (story, GDD requirement, ADR guidelines, control manifest), routes to the right programmer agent for the system and engine, implements the code and test, and confirms each acceptance criterion. The core implementation skill — run after $story-readiness, before $code-review and $story-done."
 ---
 
 > **Track check — this skill is game-framed.** Resolve `production/track.txt` (or the
@@ -12,7 +9,7 @@ allowed-tools: Read, Glob, Grep, Write, Bash, Task, AskUserQuestion
 > - **`game`** — run as written.
 > - **`product`** (web / mobile / service) — substitute as you read: player becomes user,
 >   game becomes product, GDD becomes PRD (`design/gdd/` → `product/prd/`), engine becomes
->   the stack pinned in `.claude/docs/technical-preferences.md`. Read the PRD requirement in place of the GDD requirement, and use the **product** routing table in Phase 3 — the game table routes to `gameplay-programmer`, which this track must never spawn. There is no `Engine:` value; read the pinned stack instead.
+>   the stack pinned in `.codex/studio/technical-preferences.md`. Read the PRD requirement in place of the GDD requirement, and use the **product** routing table in Phase 3 — the game table routes to `gameplay-programmer`, which this track must never spawn. There is no `Engine:` value; read the pinned stack instead.
 > - **Unresolved** — ask which track this is before doing anything. A greenfield project
 >   has no signal either way; do not infer one from the repository contents.
 
@@ -24,14 +21,14 @@ drives implementation to completion — including writing the test.
 
 **The loop for every story:**
 ```
-/qa-plan sprint           ← define test requirements before sprint begins
-/story-readiness [path]   ← validate before starting
-/dev-story [path]         ← implement it  (this skill)
-/code-review [files]      ← review it
-/story-done [path]        ← verify and close it
+$qa-plan sprint           ← define test requirements before sprint begins
+$story-readiness [path]   ← validate before starting
+$dev-story [path]         ← implement it  (this skill)
+$code-review [files]      ← review it
+$story-done [path]        ← verify and close it
 ```
 
-**After all sprint stories are done:** run `/team-qa sprint` to execute the full QA cycle and get a sign-off verdict before advancing the project stage.
+**After all sprint stories are done:** run `$team-qa sprint` to execute the full QA cycle and get a sign-off verdict before advancing the project stage.
 
 **Output:** Source code + test file in the project's `src/` and `tests/` directories.
 
@@ -54,9 +51,9 @@ If not found, ask: "Which story are we implementing?" Glob
 
 | File | Path | If missing |
 |------|------|------------|
-| TR registry | `docs/architecture/tr-registry.yaml` | **STOP** — "TR registry not found. Run `/create-epics` to generate it." |
-| Governing ADR | path from story's ADR field | **STOP** — "ADR file [path] not found. Run `/architecture-decision` to create it, or correct the filename in the story's ADR field." |
-| Control manifest | `docs/architecture/control-manifest.md` | **WARN and continue** — "Control manifest not found — layer rules cannot be checked. Run `/create-control-manifest`." |
+| TR registry | `docs/architecture/tr-registry.yaml` | **STOP** — "TR registry not found. Run `$create-epics` to generate it." |
+| Governing ADR | path from story's ADR field | **STOP** — "ADR file [path] not found. Run `$architecture-decision` to create it, or correct the filename in the story's ADR field." |
+| Control manifest | `docs/architecture/control-manifest.md` | **WARN and continue** — "Control manifest not found — layer rules cannot be checked. Run `$create-control-manifest`." |
 
 If the TR registry or governing ADR is missing, set the story status to **BLOCKED** in the session state and do not spawn any programmer agent.
 
@@ -93,7 +90,7 @@ Read `docs/architecture/control-manifest.md`. Extract the rules for this story's
 - Performance guardrails
 
 Check: does the story's embedded Manifest Version match the current manifest header date?
-If they differ, use `AskUserQuestion` before proceeding:
+If they differ, ask the user directly before proceeding:
 - Prompt: "Story was written against manifest v[story-date]. Current manifest is v[current-date]. New rules may apply. How do you want to proceed?"
 - Options:
   - `[A] Update story manifest version and implement with current rules (Recommended)`
@@ -102,7 +99,7 @@ If they differ, use `AskUserQuestion` before proceeding:
 
 If [A]: edit the story file's `Manifest Version:` field to the current manifest date before spawning the programmer. Then read the manifest carefully for new rules.
 If [B]: read the manifest carefully for new rules anyway, and note the version mismatch in the Phase 6 summary under "Deviations".
-If [C]: stop. Do not spawn any agent. Let the user review and re-run `/dev-story`.
+If [C]: stop. Do not spawn any agent. Let the user review and re-run `$dev-story`.
 
 ### Dependency validation
 
@@ -111,7 +108,7 @@ After extracting the **Dependencies** list from the story file, validate each:
 1. Glob `production/epics/**/*.md` to find each dependency story file.
 2. Read its `Status:` field.
 3. If any dependency has Status other than `Complete` or `Done`:
-   - Use `AskUserQuestion`:
+   - Ask the user directly:
      - Prompt: "Story '[current story]' depends on '[dependency title]' which is currently [status], not Complete. How do you want to proceed?"
      - Options:
        - `[A] Proceed anyway — I accept the dependency risk`
@@ -126,7 +123,7 @@ If a dependency file cannot be found: warn "Dependency story not found: [path]. 
 ---
 
 ### Engine reference
-Read `.claude/docs/technical-preferences.md`:
+Read `.codex/studio/technical-preferences.md`:
 - `Engine:` value — determines which programmer agents to use
 - Naming conventions (class names, file names, signal/event names)
 - Performance budgets (frame budget, memory ceiling)
@@ -137,7 +134,7 @@ Read `.claude/docs/technical-preferences.md`:
 ## Phase 3: Route to the Right Programmer
 
 Based on the story's **Layer**, **Type**, and **system name**, determine which
-specialist to spawn via Task.
+specialist to spawn as a Codex subagent.
 
 **Config/Data stories — skip agent spawning entirely:**
 If the story's Type is `Config/Data`, no programmer agent or engine specialist is needed. Jump directly to Phase 4 (Config/Data note). The implementation is a data file edit — no routing table evaluation, no engine specialist.
@@ -145,7 +142,7 @@ If the story's Type is `Config/Data`, no programmer agent or engine specialist i
 **Read the track first — the two tables below are not interchangeable.** Resolve
 `production/track.txt` (or the session's `PROJECT_TYPE`). On a product project the
 game table below routes to `gameplay-programmer`, a `game`-pack agent, which
-`CLAUDE.md` forbids. If the track will not resolve, ask before spawning anything.
+`AGENTS.md` forbids. If the track will not resolve, ask before spawning anything.
 
 ### Primary agent routing table — `game` track
 
@@ -167,7 +164,7 @@ game table below routes to `gameplay-programmer`, a `game`-pack agent, which
 | Any layer — Type: UI, web | `frontend-engineer` |
 | Any layer — Type: UI, mobile | `mobile-engineer` |
 | Core or Feature — API, server logic, persistence | `backend-engineer` |
-| Core or Feature — LLM integration, prompt/response handling | `ai-programmer` (see `/web-ai-patterns`, gate paid calls with `/api-cost-gate`) |
+| Core or Feature — LLM integration, prompt/response handling | `ai-programmer` (see `$web-ai-patterns`, gate paid calls with `$api-cost-gate`) |
 | Core or Feature — event schema, pipeline, warehouse | `data-engineer` |
 | Core or Feature — realtime, websockets, replication | `backend-engineer`, with `network-programmer` as secondary |
 | Config/Data — no code | No agent needed (see Phase 4 Config note) |
@@ -179,10 +176,10 @@ partner — it is core, not game.
 ### Engine specialist — always spawn as secondary for code stories
 
 **Game track only.** On the product track there is no engine specialist; the stack
-pinned in `.claude/docs/technical-preferences.md` (framework, hosting, data store)
+pinned in `.codex/studio/technical-preferences.md` (framework, hosting, data store)
 plays that role, and the governing ADR carries the version risk. Skip to Phase 4.
 
-Read the `Engine Specialists` section of `.claude/docs/technical-preferences.md`
+Read the `Engine Specialists` section of `.codex/studio/technical-preferences.md`
 to get the configured primary specialist. Spawn them alongside the primary agent
 when the story involves engine-specific APIs, patterns, or the ADR has HIGH
 engine risk.
@@ -201,7 +198,7 @@ assumptions about post-cutoff engine APIs that need expert verification.
 
 ## Phase 4: Implement
 
-Spawn the chosen programmer agent(s) via Task with the full context package:
+Spawn the chosen programmer agent(s) as a Codex subagent with the full context package:
 
 Provide the agent with:
 1. The complete story file content
@@ -230,7 +227,7 @@ changed from/to.
 
 Spawn `gameplay-programmer` to implement the code/animation calls. Note that
 Visual/Feel acceptance criteria cannot be auto-verified — the "does it feel right?"
-check happens in `/story-done` via manual confirmation.
+check happens in `$story-done` via manual confirmation.
 
 ---
 
@@ -242,7 +239,7 @@ this implementation — not deferred to later.
 Remind the programmer agent:
 
 > "The test file for this story is required at: `[path from Test Evidence section]`.
-> The story cannot be closed via `/story-done` without it. Write the test
+> The story cannot be closed via `$story-done` without it. Write the test
 > alongside the implementation, not after."
 
 Test requirements (from coding-standards.md):
@@ -288,7 +285,7 @@ Present a concise implementation summary:
 **Engine risks flagged**: [None] or [specialist finding]
 **Blockers**: [None] or [describe]
 
-Ready for: `/code-review [file1] [file2]` then `/story-done [story-path]`
+Ready for: `$code-review [file1] [file2]` then `$story-done [story-path]`
 ```
 
 ---
@@ -298,12 +295,12 @@ Ready for: `/code-review [file1] [file2]` then `/story-done [story-path]`
 Silently append to `production/session-state/active.md`:
 
 ```
-## Session Extract — /dev-story [date]
+## Session Extract — $dev-story [date]
 - Story: [story-path] — [story title]
 - Files changed: [comma-separated list]
 - Test written: [path, or "None — Visual/Feel/Config story"]
 - Blockers: [None, or description]
-- Next: /code-review [files] then /story-done [story-path]
+- Next: $code-review [files] then $story-done [story-path]
 ```
 
 Create `active.md` if it does not exist. Confirm: "Session state updated."
@@ -312,11 +309,11 @@ Create `active.md` if it does not exist. Confirm: "Session state updated."
 
 ## Error Recovery Protocol
 
-If any spawned agent (via Task) returns BLOCKED, errors, or cannot complete:
+If any spawned agent (as a Codex subagent) returns BLOCKED, errors, or cannot complete:
 
 1. **Surface immediately**: Report "[AgentName]: BLOCKED — [reason]" to the user before continuing to dependent phases
 2. **Assess dependencies**: Check whether the blocked agent's output is required by subsequent phases. If yes, do not proceed past that dependency point without user input.
-3. **Offer options** via AskUserQuestion with choices:
+3. **Offer options** via direct user question with choices:
    - Skip this agent and note the gap in the final report
    - Retry with narrower scope
    - Stop here and resolve the blocker first
@@ -324,14 +321,14 @@ If any spawned agent (via Task) returns BLOCKED, errors, or cannot complete:
 
 Common blockers:
 - Input file missing (story not found, GDD absent) → redirect to the skill that creates it
-- ADR status is Proposed → do not implement; run `/architecture-decision` first
-- Scope too large → split into two stories via `/create-stories`
+- ADR status is Proposed → do not implement; run `$architecture-decision` first
+- Scope too large → split into two stories via `$create-stories`
 - Conflicting instructions between ADR and story → surface the conflict, do not guess
 - Manifest version mismatch → show diff to user, ask whether to proceed with old rules or update story first
 
 ## Collaborative Protocol
 
-- **File writes are delegated** — all source code, test files, and evidence docs are written by sub-agents spawned via Task. Each sub-agent enforces the "May I write to [path]?" protocol individually. This orchestrator does not write files directly.
+- **File writes are delegated** — all source code, test files, and evidence docs are written by sub-agents spawned as a Codex subagent. Each sub-agent enforces the "May I write to [path]?" protocol individually. This orchestrator does not write files directly.
 - **Load before implementing** — do not start coding until all context is loaded
   (story, TR-ID, ADR, manifest, engine prefs). Incomplete context produces code
   that drifts from design.
@@ -345,7 +342,7 @@ Common blockers:
 - **Test is not optional for Logic/Integration** — do not mark implementation
   complete without the test file existing
 - **Visual/Feel criteria are deferred, not skipped** — mark them as DEFERRED
-  in the summary; they will be manually verified in `/story-done`
+  in the summary; they will be manually verified in `$story-done`
 - **Ask before large structural decisions** — if the story requires an
   architectural pattern not covered by the ADR, surface it before implementing:
   "The ADR doesn't specify how to handle [case]. My plan is [X]. Proceed?"
@@ -354,6 +351,6 @@ Common blockers:
 
 ## Recommended Next Steps
 
-- Run `/code-review [file1] [file2]` to review the implementation before closing the story
-- Run `/story-done [story-path]` to verify acceptance criteria and mark the story complete
-- After all sprint stories are done: run `/team-qa sprint` for the full QA cycle before advancing the project stage
+- Run `$code-review [file1] [file2]` to review the implementation before closing the story
+- Run `$story-done [story-path]` to verify acceptance criteria and mark the story complete
+- After all sprint stories are done: run `$team-qa sprint` for the full QA cycle before advancing the project stage

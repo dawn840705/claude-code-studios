@@ -1,9 +1,6 @@
 ---
 name: doc-relink
 description: "Documentation reorganization without breaking links — baseline the current rot, `git mv`, then let scripts/doc_relink.py rewrite every affected markdown link deterministically (exit code is the verdict, the model never hand-edits link paths). Use when moving/renaming docs, folders, or consolidating scattered documents; when the user says '문서 옮겨', '폴더 정리', 'move the docs', 'fix broken links', '링크 깨졌어', 'doc refactor'. Born from a 705-doc reorg (2026-08-13) that rewrote 265 links with zero new breaks."
-argument-hint: "[docs-root] [--extra CLAUDE.md --extra .claude/commands ...]"
-user-invocable: true
-allowed-tools: Read, Glob, Grep, Bash, AskUserQuestion
 ---
 
 # Doc Relink — 문서 이동은 스크립트가, 판단은 모델이
@@ -22,18 +19,18 @@ allowed-tools: Read, Glob, Grep, Bash, AskUserQuestion
 ```bash
 # 0) 이동 전 — 기존 파손을 baseline 으로 고정 (이미 썩어 있던 링크는 게이트 대상이 아니다)
 python3 scripts/doc_relink.py check <root> --docs Documents \
-    --extra CLAUDE.md --extra .claude/commands --write-baseline /tmp/links-baseline.txt
+    --extra AGENTS.md --extra skills --write-baseline /tmp/links-baseline.txt
 
 # 1) git mv 로 이동 (스테이지 상태 유지 — 커밋하지 말 것. rename 매핑이 여기서 나온다)
 git mv "Documents/old/A.md" "Documents/new/"
 
 # 2) 링크 재계산 2패스 (유입 링크 + 이동 파일 자신의 상향 링크)
 python3 scripts/doc_relink.py relink <root> --docs Documents \
-    --extra CLAUDE.md --extra .claude/commands
+    --extra AGENTS.md --extra skills
 
 # 3) 게이트 — 신규 파손 0 이면 exit 0
 python3 scripts/doc_relink.py check <root> --docs Documents \
-    --extra CLAUDE.md --extra .claude/commands --baseline /tmp/links-baseline.txt
+    --extra AGENTS.md --extra skills --baseline /tmp/links-baseline.txt
 ```
 
 판정은 exit code 가 낸다 — **exit 0 = PASS** (신규 파손 없음, 커밋 진행) ·
@@ -71,7 +68,7 @@ python3 scripts/doc_relink.py check <root> --docs Documents \
 ## 다음 단계 (recommended next)
 
 PASS 후: ① 커밋 (이동 + 링크 재계산을 한 커밋으로 — 되돌리기 단위 보존)
-② 프로젝트 문서 색인(문서 지도·CLAUDE.md 참고 문서 절)이 있으면 같은 커밋에서 갱신
+② 프로젝트 문서 색인(문서 지도·AGENTS.md 참고 문서 절)이 있으면 같은 커밋에서 갱신
 ③ 리포 밖 참조(세션 메모리 등)를 이동 경로명으로 grep 해 별도 갱신.
 FAIL 후: 출력된 신규 파손 목록만 수리하고 3) 만 재실행 — baseline 을 다시 뜨지
 말 것 (다시 뜨면 방금 만든 파손이 baseline 에 흡수돼 게이트가 무력화된다).

@@ -27,9 +27,6 @@ import lint_skills as ls  # noqa: E402
 GOOD_SKILL = """---
 name: good-skill
 description: "Use this skill when the user asks to verify a target. Do NOT use it for unrelated reporting tasks."
-argument-hint: "[target]"
-user-invocable: true
-allowed-tools: Read, Glob
 ---
 
 # Good Skill
@@ -44,7 +41,7 @@ Emit PASS or FAIL.
 
 ## Recommended next
 
-Run `/other-skill`.
+Run `$other-skill`.
 """
 
 
@@ -61,8 +58,7 @@ class TestFrontmatter(unittest.TestCase):
     def test_parses_top_level_scalars(self):
         fm = ls.parse_frontmatter(GOOD_SKILL)
         self.assertEqual(fm["name"], "good-skill")
-        self.assertEqual(fm["user-invocable"], "true")
-        self.assertEqual(fm["allowed-tools"], "Read, Glob")
+        self.assertEqual(set(fm), {"name", "description"})
 
     def test_missing_block_returns_none(self):
         self.assertIsNone(ls.parse_frontmatter("# No frontmatter\n\nbody"))
@@ -83,15 +79,14 @@ class TestChecks(unittest.TestCase):
         self.assertEqual(r.verdict, "WARNINGS")
 
     def test_fully_compliant_skill(self):
-        text = GOOD_SKILL.replace("allowed-tools: Read, Glob", "allowed-tools: Read, Write")
-        text = text.replace("Body.", "Body. May I write the result to the file?")
+        text = GOOD_SKILL.replace("Body.", "Body. May I write the result to the file?")
         r = ls.lint_skill("good/SKILL.md", text)
         self.assertEqual(r.failures, [])
         self.assertEqual(r.warnings, [])
         self.assertEqual(r.verdict, "COMPLIANT")
 
     def test_check1_missing_fields(self):
-        text = "---\nname: x\ndescription: y\n---\n\n## Phase 1\n\n## Phase 2\n\nPASS\n"
+        text = "---\nname: x\n---\n\n## Phase 1\n\n## Phase 2\n\nPASS\n"
         r = ls.lint_skill("x/SKILL.md", text)
         self.assertTrue(any("Check 1" in f for f in r.failures))
 
@@ -105,11 +100,10 @@ class TestChecks(unittest.TestCase):
         r = ls.lint_skill("x/SKILL.md", text)
         self.assertTrue(any("Check 3" in f for f in r.failures))
 
-    def test_check4_write_tools_require_ask_language(self):
-        """Write/Edit 권한이 있는데 승인 문구가 없으면 WARN 이 아니라 FAIL 이다."""
-        text = GOOD_SKILL.replace("allowed-tools: Read, Glob", "allowed-tools: Read, Write")
-        r = ls.lint_skill("x/SKILL.md", text)
-        self.assertTrue(any("Check 4" in f for f in r.failures))
+    def test_check4_missing_write_boundary_warns(self):
+        r = ls.lint_skill("x/SKILL.md", GOOD_SKILL)
+        self.assertTrue(any("Check 4" in w for w in r.warnings))
+        self.assertFalse(any("Check 4" in f for f in r.failures))
 
     def test_check4_readonly_skill_only_warns(self):
         r = ls.lint_skill("x/SKILL.md", GOOD_SKILL)
@@ -117,26 +111,25 @@ class TestChecks(unittest.TestCase):
         self.assertFalse(any("Check 4" in f for f in r.failures))
 
     def test_check4_ask_language_satisfies_write_tools(self):
-        text = GOOD_SKILL.replace("allowed-tools: Read, Glob", "allowed-tools: Read, Write")
-        text = text.replace("Body.", "Body. May I write this to the file?")
+        text = GOOD_SKILL.replace("Body.", "Body. May I write this to the file?")
         r = ls.lint_skill("x/SKILL.md", text)
         self.assertFalse(any("Check 4" in f for f in r.failures))
 
     def test_check5_missing_handoff_warns(self):
-        text = GOOD_SKILL.replace("## Recommended next\n\nRun `/other-skill`.\n", "")
+        text = GOOD_SKILL.replace("## Recommended next\n\nRun `$other-skill`.\n", "")
         r = ls.lint_skill("x/SKILL.md", text)
         self.assertTrue(any("Check 5" in w for w in r.warnings))
 
 
-class TestAgentChecks(unittest.TestCase):
-    def test_agent_requires_five_fields(self):
-        text = "---\nname: a\ndescription: d\nmodel: opus\n---\nbody"
-        r = ls.lint_agent("agents/a.md", text)
-        self.assertTrue(any("tools" in f and "maxTurns" in f for f in r.failures))
+class TestRoleChecks(unittest.TestCase):
+    def test_role_requires_name_and_description(self):
+        text = "---\nname: a\n---\nbody"
+        r = ls.lint_role("roles/a.md", text)
+        self.assertTrue(any("description" in f for f in r.failures))
 
-    def test_complete_agent_passes(self):
-        text = "---\nname: a\ndescription: d\ntools: Read\nmodel: opus\nmaxTurns: 8\n---\nbody"
-        r = ls.lint_agent("agents/a.md", text)
+    def test_complete_role_passes(self):
+        text = "---\nname: a\ndescription: d\n---\nbody"
+        r = ls.lint_role("roles/a.md", text)
         self.assertEqual(r.failures, [])
 
 
@@ -173,13 +166,13 @@ class TestBaseline(unittest.TestCase):
 
     def test_baselined_entry_that_gets_worse_is_blocked(self):
         """failure 목록이 달라지면 baseline 과 불일치 → 차단."""
-        text = "---\nname: drift\ndescription: d\nargument-hint: \"[x]\"\nuser-invocable: true\nallowed-tools: Read\n---\n\n## Phase 1\n\n## Phase 2\n\nbody\n"
+        text = "---\nname: drift\ndescription: d\n---\n\n## Phase 1\n\n## Phase 2\n\nbody\n"
         _write_skill(self.skills, "drift", text)
         self.assertEqual(self._run(self.skills, "--write-baseline", self.baseline), 0)
         self.assertEqual(self._run(self.skills, "--quiet", "--baseline", self.baseline), 0)
 
         # 필수 필드를 하나 더 깨면 failure 목록이 늘어난다
-        _write_skill(self.skills, "drift", text.replace("user-invocable: true\n", ""))
+        _write_skill(self.skills, "drift", text.replace("description: d\n", ""))
         self.assertEqual(self._run(self.skills, "--quiet", "--baseline", self.baseline), 1)
 
     def test_partial_run_does_not_report_unlinted_entries_as_stale(self):
@@ -302,13 +295,16 @@ class TestDescriptionQuality(unittest.TestCase):
 
     def test_threshold_can_actually_fire_on_the_real_roster(self):
         """0.60 은 한 번도 발동하지 않았다. 발동 못 하는 검사는 없느니만 못하다."""
-        files = ls.collect([os.path.join(_ROOT, "skills"), os.path.join(_ROOT, "agents")])
+        files = ls.collect([
+            os.path.join(_ROOT, "skills"),
+            os.path.join(_ROOT, "skills", "studio-orchestrator", "references", "roles"),
+        ])
         results = []
         for path, kind in files:
             with open(path, encoding="utf-8") as f:
                 text = f.read()
             results.append(ls.lint_skill(path, text) if kind == "skill"
-                           else ls.lint_agent(path, text))
+                           else ls.lint_role(path, text))
         ls.flag_near_duplicates(results)
         fired = sum(1 for r in results for w in r.warnings if "Check 9" in w)
         self.assertGreater(fired, 0, "Check 9 never fires — threshold is too high")

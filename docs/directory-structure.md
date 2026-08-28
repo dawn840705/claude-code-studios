@@ -2,8 +2,10 @@
 
 ```text
 /
-├── CLAUDE.md                        # Master configuration
-├── .claude/                         # Agent definitions, skills, hooks, rules, docs
+├── AGENTS.md                        # Project instructions and durable decisions
+├── .codex/
+│   ├── studio/                      # Code Studios project preferences
+│   └── agents/                      # Optional project-local native Codex agents
 ├── Assets/                          # Unity Assets root
 │   ├── Scenes/                      # Unity scenes (MainScreen, Battle, etc.)
 │   ├── Scripts/                     # C# game code
@@ -32,8 +34,8 @@
 │   └── ui/                          # UI flow, specs, wireframes
 ├── docs/                            # Technical documentation (architecture, postmortems)
 ├── production/                      # Production management (sprints, milestones)
-│   ├── marketing/                   # Video briefs and other go-to-market artifacts (/video-brief)
-│   ├── qa/                          # Audit and QA reports (/spatial-audit, /qa-plan)
+│   ├── marketing/                   # Video briefs and other go-to-market artifacts ($video-brief)
+│   ├── qa/                          # Audit and QA reports ($spatial-audit, $qa-plan)
 │   ├── human-actions.md             # Things only a person can do (rules/work-records.md § 2)
 │   ├── session-state/               # Ephemeral session state (gitignored)
 │   └── session-logs/                # Session audit trail (gitignored)

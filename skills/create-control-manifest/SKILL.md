@@ -1,10 +1,6 @@
 ---
 name: create-control-manifest
 description: "After architecture is complete, produces a flat actionable rules sheet for programmers — what you must do, what you must never do, per system and per layer. Extracted from all Accepted ADRs, technical preferences, and engine reference docs. More immediately actionable than ADRs (which explain why)."
-argument-hint: "[update — regenerate from current ADRs]"
-user-invocable: true
-allowed-tools: Read, Glob, Grep, Write, Task
-agent: technical-director
 ---
 
 # Create Control Manifest
@@ -16,7 +12,7 @@ reference docs. Where ADRs explain *why*, the manifest tells you *what*.
 
 **Output:** `docs/architecture/control-manifest.md`
 
-**When to run:** After `/architecture-review` passes and ADRs are in Accepted
+**When to run:** After `$architecture-review` passes and ADRs are in Accepted
 status. Re-run whenever new ADRs are accepted or existing ADRs are revised.
 
 ---
@@ -30,7 +26,7 @@ status. Re-run whenever new ADRs are accepted or existing ADRs are revised.
 - Note the ADR number and title for every rule sourced
 
 ### Technical Preferences
-- Read `.claude/docs/technical-preferences.md`
+- Read `.codex/studio/technical-preferences.md`
 - Extract: naming conventions, performance budgets, approved libraries/addons,
   forbidden patterns
 
@@ -123,7 +119,7 @@ Ask: "Does this look complete? Any rules to add or remove before I write the man
 - `lean` → skip. Note: "TD-MANIFEST skipped — Lean mode." Proceed to Phase 5.
 - `full` → spawn as normal.
 
-Spawn `technical-director` via Task using gate **TD-MANIFEST** (`.claude/docs/director-gates.md`).
+Spawn `technical-director` as a Codex subagent using gate **TD-MANIFEST** (`../../docs/director-gates.md`).
 
 Pass: the Control Manifest Preview from Phase 4 (rule counts per layer, full extracted rule list), the list of ADRs covered, engine version, and any rules sourced from technical-preferences.md or engine reference docs.
 
@@ -135,7 +131,7 @@ The technical-director reviews whether:
 
 Apply the verdict:
 - **APPROVE** → proceed to Phase 5
-- **CONCERNS** → surface via `AskUserQuestion` with options: `Revise flagged rules` / `Accept and proceed` / `Discuss further`
+- **CONCERNS** → surface by asking the user directly with options: `Revise flagged rules` / `Accept and proceed` / `Discuss further`
 - **REJECT** → do not write the manifest; fix the flagged rules and re-present the summary
 
 ---
@@ -153,10 +149,10 @@ Format:
 > **Last Updated**: [date]
 > **Manifest Version**: [date]
 > **ADRs Covered**: [ADR-NNNN, ADR-MMMM, ...]
-> **Status**: [Active — regenerate with `/create-control-manifest update` when ADRs change]
+> **Status**: [Active — regenerate with `$create-control-manifest update` when ADRs change]
 
 `Manifest Version` is the date this manifest was generated. Story files embed
-this date when created. `/story-readiness` compares a story's embedded version
+this date when created. `$story-readiness` compares a story's embedded version
 to this field to detect stories written against stale rules. Always matches
 `Last Updated` — they are the same date, serving different consumers.
 
@@ -258,7 +254,7 @@ These APIs are deprecated or unverified for [engine + version]:
 
 After writing the manifest:
 
-- If epics/stories don't exist yet: "Run `/create-epics layer: foundation` then `/create-stories [epic-slug]` — programmers
+- If epics/stories don't exist yet: "Run `$create-epics layer: foundation` then `$create-stories [epic-slug]` — programmers
   can now use this manifest when writing story implementation notes."
 - If this is a regeneration (manifest already existed): "Updated. Recommend
   notifying the team of changed rules — especially any new Forbidden entries."

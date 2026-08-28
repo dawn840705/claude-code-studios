@@ -1,49 +1,28 @@
 #!/usr/bin/env bash
-# Claude Code PostToolUse hook — Unity .meta missing detection (advisory)
-#
-# After Edit/Write/MultiEdit on Unity asset files (.cs/.shader/.asset/.prefab/.mat/.controller),
-# warns to stderr if the paired .meta file is missing.
-#
-# Why: Unity auto-generates .meta (GUID mapping) for new assets, but only when the
-# Editor has window focus. If Claude creates a .cs while Unity is backgrounded, the
-# .meta is generated *later*. A commit in that window pushes the asset without its
-# .meta → GUID corruption on other machines.
-#
-# This hook is *advisory only* — does not auto-generate. Focus Unity Editor once
-# to trigger .meta generation.
-#
-# Auto-opt-in: only runs in Unity projects (detected via Assets/ + ProjectSettings/).
+# Codex PostToolUse hook: advise when changed Unity assets lack .meta sidecars.
 
-set -e
+set +e
+[ -d "Assets" ] && [ -d "ProjectSettings" ] || exit 0
 
-# Auto-opt-in: skip if not a Unity project
-if [ ! -d "Assets" ] || [ ! -d "ProjectSettings" ]; then
-    exit 0
-fi
+INPUT=$(cat)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+[ -f "$SCRIPT_DIR/lib/hook-io.sh" ] || exit 0
+# shellcheck source=lib/hook-io.sh
+. "$SCRIPT_DIR/lib/hook-io.sh"
 
-# Read hook event JSON from stdin
-input=$(cat)
+PATHS=$(studio_extract_changed_paths "$INPUT")
+WARNINGS=""
 
-# Extract tool_input.file_path (jq with grep fallback)
-if command -v jq >/dev/null 2>&1; then
-    file=$(echo "$input" | jq -r '.tool_input.file_path // empty')
-else
-    file=$(echo "$input" | grep -oE '"file_path"[[:space:]]*:[[:space:]]*"[^"]+"' | head -1 | sed -E 's/.*"file_path"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/')
-fi
+while IFS= read -r FILE_PATH; do
+    case "$FILE_PATH" in
+        *.cs|*.shader|*.asset|*.prefab|*.mat|*.controller)
+            if [ -f "$FILE_PATH" ] && [ ! -f "${FILE_PATH}.meta" ]; then
+                WARNINGS="$WARNINGS
+Missing Unity sidecar: ${FILE_PATH}.meta — focus Unity Editor to generate it, then include it in the commit."
+            fi
+            ;;
+    esac
+done <<< "$PATHS"
 
-# Empty file_path = non-file tool, skip
-[ -z "$file" ] && exit 0
-
-# Only check Unity asset extensions
-case "$file" in
-    *.cs|*.shader|*.asset|*.prefab|*.mat|*.controller)
-        meta="${file}.meta"
-        if [ ! -f "$meta" ]; then
-            base=$(basename "$file")
-            echo "⚠️  Missing .meta: $base.meta" >&2
-            echo "   → Focus Unity Editor → auto-generates. Verify 'git add ${file}.meta' before commit." >&2
-        fi
-        ;;
-esac
-
+[ -n "$WARNINGS" ] && studio_emit_additional_context "$WARNINGS"
 exit 0

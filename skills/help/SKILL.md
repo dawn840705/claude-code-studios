@@ -1,12 +1,6 @@
 ---
 name: help
 description: "Analyzes what is done and the users query and offers advice on what to do next. Use if user says what should I do next or what do I do now or I'm stuck or I don't know what to do"
-argument-hint: "[optional: what you just finished, e.g. 'finished design-review' or 'stuck on ADRs']"
-user-invocable: true
-allowed-tools: Read, Glob, Grep
-context: |
-  !echo "=== Live Project State ===" && echo "Stage: $(cat production/stage.txt 2>/dev/null | tr -d '[:space:]' || echo 'not set')" && echo "Latest sprint: $(ls -t production/sprints/*.md 2>/dev/null | head -1 || echo 'none')" && echo "Session state: $(head -5 production/session-state/active.md 2>/dev/null || echo 'none')" && echo "=== Deterministic Phase Check (check_phase.py) ===" && python3 "${CLAUDE_PLUGIN_ROOT:-.claude}/scripts/check_phase.py" --catalog "${CLAUDE_PLUGIN_ROOT:-.claude}/docs/workflow-catalog.yaml" 2>&1 || true
-model: haiku
 ---
 
 # Studio Help — What Do I Do Next?
@@ -15,14 +9,21 @@ This skill is read-only — it reports findings but writes no files.
 
 This skill figures out exactly where you are in the game development pipeline and
 tells you what comes next. It is **lightweight** — not a full audit. For a full
-gap analysis, use `/project-stage-detect`.
+gap analysis, use `$project-stage-detect`.
 
 ---
 
-## Step 0: Read the Deterministic Phase Check (context block)
+## Step 0: Run the Deterministic Phase Check
 
-The context block above already ran `scripts/check_phase.py` — the deterministic
-gate for phase completion (see `docs/deterministic-gates.md`). Its output is the
+Inspect `production/stage.txt`, the newest sprint file, and
+`production/session-state/active.md`, then run:
+
+```bash
+python3 ../../scripts/check_phase.py --catalog ../../docs/workflow-catalog.yaml
+```
+
+This is the deterministic gate for phase completion (see
+`../../docs/deterministic-gates.md`). Its output is the
 verdict. **Do not re-derive step completion by globbing yourself.**
 
 Read from its output:
@@ -42,7 +43,7 @@ judged by the model, not the gate. If the track was ambiguous, ask the user
 
 ## Step 1: Read the Catalog
 
-Read `.claude/docs/workflow-catalog.yaml` for step **descriptions, commands, and
+Read `../../docs/workflow-catalog.yaml` for step **descriptions, commands, and
 ordering** (schema v2: `tracks:` → game / product → `phases:`). Use the track
 reported by check_phase.py — game projects follow the game track, web/mobile/
 service projects follow the product track. The catalog explains *what* each step
@@ -52,19 +53,19 @@ is; completion *status* comes from Step 0.
 
 ## Step 1b: Find Skills Not in the Catalog
 
-After reading the catalog, Glob `.claude/skills/*/SKILL.md` to get the full list
+After reading the catalog, inspect `../*/SKILL.md` to get the full list
 of installed skills. For each file, extract the `name:` field from its frontmatter.
 
-Compare against the `command:` values in the catalog. Any skill whose name does
-not appear as a catalog command is an **uncataloged skill** — still usable but not
-part of the phase-gated workflow.
+Compare against the `command:` values in the catalog after removing the leading
+`$`. Any skill whose name does not appear as a catalog command is an
+**uncataloged skill** — still usable but not part of the phase-gated workflow.
 
 Collect these for the output in Step 7 — show them as a footer block:
 
 ```
 ### Also installed (not in workflow)
-- `/skill-name` — [description from SKILL.md frontmatter]
-- `/skill-name` — [description]
+- `$skill-name` — [description from SKILL.md frontmatter]
+- `$skill-name` — [description]
 ```
 
 Only show this block if at least one uncataloged skill exists. Limit to the 10
@@ -206,7 +207,7 @@ Command: `[/command]`
 - [Next required step name] (`/command`)
 
 ---
-Approaching **[next phase]** gate → run `/gate-check` when ready.
+Approaching **[next phase]** gate → run `$gate-check` when ready.
 ```
 
 **If check_phase.py reported `EXIT: 2` (dependency violation):** lead with it,
@@ -235,7 +236,7 @@ Verdict: **COMPLETE** — next steps identified.
 
 After the current phase's steps, check if the user is likely approaching a gate:
 - If all required steps in the current phase are complete (or nearly complete),
-  add: "You're close to the **[Current] → [Next]** gate. Run `/gate-check` when ready."
+  add: "You're close to the **[Current] → [Next]** gate. Run `$gate-check` when ready."
 - If multiple required steps remain, skip the gate warning — it's not relevant yet.
 
 ---
@@ -247,9 +248,9 @@ After the recommendations, if the user seems stuck or confused, add:
 ```
 ---
 Need more detail?
-- `/project-stage-detect` — full gap analysis with all missing artifacts listed
-- `/gate-check` — formal readiness check for your next phase
-- `/start` — re-orient from scratch
+- `$project-stage-detect` — full gap analysis with all missing artifacts listed
+- `$gate-check` — formal readiness check for your next phase
+- `$start` — re-orient from scratch
 ```
 
 Only show this if the user's input suggested confusion (e.g. "I don't know", "stuck",

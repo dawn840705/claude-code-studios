@@ -1,12 +1,9 @@
 ---
 name: release-checklist
 description: "Generates a comprehensive pre-release validation checklist covering build verification, certification requirements, store metadata, and launch readiness."
-argument-hint: "[platform: pc|console|mobile|all]"
-user-invocable: true
-allowed-tools: Read, Glob, Grep, Write
 ---
 
-> **Explicit invocation only**: This skill should only run when the user explicitly requests it with `/release-checklist`. Do not auto-invoke based on context matching.
+> **Explicit invocation only**: This skill should only run when the user explicitly requests it with `$release-checklist`. Do not auto-invoke based on context matching.
 
 ## Phase 1: Parse Arguments
 
@@ -16,7 +13,7 @@ Read the argument for the target platform (`pc`, `console`, `mobile`, or `all`).
 
 ## Phase 2: Load Project Context
 
-- Read `CLAUDE.md` for project context, version information, and platform targets.
+- Read `AGENTS.md` for project context, version information, and platform targets.
 - Read the current milestone from `production/milestones/` to understand what features and content should be included in this release.
 
 ---
@@ -177,5 +174,5 @@ If yes, write the file, creating the directory if needed.
 
 ## Phase 6: Next Steps
 
-- Run `/gate-check` for a formal phase gate verdict before proceeding to release.
-- Coordinate final sign-offs via `/team-release`.
+- Run `$gate-check` for a formal phase gate verdict before proceeding to release.
+- Coordinate final sign-offs via `$team-release`.

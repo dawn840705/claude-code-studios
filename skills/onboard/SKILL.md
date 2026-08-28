@@ -1,17 +1,13 @@
 ---
 name: onboard
 description: "Generates a contextual onboarding document for a new contributor or agent joining the project. Summarizes project state, architecture, conventions, and current priorities relevant to the specified role or area."
-argument-hint: "[role|area]"
-user-invocable: true
-allowed-tools: Read, Glob, Grep, Write
-model: haiku
 ---
 
 ## Phase 1: Load Project Context
 
-Read CLAUDE.md for project overview and standards.
+Read AGENTS.md for project overview and standards.
 
-Read the relevant agent definition from `.claude/agents/` if a specific role is specified.
+Read the relevant role guide from `../studio-orchestrator/references/roles/` if a specific role is specified.
 
 ---
 
@@ -50,7 +46,7 @@ Read recent changes (git log if available) to understand current momentum.
 |------|---------|--------------|
 
 ## Current Standards and Conventions
-[Summary of conventions relevant to this role from CLAUDE.md and agent definition]
+[Summary of conventions relevant to this role from AGENTS.md and agent definition]
 
 ## Current State of Your Area
 [What has been built, what is in progress, what is planned next]
@@ -92,5 +88,5 @@ If yes, write the file, creating the directory if needed.
 Verdict: **COMPLETE** — onboarding document generated.
 
 - Share the onboarding doc with the new contributor before their first session.
-- Run `/sprint-status` to show the new contributor current progress.
-- Run `/help` if the contributor needs guidance on what to work on next.
+- Run `$sprint-status` to show the new contributor current progress.
+- Run `$help` if the contributor needs guidance on what to work on next.

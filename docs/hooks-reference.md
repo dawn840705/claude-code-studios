@@ -1,28 +1,27 @@
 # Active Hooks
 
-Hooks are configured in `.claude-plugin/plugin.json` (or `.claude/settings.json`
-for a manual install) and fire automatically:
+Hooks are configured in `hooks/hooks.json`, which Codex auto-discovers from the
+plugin root after the user completes the hook trust review:
 
 | Hook | Event | Trigger | Action |
 | ---- | ----- | ------- | ------ |
-| `validate-commit.sh` | PreToolUse (Bash) | `git commit` commands | Validates design doc sections, JSON data files, hardcoded values, TODO format |
-| `validate-push.sh` | PreToolUse (Bash) | `git push` commands | Warns on pushes to protected branches (develop/main) |
-| `validate-assets.sh` | PostToolUse (Write/Edit/MultiEdit) | Asset file changes | Checks naming conventions and JSON validity for files under the project's asset root |
-| `unity-meta-check.sh` | PostToolUse (Write/Edit/MultiEdit) | Unity asset writes | Warns when a `.cs`/`.shader`/`.asset`/`.prefab`/`.mat`/`.controller` has no paired `.meta` |
-| `unity-animator-string-lint.sh` | PostToolUse (Write/Edit/MultiEdit) | `.cs` writes | Warns on `Animator.SetBool("literal")` instead of a cached `StringToHash` |
+| `validate-commit.sh` | PreToolUse (`exec_command`/`Bash`) | `git commit` commands | Validates design doc sections, JSON data files, hardcoded values, TODO format |
+| `validate-push.sh` | PreToolUse (`exec_command`/`Bash`) | `git push` commands | Warns on pushes to protected branches (develop/main) |
+| `validate-assets.sh` | PostToolUse (`apply_patch`/edit aliases) | Asset file changes | Extracts every changed path, then checks naming conventions and JSON validity |
+| `unity-meta-check.sh` | PostToolUse (`apply_patch`/edit aliases) | Unity asset writes | Warns when a Unity asset has no paired `.meta` |
+| `unity-animator-string-lint.sh` | PostToolUse (`apply_patch`/edit aliases) | `.cs` writes | Warns on `Animator.SetBool("literal")` instead of a cached `StringToHash` |
 | `session-start.sh` | SessionStart | Session begins | Loads sprint context, milestone, git activity; detects and previews active session state file for recovery |
-| `detect-gaps.sh` | SessionStart | Session begins | Detects fresh projects (suggests /start) and missing documentation when code/prototypes exist, suggests /reverse-document or /project-stage-detect |
+| `detect-gaps.sh` | SessionStart | Session begins | Detects fresh projects (suggests $start) and missing documentation when code/prototypes exist, suggests $reverse-document or $project-stage-detect |
 | `detect-project-type.sh` | SessionStart | Session begins | Prints `PROJECT_TYPE=<game\|web\|mobile\|service\|unknown>` so the orchestrator activates the right agent pack |
 | `pre-compact.sh` | PreCompact | Context compression | Dumps session state (active.md, modified files, WIP design docs) into conversation before compaction so it survives summarization |
-| `post-compact.sh` | PostCompact | After compaction | Reminds Claude to restore session state from `active.md` checkpoint |
-| `notify.sh` | Notification | Notification event | Shows Windows toast notification via PowerShell |
-| `session-stop.sh` | Stop | Session ends | Summarizes accomplishments and updates session log |
+| `post-compact.sh` | PostCompact | After compaction | Returns JSON context instructing Codex to restore `active.md` |
+| `session-stop.sh` | SessionEnd | Actual session shutdown | Summarizes accomplishments and updates session log |
 | `log-agent.sh` | SubagentStart | Agent spawned | Audit trail start — logs subagent invocation with timestamp |
 | `log-agent-stop.sh` | SubagentStop | Agent stops | Audit trail stop — completes subagent record |
-| `validate-skill-change.sh` | PostToolUse (Write/Edit/MultiEdit) | Skill file changes | Advises running `/skill-test` after any `.claude/skills/` file is written or edited |
+| `validate-skill-change.sh` | PostToolUse (`apply_patch`/edit aliases) | `skills/*/SKILL.md` changes | Returns JSON context advising `$skill-test` and Codex skill validation |
 
-Hook reference documentation: `.claude/docs/hooks-reference/`
-Hook input schema documentation: `.claude/docs/hooks-reference/hook-input-schemas.md`
+The legacy `notify.sh` remains in the repository for Claude compatibility but is
+not registered because Codex has no `Notification` hook event.
 
 ## Which hooks can actually block
 
@@ -33,17 +32,18 @@ states for gates. Read this table before treating a silent hook as a green light
 | Hook | Highest exit code | Can it block? |
 | ---- | ----------------- | ------------- |
 | `validate-commit.sh` | 2 | **Yes** — blocks the `git commit` |
-| `validate-push.sh` | 2 | **Yes** — blocks the `git push` |
+| `validate-push.sh` | 0 | No — protected-branch reminder only |
 | `validate-assets.sh` | 2 | **Yes** — invalid JSON only; naming stays advisory |
 | `validate-skill-change.sh` | 0 | No — advisory only |
 | `unity-meta-check.sh` | 0 | No — advisory only |
 | `unity-animator-string-lint.sh` | 0 | No — advisory only |
 | `detect-gaps.sh` | 0 | No — advisory only |
 | `session-start.sh` · `session-stop.sh` · `pre-compact.sh` | 0 | No — context injection, not judgment |
-| `post-compact.sh` · `notify.sh` | no explicit exit | No — context injection, not judgment |
+| `post-compact.sh` | 0 | No — context injection, not judgment |
 | `log-agent.sh` · `log-agent-stop.sh` · `detect-project-type.sh` | 0 | No — audit trail / detection output |
 
-Only three hooks in this plugin render a verdict. Everything else informs.
+Only `validate-commit.sh` and `validate-assets.sh` can render a blocking verdict.
+Everything else informs.
 
 ---
 
@@ -98,8 +98,9 @@ Highest priority first:
 1. **Environment** — `STUDIO_ENGINE`, `STUDIO_SRC_ROOTS`, `STUDIO_SRC_EXTS`,
    `STUDIO_DESIGN_ROOTS`, `STUDIO_ASSET_ROOTS`, `STUDIO_ASSET_NAMING`,
    `STUDIO_PRODUCTION_ROOTS` (colon-separated for list values).
-2. **`.claude/studio-layout.json`** — the preferred file.
-3. **`.claude/settings.json`** → `"studio": { "layout": { … } }`.
+2. **`.codex/studio-layout.json`** — the preferred project file.
+3. **`.claude/studio-layout.json`** — legacy transition fallback.
+4. **`.claude/settings.json`** → `"studio": { "layout": { … } }` legacy fallback.
 
 ```json
 {
@@ -149,12 +150,11 @@ check entirely for projects that carry a third-party asset store tree.
 
 2. **Select code files by extension, not by directory.** `studio_path_has_ext`
    is portable across every engine; `^src/gameplay/` is portable across none.
-3. **Stay advisory by default; block with `exit 2`.** Exit 0 with a stderr
-   warning for anything judgeable. Reserve blocking for unambiguous, mechanical
+3. **Stay advisory by default; block with `exit 2`.** Return advisory text as
+   valid JSON (`systemMessage` or PostToolUse `additionalContext`). Reserve blocking for unambiguous, mechanical
    failures (invalid JSON), never for style opinions — and when you do block,
-   **use `exit 2`, not `exit 1`.** Only `exit 2` feeds stderr back to Claude;
-   `exit 1` surfaces to the user and is otherwise ignored, so a hook that means
-   "Claude must fix this" and exits 1 has produced no verdict at all. See the
+   **use `exit 2`, not `exit 1`.** Codex treats exit 2 plus stderr as the blocking
+   result; exit 0 advisory stderr is not model context. See the
    4-code contract in [`deterministic-gates.md`](./deterministic-gates.md).
 4. **`grep -E` only.** Windows Git Bash ships a grep without `-P`. Enforced by
    `tests/test_hooks_layout.py::test_no_hook_uses_perl_grep`.

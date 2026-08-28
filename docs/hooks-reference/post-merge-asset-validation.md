@@ -70,7 +70,7 @@ if [ -n "$WARNINGS" ]; then
     echo "=== Asset Validation Report ==="
     echo -e "$WARNINGS"
     echo "================================"
-    echo "Run /asset-audit for a full report."
+    echo "Run $asset-audit for a full report."
 fi
 
 exit $EXIT_CODE
@@ -81,4 +81,4 @@ exit $EXIT_CODE
 When this hook reports issues:
 1. For naming violations: fix manually or invoke `art-director` for guidance
 2. For size violations: invoke `technical-artist` for optimization advice
-3. For a full audit: run `/asset-audit` skill
+3. For a full audit: run `$asset-audit` skill

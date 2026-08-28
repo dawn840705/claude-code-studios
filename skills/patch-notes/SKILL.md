@@ -1,11 +1,6 @@
 ---
 name: patch-notes
 description: "Generate player-facing patch notes from git history, sprint data, and internal changelogs. Translates developer language into clear, engaging player communication."
-argument-hint: "[version] [--style brief|detailed|full]"
-user-invocable: true
-allowed-tools: Read, Glob, Grep, Write, Bash
-model: haiku
-agent: community-manager
 ---
 
 > **Track check — this skill is game-framed.** Resolve `production/track.txt` (or the
@@ -14,7 +9,7 @@ agent: community-manager
 > - **`game`** — run as written.
 > - **`product`** (web / mobile / service) — substitute as you read: player becomes user,
 >   game becomes product, GDD becomes PRD (`design/gdd/` → `product/prd/`), engine becomes
->   the stack pinned in `.claude/docs/technical-preferences.md`. The audience is users and customers, not players. These are release notes tied to a deploy, not an update to a live game.
+>   the stack pinned in `.codex/studio/technical-preferences.md`. The audience is users and customers, not players. These are release notes tied to a deploy, not an update to a live game.
 > - **Unresolved** — ask which track this is before doing anything. A greenfield project
 >   has no signal either way; do not infer one from the repository contents.
 
@@ -29,18 +24,18 @@ If no version is provided, ask the user before proceeding.
 
 ## Phase 2: Gather Change Data
 
-- Read the internal changelog at `production/releases/[version]/changelog.md` if it exists
+- Read the internal changelog at `production/releases/[version]$changelog.md` if it exists
 - Also check `docs/CHANGELOG.md` for the relevant version entry
 - Run `git log` between the previous release tag and current tag/HEAD as a fallback
 - Read sprint retrospectives in `production/sprints/` for context
 - Read any balance change documents in `design/balance/`
 - Read bug fix records from QA if available
 
-**If no changelog data is available** (neither `production/releases/[version]/changelog.md`
+**If no changelog data is available** (neither `production/releases/[version]$changelog.md`
 nor a `docs/CHANGELOG.md` entry for this version exists, and git log is empty or unavailable):
 
-> "No changelog data found for [version]. Run `/changelog [version]` first to generate the
-> internal changelog, then re-run `/patch-notes [version]`."
+> "No changelog data found for [version]. Run `$changelog [version]` first to generate the
+> internal changelog, then re-run `$patch-notes [version]`."
 
 Verdict: **BLOCKED** — stop here without generating notes.
 
@@ -50,7 +45,7 @@ Verdict: **BLOCKED** — stop here without generating notes.
 
 **Tone guide detection** — before drafting notes, check for writing style guidance:
 
-1. Check `.claude/docs/technical-preferences.md` for any "tone", "voice", or "style"
+1. Check `.codex/studio/technical-preferences.md` for any "tone", "voice", or "style"
    fields or sections.
 2. Check `docs/PATCH-NOTES-STYLE.md` if it exists.
 3. Check `design/community/tone-guide.md` if it exists.
@@ -62,7 +57,7 @@ Verdict: **BLOCKED** — stop here without generating notes.
 
 **Template detection** — check whether a patch notes template exists:
 
-1. Glob for `docs/patch-notes-template.md` and `.claude/docs/templates/patch-notes-template.md`.
+1. Glob for `docs/patch-notes-template.md` and `../../docs/templates/patch-notes-template.md`.
 2. If found at either location, read it and use it as the output structure for Phase 4
    instead of the built-in style templates (Brief / Detailed / Full). Fill in the
    template's sections with the categorized data.
@@ -183,7 +178,7 @@ Present the completed patch notes to the user along with: a count of changes by 
 Ask: "May I write these patch notes to `docs/patch-notes/[version].md`?"
 
 If yes, write the file to `docs/patch-notes/[version].md`, creating the directory
-if needed. Also write to `production/releases/[version]/patch-notes.md` as the
+if needed. Also write to `production/releases/[version]$patch-notes.md` as the
 internal archive copy.
 
 ---
@@ -192,5 +187,5 @@ internal archive copy.
 
 Verdict: **COMPLETE** — patch notes generated and saved.
 
-- Run `/release-checklist` to verify all other release gates are met before publishing.
+- Run `$release-checklist` to verify all other release gates are met before publishing.
 - Share the patch notes draft with the community-manager for tone review before posting publicly.

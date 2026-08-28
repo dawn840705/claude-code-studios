@@ -160,7 +160,7 @@ creates. These become the contracts that implementers must respect.]
 
 <!-- This section is MANDATORY. Every ADR must trace back to at least one GDD
      requirement, or explicitly state it is a foundational decision with no GDD
-     dependency. Traceability is audited by /architecture-review. -->
+     dependency. Traceability is audited by $architecture-review. -->
 
 | GDD Document | System | Requirement | How This ADR Satisfies It |
 |-------------|--------|-------------|--------------------------|

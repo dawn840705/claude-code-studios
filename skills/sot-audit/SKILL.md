@@ -1,10 +1,6 @@
 ---
 name: sot-audit
 description: "Audit a Single Source of Truth (SoT) for cross-witness consistency. Use when a system is defined in multiple places (design doc, code enum, engine asset, runtime usage) and you need to detect silent-fail mismatches before they cause runtime bugs. Use when user says 'audit the SoT', 'check FSM consistency', 'find drift in X', 'is X consistent across doc/code/engine'."
-argument-hint: "<sot-name> [witness1=path] [witness2=path] ..."
-user-invocable: true
-allowed-tools: Read, Glob, Grep
-agent: technical-director
 ---
 
 ## Purpose
@@ -23,7 +19,7 @@ This skill produces a **N-way mismatch matrix** with severity classifications, s
 
 ## Phase 1: Identify the SoT and its witnesses
 
-From `$ARGUMENTS[0]`, determine the SoT name (e.g. "player-fsm", "input-bindings", "save-schema").
+From `the first invocation argument`, determine the SoT name (e.g. "player-fsm", "input-bindings", "save-schema").
 
 If witness paths are given as `key=value` args, use them. Otherwise, ask the user to enumerate all witnesses, e.g.:
 

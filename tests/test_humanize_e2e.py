@@ -1,7 +1,7 @@
 """계층2(behavioral) E2E — fixtures.json의 (원문, 윤문본) 쌍을 불변식/밴드/지표델타로 검증.
 
 output_text가 null인 fixture(아직 스킬 미실행)는 skip한다.
-새 윤문본을 만들려면: 스킬(`/humanize` 또는 humanize-monolith 에이전트)에 input_text를
+새 윤문본을 만들려면: 스킬(`$humanize`)에 input_text를
 넣고, 결과를 해당 fixture의 output_text에 채운 뒤 재실행한다.
 
 `python3 -m unittest` 또는 pytest 양쪽에서 동작.

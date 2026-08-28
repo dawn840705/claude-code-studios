@@ -1,9 +1,6 @@
 ---
 name: spatial-audit
-description: "Audit an existing Unity scene's spatial layout against four architectural lenses — massing, circulation, prospect-refuge, wayfinding. Use when the user says 'this level feels off', 'audit the layout', 'why is this map confusing', 'is this arena balanced', or after a blockout is walkable but before art passes. Read-only: it judges a level that already exists. Do NOT use to author a new layout from nothing (that is /quick-design or /team-level), and not for narrative pacing or encounter tuning."
-argument-hint: "<scene-or-path> [--genre sp|pvp|open] [--lens massing|circulation|prospect-refuge|wayfinding|all] [--review full|lean|solo]"
-user-invocable: true
-allowed-tools: Read, Glob, Grep, Bash, Write, Task, AskUserQuestion
+description: "Audit an existing Unity scene's spatial layout against four architectural lenses — massing, circulation, prospect-refuge, wayfinding. Use when the user says 'this level feels off', 'audit the layout', 'why is this map confusing', 'is this arena balanced', or after a blockout is walkable but before art passes. Read-only: it judges a level that already exists. Do NOT use to author a new layout from nothing (that is $quick-design or $team-level), and not for narrative pacing or encounter tuning."
 ---
 
 > **Orchestrator-run, on purpose.** There is no `agent:` key here. Extraction
@@ -22,7 +19,7 @@ It reports. It does not rebuild — every finding names a location and a reason 
 a human decides what to move.
 
 **Scope boundary.** Nothing here judges whether a level is *fun*. Fun is a
-playtest result (`/playtest-report`). This skill judges whether the space is
+playtest result (`$playtest-report`). This skill judges whether the space is
 legible, navigable, and fair — the properties that make a playtest's verdict
 interpretable instead of noise.
 
@@ -32,9 +29,9 @@ interpretable instead of noise.
 
 1. **Target** — a scene name, a scene path, or nothing. If nothing, list the
    scenes under the project's scene root and ask which one with
-   `AskUserQuestion`. Never audit "the whole project".
+   a direct user question. Never audit "the whole project".
 1b. **The level document** — find the level's design doc (usually
-   `docs/templates/level-design-document.md`-shaped). Several § 3 questions
+   `../../docs/templates/level-design-document.md`-shaped). Several § 3 questions
    compare the built scene against what the doc *claims* (topology, critical
    path, intended route), and without it those questions are unanswerable.
    If there is no level document, say so in the report header and skip those
@@ -91,7 +88,7 @@ skill can produce. So:
   sentinel that never surfaces BLOCKS every audit for the wrong reason.
 - If the sentinel is absent, the extraction **did not run**. The verdict is
   **BLOCKED** — never PASS and never "no findings". This is the prose analogue
-  of the `exit 3` rule in `docs/deterministic-gates.md`: a check that could not
+  of the `exit 3` rule in `../../docs/deterministic-gates.md`: a check that could not
   run has produced no verdict, and no verdict is not a pass. **This skill emits
   no exit code** — the sentinel is a model-side check, not a gate.
 - On a missing sentinel: report BLOCKED, check `hera-agent-unity console` for
@@ -129,7 +126,7 @@ yields transforms, collider extents, light placement, and prefab composition —
 enough for massing, rough circulation, and metrics. It **cannot** give you
 NavMesh, runtime raycasts, or what the camera actually sees. Mark every
 prospect-refuge and wayfinding finding from this channel as `추정 — 파일 기반`
-per `rules/claim-confidence.md`.
+per `../../rules/claim-confidence.md`.
 
 ---
 
@@ -142,21 +139,21 @@ call hera itself.
 **Narrow its tools at spawn: `tools: Read, Glob, Grep`.** By default
 `level-designer` has `Write, Edit`, and this skill's whole premise is that it
 reports rather than rebuilds. Read-only is guaranteed by permission, not by
-asking nicely — `rules/subagent-collaboration.md` § 3.1.
+asking nicely — `../../rules/subagent-collaboration.md` § 3.1.
 
 Also required in every spawn prompt here:
 
 - The **§ 3 mandatory items 6 and 7** — forbidden ground and return boundary.
   Forbidden: do not edit any scene, prefab, or design document; do not spawn
   further agents.
-- **`rules/claim-confidence.md`** verbatim in the prompt when the extraction came
+- **`../../rules/claim-confidence.md`** verbatim in the prompt when the extraction came
   from channel B, so the agent tags derived findings `추정 — 파일 기반` instead of
   stating them flat. The rule is not in § 3's default item list; the caller
   carries it.
 
 For `--review full`, add `ux-designer` (wayfinding) and `systems-designer` (pvp
 balance). Fan-out is opt-in because a report file is R1/R2 under
-`rules/verify-route.md` and three agents is over-routing for the default case.
+`../../rules/verify-route.md` and three agents is over-routing for the default case.
 Write ownership when you do fan out — fill this in before writing the prompts,
 per § 2.1:
 
@@ -193,7 +190,7 @@ sightline, traversal cost, silhouette legibility.
 - Connectivity per area: dead ends, single-exit rooms, unintended shortcuts.
 - Topology: linear / loop / hub-and-spoke / grid — is the actual graph the one
   the level document claims? This is doc-vs-asset drift; if you find more than a
-  couple of these, stop hand-checking and run `/sot-audit` with the level
+  couple of these, stop hand-checking and run `$sot-audit` with the level
   document and the scene as witnesses — that skill is built for N-witness drift.
 - Verticality: are level changes readable before the player commits to them?
 
@@ -215,7 +212,7 @@ Genre split: `pvp` wants the ratio roughly symmetric between spawns, so
 **measure both sides and report the delta as a number** — a measured delta is
 worth more than any adjective. `sp` deliberately varies it to pace tension.
 `open` should vary it by district. See "Map balance" in
-`docs/level-design-sources.md` for the underlying treatment.
+`../../docs/level-design-sources.md` for the underlying treatment.
 
 ### 3.4 Wayfinding — can they find their way
 
@@ -257,7 +254,7 @@ path with the user before you create the file — this skill is read-only toward
 the project and the report is its only artifact.
 
 On approval, write to `production/qa/spatial-audit-<scene>.md` using
-`docs/templates/spatial-audit-report.md`. That path is the convention
+`../../docs/templates/spatial-audit-report.md`. That path is the convention
 `verify_policy.py` P4 expects; do not invent a new one.
 
 ---
@@ -269,7 +266,7 @@ Findings should cite where the principle comes from. Two rules about that:
 - **The Level Design Book is CC BY-NC-SA 4.0.** Link and paraphrase; do **not**
   copy its text into this repo or into a generated report. This plugin is MIT,
   and NonCommercial + ShareAlike cannot be carried into it. See
-  `docs/level-design-sources.md` for the citation list and the exact
+  `../../docs/level-design-sources.md` for the citation list and the exact
   license terms.
 - **Totten's book is not in that online book** — its authors deliberately
   exclude other level-design books. Cite it separately, from your own reading,
@@ -279,11 +276,11 @@ Findings should cite where the principle comes from. Two rules about that:
 
 ## Next steps
 
-- `CONCERNS` / `FAIL` → rework with `/self-loop` (a low score alone is not a
+- `CONCERNS` / `FAIL` → rework with `$self-loop` (a low score alone is not a
   licence to rewrite — each edit needs the defect ticket this audit produced)
 - Findings that change the design of record → update the level document
-  (`docs/templates/level-design-document.md` § Layout)
+  (`../../docs/templates/level-design-document.md` § Layout)
 - Layout defects that trace to an unstated intent → pin the intent as a decision
-  with a revisit trigger (`rules/decision-lifecycle.md`)
-- Before the art pass → `/design-review`; after it → `/perf-profile`
-- Recurring defect across two levels → `/lesson-log`
+  with a revisit trigger (`../../rules/decision-lifecycle.md`)
+- Before the art pass → `$design-review`; after it → `$perf-profile`
+- Recurring defect across two levels → `$lesson-log`

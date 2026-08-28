@@ -1,9 +1,6 @@
 ---
 name: regression-suite
 description: "Map test coverage to GDD critical paths, identify fixed bugs without regression tests, flag coverage drift from new features, and maintain tests/regression-suite.md. Run after implementing a bug fix or before a release gate."
-argument-hint: "[update | audit | report]"
-user-invocable: true
-allowed-tools: Read, Glob, Grep, Write, Edit
 ---
 
 > **Track check — this skill is game-framed.** Resolve `production/track.txt` (or the
@@ -12,7 +9,7 @@ allowed-tools: Read, Glob, Grep, Write, Edit
 > - **`game`** — run as written.
 > - **`product`** (web / mobile / service) — substitute as you read: player becomes user,
 >   game becomes product, GDD becomes PRD (`design/gdd/` → `product/prd/`), engine becomes
->   the stack pinned in `.claude/docs/technical-preferences.md`. Map coverage to the PRD's critical user journeys, not GDD critical paths.
+>   the stack pinned in `.codex/studio/technical-preferences.md`. Map coverage to the PRD's critical user journeys, not GDD critical paths.
 > - **Unresolved** — ask which track this is before doing anything. A greenfield project
 >   has no signal either way; do not infer one from the repository contents.
 
@@ -31,7 +28,7 @@ and known failure points. This skill maintains that list.
 
 **When to run:**
 - After fixing a bug (confirm a regression test was written or identify gap)
-- Before a release gate (`/gate-check polish` requires regression suite exists)
+- Before a release gate (`$gate-check polish` requires regression suite exists)
 - As part of sprint close to detect coverage drift
 
 ---
@@ -39,11 +36,11 @@ and known failure points. This skill maintains that list.
 ## 1. Parse Arguments
 
 **Modes:**
-- `/regression-suite update` — scan new bug fixes this sprint and check
+- `$regression-suite update` — scan new bug fixes this sprint and check
   for regression test presence; add new tests to the suite manifest
-- `/regression-suite audit` — full audit of all GDD critical paths vs.
+- `$regression-suite audit` — full audit of all GDD critical paths vs.
   existing test coverage; flag paths with no regression test
-- `/regression-suite report` — read-only status report (no writes); suitable
+- `$regression-suite report` — read-only status report (no writes); suitable
   for sprint reviews
 - No argument — run `update` if a sprint is active, else `audit`
 
@@ -237,11 +234,11 @@ For `report` mode: do not write anything.
 After writing (if approved):
 
 - For each HIGH priority gap: "Consider creating the missing regression test
-  before the next sprint. Run `/test-helpers` to scaffold the test file."
+  before the next sprint. Run `$test-helpers` to scaffold the test file."
 - If bug regression gaps > 0: "These bugs can silently return without regression
   tests. The next sprint should include a story to write the missing tests."
 - If coverage drift detected: "Regression suite may be drifting. Consider
-  running `/regression-suite audit` at the next sprint boundary."
+  running `$regression-suite audit` at the next sprint boundary."
 
 Verdict: **COMPLETE** — regression suite updated. (If user declined write: Verdict: **BLOCKED**.)
 
@@ -256,5 +253,5 @@ Verdict: **COMPLETE** — regression suite updated. (If user declined write: Ver
   other work from proceeding (except at release gate where regression suite is required)
 - **Quarantine is not deletion** — tests with intermittent failures should be
   quarantined (noted in manifest) but not removed; they should be fixed by
-  `/test-flakiness`
+  `$test-flakiness`
 - **Ask before writing** — always confirm before creating or updating the manifest

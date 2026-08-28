@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Deterministic workflow-phase gate for claude-code-studios.
+"""Deterministic workflow-phase gate for codex-code-studios.
 
 Evaluates step completion for the current phase against
 `docs/workflow-catalog.yaml` (schema v2, dual-track) using the artifact globs
-declared there. This moves phase-completion judgment OUT of the model: /help
-and /project-stage-detect read this script's exit code instead of re-deriving
+declared there. This moves phase-completion judgment OUT of the model: $help
+and $project-stage-detect read this script's exit code instead of re-deriving
 completion by globbing themselves (docs/deterministic-gates.md).
 
 Standard library only — no third-party dependencies. The catalog is parsed by
@@ -540,7 +540,7 @@ def main(argv: list[str]) -> int:
     result = evaluate(root, phases, phase_key)
     if args.as_json:
         # 공통 4필드 봉투를 **추가**한다 — 기존 키는 그대로.
-        # /project-stage-detect 가 이 출력을 이미 소비하고 있으므로 형태를 바꾸지 않는다.
+        # $project-stage-detect 가 이 출력을 이미 소비하고 있으므로 형태를 바꾸지 않는다.
         blocker = result.get("blocker")
         evidence = [
             {"id": s["id"], "detail": s["status"]}

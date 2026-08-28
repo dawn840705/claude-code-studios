@@ -9,7 +9,7 @@
 | 트리거 | 패턴 |
 |--------|------|
 | **광범위 + 깊은 디자인 결정** (예: 새 시스템 spec) | 다수 서브 에이전트 병행 |
-| 단순 기능 / 코드 수정 / 사실 확인 | 메인 Claude 단독 |
+| 단순 기능 / 코드 수정 / 사실 확인 | 메인 Codex 에이전트 단독 |
 | 외부 자료 + 내부 spec 통합 | WebSearch + 1~2 서브 에이전트 |
 
 **Rule of thumb**: 결정 영역이 *4+ 분야* 또는 *광범위 게임성 영향* 일 때 → 서브 에이전트 호출.
@@ -20,7 +20,7 @@
 
 표준 4 분야는 트랙마다 다르다. `PROJECT_TYPE` (SessionStart 훅 출력) 으로 고른다.
 팩을 섞지 말 것 — game 프로젝트에 `frontend-engineer` 를, web 프로젝트에
-`level-designer` 를 붙이지 않는다 (CLAUDE.md § Domain packs).
+`level-designer` 를 붙이지 않는다 (`$studio-orchestrator`의 트랙 라우팅 참조).
 
 **game 트랙** — 게임 시스템 spec:
 1. **game-designer** — 게임 메카닉 / 룰 / 옵션 비교
@@ -40,26 +40,27 @@
 ### 호출 절차
 
 ```
-1. 메인 Claude 가 안건 분석 → 4 분야 spec 명시
-2. 단일 message + 4 Agent tool call (병행 — 같은 message 안)
+1. 메인 Codex 에이전트가 안건 분석 → 4 분야 spec 명시
+2. 서로 독립적인 작업만 Codex 서브에이전트로 병행 호출
 3. 각 에이전트:
    - 프로젝트 컨텍스트 + 안건 + 결정 권한 영역 명시
    - 결과 spec = ~300줄 한도 (R2 정합)
    - 옵션 A/B/C 형식 (사장님 결정 받기 위한)
-4. 메인 Claude 가 4 결과 통합 → 회의록 작성
+4. 메인 Codex 에이전트가 4 결과 통합 → 회의록 작성
 5. 결정 요청 안건 매트릭스 — 사장님 picking
 ```
 
 ### Parallel 호출 — 단일 message 안 다수 tool call
 
-병행 호출 시 *N 배 빠름* (4 에이전트 × ~3분 → 동시 진행). Claude Code 가 자동 병렬 실행.
+병행 호출은 서로 독립적인 조사·검토에서만 사용한다. 같은 파일을 쓰거나 앞 작업의
+결과에 의존하면 직렬로 실행한다.
 
 ```python
-# pseudo-code — 단일 응답 안 다수 Agent tool call
-Agent(subagent_type="game-designer", prompt="...")
-Agent(subagent_type="ux-designer",   prompt="...")
-Agent(subagent_type="ui-programmer", prompt="...")
-Agent(subagent_type="gameplay-programmer", prompt="...")
+# pseudo-code — 역할 가이드를 각각 self-contained task prompt에 포함
+spawn_subagent(task_name="game_designer", message="...")
+spawn_subagent(task_name="ux_designer", message="...")
+spawn_subagent(task_name="ui_programmer", message="...")
+spawn_subagent(task_name="gameplay_programmer", message="...")
 ```
 
 ### § 2.1 — 쓰기 영역은 스폰 **전에** 나눈다
@@ -92,7 +93,7 @@ Agent(subagent_type="gameplay-programmer", prompt="...")
 
 ## § 3 — 각 에이전트 prompt 의무 항목
 
-각 에이전트는 *자기 conversation* 만 가짐 (메인 Claude 의 컨텍스트 X). prompt 가 self-contained:
+각 에이전트는 *자기 conversation* 만 가짐 (메인 Codex 에이전트의 컨텍스트 X). prompt 가 self-contained:
 
 1. **프로젝트 컨텍스트** — 엔진 / 플랫폼 / Phase / 관련 메모리 link
 2. **외부 조사 결과** (있다면) — WebSearch 결과 반영
@@ -119,8 +120,9 @@ Agent(subagent_type="gameplay-programmer", prompt="...")
 ```
 
 리뷰·감사 성격의 에이전트(`qa-lead`, `security-engineer`, `performance-analyst`)
-는 금지 영역을 프롬프트로만 걸지 말고 **`tools` 를 Read/Glob/Grep 으로 좁혀서**
-부른다. 읽기 전용은 문장이 아니라 권한으로 보장하는 편이 확실하다.
+는 **읽기 전용 작업**으로 명시하고 수정 권한을 주지 않는다. 프로젝트가 네이티브
+커스텀 에이전트를 함께 운영한다면 `.codex/agents/*.toml`의 샌드박스도 읽기 전용으로
+설정한다.
 
 **7. 반환 경계** — 기본값은 아래와 같다. 다르게 하려면 프롬프트에 명시한다.
 
@@ -133,7 +135,7 @@ Agent(subagent_type="gameplay-programmer", prompt="...")
 
 반환값은 **요약문이 아니라 Artifact 로 낸다** — 파일을 쓴 에이전트는
 `production/qa/plan-combat.md — 작성 완료` 처럼 경로와 상태를 돌려주고,
-메인 Claude 가 필요할 때 읽는다. 400 줄짜리 산출물을 대화로 되돌려 받으면
+메인 Codex 에이전트가 필요할 때 읽는다. 400 줄짜리 산출물을 대화로 되돌려 받으면
 메인 컨텍스트에 그대로 쌓이고, 그 상태로 다음 에이전트를 부르면 § 5 의
 "토큰 낭비" 가 팬아웃 배수로 커진다.
 
@@ -141,7 +143,7 @@ Agent(subagent_type="gameplay-programmer", prompt="...")
 
 ## § 4 — 결과 통합 패턴
 
-4 에이전트 결과 받은 후 메인 Claude:
+4 에이전트 결과를 받은 후 메인 Codex 에이전트:
 
 ### 4.1 결정 안건 매트릭스 작성
 | ID | 안건 | 권고 | 옵션 |
@@ -164,7 +166,7 @@ Agent(subagent_type="gameplay-programmer", prompt="...")
 
 - ❌ *단순 기능* 에 다수 서브 에이전트 — 토큰 / 시간 낭비
 - ❌ 에이전트 prompt 에 컨텍스트 부족 — "based on the conversation" 같은 의존 (에이전트는 새 conversation)
-- ❌ 4 에이전트 결과 *복사 붙여넣기* — 메인 Claude 의 *통합 + 충돌 해소* 책임
+- ❌ 4 에이전트 결과 *복사 붙여넣기* — 메인 Codex 에이전트의 *통합 + 충돌 해소* 책임
 - ❌ **독립** 작업의 직렬 호출 (1 에이전트 끝나고 다음) — 병행 호출 vs 4배 느림. 쓰기 영역이 겹치거나 결과가 앞 단계에 의존하면 직렬이 맞다 (§ 2.1)
 - ❌ **쓰기 영역이 겹치는 채로 병렬 스폰** — Edit 은 마지막에 쓴 쪽이 이기고, 진 쪽은 자기 변경이 사라진 줄 모르고 "완료" 를 보고한다. 이 목록에서 유일하게 실패가 어디에도 안 남는다 (§ 2.1)
 - ❌ **탐색 과정 전체를 서술해 반환** — 오케스트레이터가 내용이 아니라 분량에 설득된다. 긴 서사가 이기는 통합은 통합이 아니다 (§ 3.1 반환 경계)

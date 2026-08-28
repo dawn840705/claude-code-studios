@@ -1,10 +1,6 @@
 ---
 name: scope-check
 description: "Analyze a feature or sprint for scope creep by comparing current scope against the original plan. Flags additions, quantifies bloat, and recommends cuts. Use when user says 'any scope creep', 'scope review', 'are we staying in scope'."
-argument-hint: "[feature-name or sprint-N]"
-user-invocable: true
-allowed-tools: Read, Glob, Grep, Bash
-model: haiku
 ---
 
 # Scope Check
@@ -14,7 +10,7 @@ This skill is read-only — it reports findings but writes no files.
 Compares original planned scope against current state to detect, quantify, and triage
 scope creep.
 
-**Argument:** `$ARGUMENTS[0]` — feature name, sprint number, or milestone name.
+**Argument:** `the first invocation argument` — feature name, sprint number, or milestone name.
 
 ---
 
@@ -112,11 +108,11 @@ Net change: [+X%] — [On Track / Minor Creep / Significant Creep / Out of Contr
 After presenting the report, offer concrete follow-up:
 
 - **PASS** → no action required. Suggest re-running before next milestone.
-- **CONCERNS** → offer to identify the 2–3 additions with best cut ratio. Reference `/sprint-plan update` to formally re-scope.
-- **FAIL** → recommend escalating to producer. Reference `/sprint-plan update` for re-planning or `/estimate` to re-baseline timeline.
+- **CONCERNS** → offer to identify the 2–3 additions with best cut ratio. Reference `$sprint-plan update` to formally re-scope.
+- **FAIL** → recommend escalating to producer. Reference `$sprint-plan update` for re-planning or `$estimate` to re-baseline timeline.
 
 Always end with:
-> "Run `/scope-check [name]` again after cuts are made to verify the verdict improves."
+> "Run `$scope-check [name]` again after cuts are made to verify the verdict improves."
 
 ---
 

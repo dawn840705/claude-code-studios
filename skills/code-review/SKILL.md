@@ -1,21 +1,17 @@
 ---
 name: code-review
 description: "Performs an architectural and quality code review on a specified file or set of files. Checks for coding standard compliance, architectural pattern adherence, SOLID principles, testability, and performance concerns."
-argument-hint: "[path-to-file-or-directory]"
-user-invocable: true
-allowed-tools: Read, Glob, Grep, Bash, Task
-agent: lead-programmer
 ---
 
 ## Phase 1: Load Target Files
 
-Read the target file(s) in full. Read CLAUDE.md for project coding standards.
+Read the target file(s) in full. Read AGENTS.md for project coding standards.
 
 ---
 
 ## Phase 2: Identify Engine Specialists
 
-Read `.claude/docs/technical-preferences.md`, section `## Engine Specialists`. Note:
+Read `.codex/studio/technical-preferences.md`, section `## Engine Specialists`. Note:
 
 - The **Primary** specialist (used for architecture and broad engine concerns)
 - The **Language/Code Specialist** (used when reviewing the project's primary language files)
@@ -83,7 +79,7 @@ Identify the system category (engine, gameplay, AI, networking, UI, tools) and e
 
 ## Phase 7: Specialist Reviews (Parallel)
 
-Spawn all applicable specialists simultaneously via Task — do not wait for one before starting the next.
+Spawn all applicable specialists simultaneously as a Codex subagent — do not wait for one before starting the next.
 
 ### Engine Specialists
 
@@ -98,7 +94,7 @@ Also spawn the **Primary Specialist** for any file touching engine architecture 
 
 ### QA Testability Review
 
-For Logic and Integration stories, also spawn `qa-tester` via Task in parallel with the engine specialists. Pass:
+For Logic and Integration stories, also spawn `qa-tester` as a Codex subagent in parallel with the engine specialists. Pass:
 - The implementation files being reviewed
 - The story's `## QA Test Cases` section (the pre-written test specs from qa-lead)
 - The story's `## Acceptance Criteria`
@@ -161,6 +157,6 @@ This skill is read-only — no files are written.
 
 ## Phase 9: Next Steps
 
-- If verdict is APPROVED: run `/story-done [story-path]` to close the story.
-- If verdict is CHANGES REQUIRED: fix the issues and re-run `/code-review`.
-- If an ARCHITECTURAL VIOLATION is found: run `/architecture-decision` to record the correct approach.
+- If verdict is APPROVED: run `$story-done [story-path]` to close the story.
+- If verdict is CHANGES REQUIRED: fix the issues and re-run `$code-review`.
+- If an ARCHITECTURAL VIOLATION is found: run `$architecture-decision` to record the correct approach.

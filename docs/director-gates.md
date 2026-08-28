@@ -14,8 +14,8 @@ all key Tier 2 leads. Any skill, team orchestrator, or workflow may invoke these
 In any skill, replace an inline director prompt with a reference:
 
 ```
-Spawn `creative-director` via Task using gate **CD-PILLARS** from
-`.claude/docs/director-gates.md`.
+Spawn `creative-director` as a Codex subagent using gate **CD-PILLARS** from
+`docs/director-gates.md`.
 ```
 
 Pass the context listed under that gate's **Context to pass** field, then handle
@@ -29,22 +29,22 @@ Review intensity controls whether director gates run. It can be set globally
 (persists across sessions) or overridden per skill run.
 
 **Global config**: `production/review-mode.txt` — one word: `full`, `lean`, or `solo`.
-Set once during `/start`. Edit the file directly to change it at any time.
+Set once during `$start`. Edit the file directly to change it at any time.
 
 **Per-run override**: any gate-using skill accepts `--review [full|lean|solo]` as an
 argument. This overrides the global config for that run only.
 
 Examples:
 ```
-/brainstorm space horror           → uses global mode
-/brainstorm space horror --review full   → forces full mode this run
-/architecture-decision --review solo     → skips all gates this run
+$brainstorm space horror           → uses global mode
+$brainstorm space horror --review full   → forces full mode this run
+$architecture-decision --review solo     → skips all gates this run
 ```
 
 | Mode | What runs | Best for |
 |------|-----------|----------|
 | `full` | All gates active — every workflow step reviewed | Teams, learning users, or when you want thorough director feedback at every step |
-| `lean` | PHASE-GATEs only (`/gate-check`) — per-skill gates skipped | **Default** — solo devs and small teams; directors review at milestones only |
+| `lean` | PHASE-GATEs only (`$gate-check`) — per-skill gates skipped | **Default** — solo devs and small teams; directors review at milestones only |
 | `solo` | No director gates anywhere | Game jams, prototypes, maximum speed |
 
 **Check pattern — apply before every gate spawn:**
@@ -78,8 +78,8 @@ Apply the resolved mode:
 
 ```
 # Apply mode check, then:
-Spawn `[agent-name]` via Task:
-- Gate: [GATE-ID] (see .claude/docs/director-gates.md)
+Spawn `[agent-name]` as a Codex subagent:
+- Gate: [GATE-ID] (see docs/director-gates.md)
 - Context: [fields listed under that gate]
 - Await the verdict before proceeding.
 ```
@@ -88,7 +88,7 @@ For parallel spawning (multiple directors at the same gate point):
 
 ```
 # Apply mode check for each gate first, then spawn all that survive:
-Spawn all [N] agents simultaneously via Task — issue all Task calls before
+Spawn all [N] agents simultaneously as a Codex subagent — issue all Codex subagent calls before
 waiting for any result. Collect all verdicts before proceeding.
 ```
 
@@ -101,7 +101,7 @@ All gates return one of three verdicts. Skills must handle all three:
 | Verdict | Meaning | Default action |
 |---------|---------|----------------|
 | **APPROVE / READY** | No issues. Proceed. | Continue the workflow |
-| **CONCERNS [list]** | Issues present but not blocking. | Surface to user via `AskUserQuestion` — options: `Revise flagged items` / `Accept and proceed` / `Discuss further` |
+| **CONCERNS [list]** | Issues present but not blocking. | Surface to user via a direct user question — options: `Revise flagged items` / `Accept and proceed` / `Discuss further` |
 | **REJECT / NOT READY [blockers]** | Blocking issues. Do not proceed. | Surface blockers to user. Do not write files or advance stage until resolved. |
 
 **Escalation rule**: When multiple directors are spawned in parallel, apply the
@@ -175,7 +175,7 @@ workflow that produces a GDD)
 
 ### CD-SYSTEMS — Systems Decomposition Vision Check
 
-**Trigger**: After the systems index is written by `/map-systems` — validates the
+**Trigger**: After the systems index is written by `$map-systems` — validates the
 complete system set before GDD authoring begins
 
 **Context to pass**:
@@ -224,7 +224,7 @@ deliverables)
 
 ### CD-PLAYTEST — Player Experience Validation
 
-**Trigger**: After playtest reports are generated (`/playtest-report`), or after
+**Trigger**: After playtest reports are generated (`$playtest-report`), or after
 any session that produces player feedback
 
 **Context to pass**:
@@ -246,7 +246,7 @@ any session that produces player feedback
 
 ### CD-PHASE-GATE — Creative Readiness at Phase Transition
 
-**Trigger**: Always at `/gate-check` — spawn in parallel with TD-PHASE-GATE and PR-PHASE-GATE
+**Trigger**: Always at `$gate-check` — spawn in parallel with TD-PHASE-GATE and PR-PHASE-GATE
 
 **Context to pass**:
 - Target phase name
@@ -272,7 +272,7 @@ Agent: `technical-director` | Model tier: Opus | Domain: Architecture, engine ri
 
 ### TD-SYSTEM-BOUNDARY — System Boundary Architecture Review
 
-**Trigger**: After `/map-systems` Phase 3 dependency mapping is agreed but before
+**Trigger**: After `$map-systems` Phase 3 dependency mapping is agreed but before
 GDD authoring begins — validates that the system structure is architecturally
 sound before teams invest in writing GDDs against it
 
@@ -325,7 +325,7 @@ sound before teams invest in writing GDDs against it
 
 ### TD-ARCHITECTURE — Architecture Sign-Off
 
-**Trigger**: After the master architecture document is drafted (`/create-architecture`
+**Trigger**: After the master architecture document is drafted (`$create-architecture`
 Phase 7), and after any major architecture revision
 
 **Context to pass**:
@@ -348,7 +348,7 @@ Phase 7), and after any major architecture revision
 
 ### TD-ADR — Architecture Decision Review
 
-**Trigger**: After an individual ADR is authored (`/architecture-decision`), before
+**Trigger**: After an individual ADR is authored (`$architecture-decision`), before
 it is marked Accepted
 
 **Context to pass**:
@@ -391,7 +391,7 @@ or before finalizing any engine-specific implementation approach
 
 ### TD-PHASE-GATE — Technical Readiness at Phase Transition
 
-**Trigger**: Always at `/gate-check` — spawn in parallel with CD-PHASE-GATE and PR-PHASE-GATE
+**Trigger**: Always at `$gate-check` — spawn in parallel with CD-PHASE-GATE and PR-PHASE-GATE
 
 **Context to pass**:
 - Target phase name
@@ -442,7 +442,7 @@ any workflow that produces an MVP definition and timeline estimate)
 
 ### PR-SPRINT — Sprint Feasibility Review
 
-**Trigger**: Before finalising a sprint plan (`/sprint-plan`), and after any
+**Trigger**: Before finalising a sprint plan (`$sprint-plan`), and after any
 mid-sprint scope change
 
 **Context to pass**:
@@ -465,7 +465,7 @@ mid-sprint scope change
 
 ### PR-MILESTONE — Milestone Risk Assessment
 
-**Trigger**: At milestone review (`/milestone-review`), at mid-sprint retrospectives,
+**Trigger**: At milestone review (`$milestone-review`), at mid-sprint retrospectives,
 or when a scope change is proposed that affects the milestone
 
 **Context to pass**:
@@ -488,8 +488,8 @@ or when a scope change is proposed that affects the milestone
 
 ### PR-EPIC — Epic Structure Feasibility Review
 
-**Trigger**: After epics are defined by `/create-epics`, before stories are
-broken out — validates the epic structure is producible before `/create-stories`
+**Trigger**: After epics are defined by `$create-epics`, before stories are
+broken out — validates the epic structure is producible before `$create-stories`
 is invoked
 
 **Context to pass**:
@@ -517,7 +517,7 @@ is invoked
 
 ### PR-PHASE-GATE — Production Readiness at Phase Transition
 
-**Trigger**: Always at `/gate-check` — spawn in parallel with CD-PHASE-GATE and TD-PHASE-GATE
+**Trigger**: Always at `$gate-check` — spawn in parallel with CD-PHASE-GATE and TD-PHASE-GATE
 
 **Context to pass**:
 - Target phase name
@@ -568,12 +568,12 @@ Agent: `art-director` | Model tier: Sonnet | Domain: Visual identity, art bible,
 
 ### AD-ART-BIBLE — Art Bible Sign-Off
 
-**Trigger**: After the art bible is drafted (`/art-bible`), before asset production begins
+**Trigger**: After the art bible is drafted (`$art-bible`), before asset production begins
 
 **Context to pass**:
 - Art bible path (`design/art/art-bible.md`)
 - Game pillars and core fantasy
-- Platform and performance constraints (from `.claude/docs/technical-preferences.md` if configured)
+- Platform and performance constraints (from `.codex/studio/technical-preferences.md` if configured)
 - Visual identity anchor chosen during brainstorm (from `design/gdd/game-concept.md`)
 
 **Prompt**:
@@ -593,7 +593,7 @@ Agent: `art-director` | Model tier: Sonnet | Domain: Visual identity, art bible,
 
 ### AD-PHASE-GATE — Visual Readiness at Phase Transition
 
-**Trigger**: Always at `/gate-check` — spawn in parallel with CD-PHASE-GATE, TD-PHASE-GATE, and PR-PHASE-GATE
+**Trigger**: Always at `$gate-check` — spawn in parallel with CD-PHASE-GATE, TD-PHASE-GATE, and PR-PHASE-GATE
 
 **Context to pass**:
 - Target phase name
@@ -625,7 +625,7 @@ specialist's feasibility sign-off is needed. Tier 2 leads use Sonnet (default).
 
 ### LP-FEASIBILITY — Lead Programmer Implementation Feasibility
 
-**Trigger**: After the master architecture document is written (`/create-architecture`
+**Trigger**: After the master architecture document is written (`$create-architecture`
 Phase 7b), or when a new architectural pattern is proposed
 
 **Context to pass**:
@@ -647,8 +647,8 @@ Phase 7b), or when a new architectural pattern is proposed
 
 ### LP-CODE-REVIEW — Lead Programmer Code Review
 
-**Trigger**: After a dev story is implemented (`/dev-story`, `/story-done`), or
-as part of `/code-review`
+**Trigger**: After a dev story is implemented (`$dev-story`, `$story-done`), or
+as part of `$code-review`
 
 **Context to pass**:
 - Implementation file paths
@@ -669,8 +669,8 @@ as part of `/code-review`
 
 ### QL-STORY-READY — QA Lead Story Readiness Check
 
-**Trigger**: Before a story is accepted into a sprint — invoked by `/create-stories`,
-`/story-readiness`, and `/sprint-plan` during story selection
+**Trigger**: Before a story is accepted into a sprint — invoked by `$create-stories`,
+`$story-readiness`, and `$sprint-plan` during story selection
 
 **Context to pass**:
 - Story file path
@@ -696,7 +696,7 @@ as part of `/code-review`
 ### QL-TEST-COVERAGE — QA Lead Test Coverage Review
 
 **Trigger**: After implementation stories are complete, before marking an epic
-done, or at `/gate-check` Production → Polish
+done, or at `$gate-check` Production → Polish
 
 **Context to pass**:
 - List of implemented stories with story types (Logic / Integration / Visual / UI / Config)
@@ -763,10 +763,10 @@ introduced, or when a tech art decision affects visual style
 ## Parallel Gate Protocol
 
 When a workflow requires multiple directors at the same checkpoint (most common
-at `/gate-check`), spawn all agents simultaneously:
+at `$gate-check`), spawn all agents simultaneously:
 
 ```
-Spawn in parallel (issue all Task calls before waiting for any result):
+Spawn in parallel (issue all Codex subagent calls before waiting for any result):
 1. creative-director  → gate CD-PHASE-GATE
 2. technical-director → gate TD-PHASE-GATE
 3. producer           → gate PR-PHASE-GATE

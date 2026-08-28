@@ -1,8 +1,8 @@
 #!/bin/bash
-# Claude Code SubagentStart hook: Log agent invocations for audit trail
+# Codex SubagentStart hook: log subagent invocations for the audit trail
 # Tracks which agents are being used and when
 #
-# Input schema (SubagentStart) — per Claude Code hooks reference:
+# Input schema (SubagentStart):
 # { "session_id": "...", "agent_id": "agent-abc123", "agent_type": "Explore", ... }
 #
 # The agent name is in `agent_type`, NOT `agent_name`. Reading `.agent_name`

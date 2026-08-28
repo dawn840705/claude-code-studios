@@ -137,7 +137,7 @@ Same three zones apply for Unity (`Assets/`), Godot (`res://`, scripts/scenes), 
 1. Add `Tools/*/output/` to `.gitignore`.
 2. Create `Documents/<Domain>Design/` for each domain you produce assets in.
 3. Decide your prefix list in advance — add to `docs/rules/artifact-organization.md` (this file) per project.
-4. Wire `/governance-bible-init` to set up Zone 2 anchor folders + Bible README.
-5. Wire `/api-cost-gate` in front of any paid Zone 1 calls.
+4. Wire `$governance-bible-init` to set up Zone 2 anchor folders + Bible README.
+5. Wire `$api-cost-gate` in front of any paid Zone 1 calls.
 
 The combination of these three rules — workshop discipline, prefix naming, companion `.prompt.txt` — is what lets a 1-person dev managing AI-generated assets across many tools maintain a coherent project at the 6+ month scale.

@@ -1,12 +1,9 @@
 ---
 name: hotfix
 description: "Emergency fix workflow that bypasses normal sprint processes with a full audit trail. Creates hotfix branch, tracks approvals, and ensures the fix is backported correctly."
-argument-hint: "[bug-id or description]"
-user-invocable: true
-allowed-tools: Read, Glob, Grep, Write, Edit, Bash, Task
 ---
 
-> **Explicit invocation only**: This skill should only run when the user explicitly requests it with `/hotfix`. Do not auto-invoke based on context matching.
+> **Explicit invocation only**: This skill should only run when the user explicitly requests it with `$hotfix`. Do not auto-invoke based on context matching.
 
 ## Phase 1: Assess Severity
 
@@ -78,7 +75,7 @@ Update the hotfix record with root cause, fix details, and test results.
 
 ## Phase 5: Collect Approvals
 
-Use the Task tool to request sign-off in parallel:
+Use the Codex subagent mechanism to request sign-off in parallel:
 
 - `subagent_type: lead-programmer` — Review the fix for correctness and side effects
 - `subagent_type: qa-tester` — Run targeted regression tests on the affected system
@@ -90,7 +87,7 @@ All three must return APPROVE before proceeding. If any returns CONCERNS or REJE
 
 ## Phase 5b: QA Re-Entry Gate
 
-After approvals, determine the QA scope required before deploying the hotfix. Spawn `qa-lead` via Task with:
+After approvals, determine the QA scope required before deploying the hotfix. Spawn `qa-lead` as a Codex subagent with:
 - The hotfix description and affected system
 - The regression test results from Phase 5
 - A list of all systems that touch the changed files (use Grep to find callers)
@@ -98,9 +95,9 @@ After approvals, determine the QA scope required before deploying the hotfix. Sp
 Ask qa-lead: **Is a full smoke check sufficient, or does this fix require a targeted team-qa pass?**
 
 Apply the verdict:
-- **Smoke check sufficient** — run `/smoke-check` against the hotfix build. If PASS, proceed to Phase 6.
-- **Targeted QA pass required** — run `/team-qa [affected-system]` scoped to the changed system only. If QA returns APPROVED or APPROVED WITH CONDITIONS, proceed to Phase 6.
-- **Full QA required** — S1 fixes that touch core systems may require a full `/team-qa sprint`. This delays deployment but prevents a bad patch.
+- **Smoke check sufficient** — run `$smoke-check` against the hotfix build. If PASS, proceed to Phase 6.
+- **Targeted QA pass required** — run `$team-qa [affected-system]` scoped to the changed system only. If QA returns APPROVED or APPROVED WITH CONDITIONS, proceed to Phase 6.
+- **Full QA required** — S1 fixes that touch core systems may require a full `$team-qa sprint`. This delays deployment but prevents a bad patch.
 
 Do not skip this gate. A hotfix that breaks something else is worse than the original bug.
 
@@ -132,7 +129,7 @@ Output a deployment summary:
 **Rollback plan**: [from Phase 2 record]
 
 Merge to: release branch AND development branch
-Next: /bug-report verify [BUG-ID] after deploy to confirm resolution
+Next: $bug-report verify [BUG-ID] after deploy to confirm resolution
 ```
 
 ### Rules
@@ -146,9 +143,9 @@ Next: /bug-report verify [BUG-ID] after deploy to confirm resolution
 
 ## Phase 7: Post-Deploy Verification
 
-After deploying, run `/bug-report verify [BUG-ID]` to confirm the fix resolved the issue in the deployed build.
+After deploying, run `$bug-report verify [BUG-ID]` to confirm the fix resolved the issue in the deployed build.
 
-If VERIFIED FIXED: run `/bug-report close [BUG-ID]` to formally close it.
+If VERIFIED FIXED: run `$bug-report close [BUG-ID]` to formally close it.
 If STILL PRESENT: the hotfix failed — immediately re-open, assess rollback, and escalate.
 
-Schedule a post-incident review within 48 hours using `/retrospective hotfix`.
+Schedule a post-incident review within 48 hours using `$retrospective hotfix`.

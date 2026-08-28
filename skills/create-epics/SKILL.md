@@ -1,10 +1,6 @@
 ---
 name: create-epics
-description: "Translate approved GDDs + architecture into epics — one epic per architectural module. Defines scope, governing ADRs, engine risk, and untraced requirements. Does NOT break into stories — run /create-stories [epic-slug] after each epic is created."
-argument-hint: "[system-name | layer: foundation|core|feature|presentation | all] [--review full|lean|solo]"
-user-invocable: true
-allowed-tools: Read, Glob, Grep, Write, Task, AskUserQuestion
-agent: technical-director
+description: "Translate approved GDDs + architecture into epics — one epic per architectural module. Defines scope, governing ADRs, engine risk, and untraced requirements. Does NOT break into stories — run $create-stories [epic-slug] after each epic is created."
 ---
 
 > **Track check — this skill is game-framed.** Resolve `production/track.txt` (or the
@@ -13,7 +9,7 @@ agent: technical-director
 > - **`game`** — run as written.
 > - **`product`** (web / mobile / service) — substitute as you read: player becomes user,
 >   game becomes product, GDD becomes PRD (`design/gdd/` → `product/prd/`), engine becomes
->   the stack pinned in `.claude/docs/technical-preferences.md`. Read `product/prd/prd-*.md` in place of `design/gdd/*.md`. "Engine risk" becomes stack and dependency version risk.
+>   the stack pinned in `.codex/studio/technical-preferences.md`. Read `product/prd/prd-*.md` in place of `design/gdd/*.md`. "Engine risk" becomes stack and dependency version risk.
 > - **Unresolved** — ask which track this is before doing anything. A greenfield project
 >   has no signal either way; do not infer one from the repository contents.
 
@@ -29,9 +25,9 @@ will have changed.
 
 **Output:** `production/epics/[epic-slug]/EPIC.md` + `production/epics/index.md`
 
-**Next step after each epic:** `/create-stories [epic-slug]`
+**Next step after each epic:** `$create-stories [epic-slug]`
 
-**When to run:** After `/create-control-manifest` and `/architecture-review` pass.
+**When to run:** After `$create-control-manifest` and `$architecture-review` pass.
 
 ---
 
@@ -42,15 +38,15 @@ Resolve the review mode (once, store for all gate spawns this run):
 2. Else read `production/review-mode.txt` → use that value
 3. Else → default to `lean`
 
-See `.claude/docs/director-gates.md` for the full check pattern.
+See `../../docs/director-gates.md` for the full check pattern.
 
 **Modes:**
-- `/create-epics all` — process all systems in layer order
-- `/create-epics layer: foundation` — Foundation layer only
-- `/create-epics layer: core` — Core layer only
-- `/create-epics layer: feature` — Feature layer only
-- `/create-epics layer: presentation` — Presentation layer only
-- `/create-epics [system-name]` — one specific system
+- `$create-epics all` — process all systems in layer order
+- `$create-epics layer: foundation` — Foundation layer only
+- `$create-epics layer: core` — Core layer only
+- `$create-epics layer: feature` — Feature layer only
+- `$create-epics layer: presentation` — Presentation layer only
+- `$create-epics [system-name]` — one specific system
 - No argument — ask: "Which layer or system would you like to create epics for?"
 
 ---
@@ -123,7 +119,7 @@ Present to user before writing anything:
 If there are untraced requirements:
 > "⚠️ [N] requirements in [system] have no ADR. The epic can be created, but
 > stories for these requirements will be marked Blocked until ADRs exist.
-> Run `/architecture-decision` first, or proceed with placeholders."
+> Run `$architecture-decision` first, or proceed with placeholders."
 
 Ask: "Shall I create Epic: [name]?"
 Options: "Yes, create it", "Skip", "Pause — I need to write ADRs first"
@@ -137,7 +133,7 @@ Options: "Yes, create it", "Skip", "Pause — I need to write ADRs first"
 - `lean` → skip (not a PHASE-GATE). Note: "PR-EPIC skipped — Lean mode." Proceed to Step 5 (write epic files).
 - `full` → spawn as normal.
 
-After all epics for the current layer are defined (Step 4 completed for all in-scope systems), and before writing any files, spawn `producer` via Task using gate **PR-EPIC** (`.claude/docs/director-gates.md`).
+After all epics for the current layer are defined (Step 4 completed for all in-scope systems), and before writing any files, spawn `producer` as a Codex subagent using gate **PR-EPIC** (`../../docs/director-gates.md`).
 
 Pass: the full epic structure summary (all epics, their scope summaries, governing ADR counts), the layer being processed, milestone timeline and team capacity.
 
@@ -160,7 +156,7 @@ After user confirms, write:
 > **GDD**: design/gdd/[filename].md
 > **Architecture Module**: [module name]
 > **Status**: Ready
-> **Stories**: Not yet created — run `/create-stories [epic-slug]`
+> **Stories**: Not yet created — run `$create-stories [epic-slug]`
 
 ## Overview
 
@@ -183,14 +179,14 @@ and the architecture module's stated responsibilities]
 ## Definition of Done
 
 This epic is complete when:
-- All stories are implemented, reviewed, and closed via `/story-done`
+- All stories are implemented, reviewed, and closed via `$story-done`
 - All acceptance criteria from `design/gdd/[filename].md` are verified
 - All Logic and Integration stories have passing test files in `tests/`
 - All Visual/Feel and UI stories have evidence docs with sign-off in `production/qa/evidence/`
 
 ## Next Step
 
-Run `/create-stories [epic-slug]` to break this epic into implementable stories.
+Run `$create-stories [epic-slug]` to break this epic into implementable stories.
 ```
 
 ### Update `production/epics/index.md`
@@ -215,9 +211,9 @@ Engine: [name + version]
 After writing all epics for the requested scope:
 
 - **Foundation + Core complete**: These are required for the Pre-Production →
-  Production gate. Run `/gate-check production` to check readiness.
+  Production gate. Run `$gate-check production` to check readiness.
 - **Reminder**: Epics define scope. Stories define implementation steps. Run
-  `/create-stories [epic-slug]` for each epic before developers can pick up work.
+  `$create-stories [epic-slug]` for each epic before developers can pick up work.
 
 ---
 
@@ -231,5 +227,5 @@ After writing all epics for the requested scope:
 
 After all requested epics are processed:
 
-- **Verdict: COMPLETE** — [N] epic(s) written. Run `/create-stories [epic-slug]` per epic.
+- **Verdict: COMPLETE** — [N] epic(s) written. Run `$create-stories [epic-slug]` per epic.
 - **Verdict: BLOCKED** — user declined all epics, or no eligible systems found.

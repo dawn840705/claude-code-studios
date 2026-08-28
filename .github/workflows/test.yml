@@ -38,11 +38,11 @@ jobs:
       - run: python3 scripts/build_diagnosis_rules.py --check
       # The workflow catalog is executable config: check_phase.py judges phase
       # completion from it. A broken glob or dangling depends_on would silently
-      # corrupt /help's verdicts — schema validation makes that unmergeable.
+      # corrupt $help's verdicts — schema validation makes that unmergeable.
       - run: python3 scripts/check_phase.py --validate
 
   lint:
-    name: skill/agent structure
+    name: skill/role structure
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -52,7 +52,7 @@ jobs:
       # Pre-existing failures are recorded in scripts/lint_baseline.json and are
       # tolerated; anything new fails the build. Fix an entry, then delete it
       # from the baseline — the linter reports stale entries.
-      - run: python3 scripts/lint_skills.py skills/ agents/ --baseline
+      - run: python3 scripts/lint_skills.py skills/ skills/studio-orchestrator/references/roles/ --baseline
 
   policy:
     name: policy compliance

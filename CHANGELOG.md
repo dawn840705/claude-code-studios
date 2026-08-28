@@ -1,5 +1,28 @@
 # Changelog
 
+## Unreleased
+
+### Changed — v0.7.0 Codex plugin migration
+
+- Added the Codex manifest at `.codex-plugin/plugin.json` and the shareable
+  marketplace entry at `.agents/plugins/marketplace.json` under the new
+  `codex-code-studios` identity.
+- Converted 90 existing workflows to Codex `SKILL.md` frontmatter and
+  `$skill-name` invocation, then added `$studio-orchestrator` (91 total).
+- Moved 45 Claude agent definitions into
+  `skills/studio-orchestrator/references/roles/`. They now act as selectively
+  loaded persona references for self-contained Codex subagent prompts.
+- Added `hooks/hooks.json`; ported file validation to native `apply_patch`
+  payloads, returned advisory context as JSON, changed shutdown logging from
+  `Stop` to `SessionEnd`, and excluded the unsupported `Notification` event.
+- Moved project-owned technical preferences to
+  `.codex/studio/technical-preferences.md` and layout overrides to
+  `.codex/studio-layout.json`. Legacy `.claude` layout files remain read-only
+  fallbacks for the transition release.
+- Updated installation, quick-start, hook, role, test, and CI documentation for
+  Codex. `.claude-plugin/` and `CLAUDE.md` remain as one-release compatibility
+  metadata, not as the new source of truth.
+
 ## v0.6.4 — 2026-08-26
 
 ### Fixed — cp949 콘솔에서 게이트가 거짓 FAIL: 「종료 코드가 판정이다」가 인코딩 하나로 뒤집혔다

@@ -1,7 +1,12 @@
 #!/bin/bash
-# Claude Code PreCompact hook: Dump session state before context compression
-# This output appears in the conversation right before compaction, ensuring
-# critical state survives the summarization process.
+# Codex PreCompact hook: return session state as JSON before context compression.
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+[ -f "$SCRIPT_DIR/lib/hook-io.sh" ] || exit 0
+# shellcheck source=lib/hook-io.sh
+. "$SCRIPT_DIR/lib/hook-io.sh"
+
+build_message() {
 
 echo "=== SESSION STATE BEFORE COMPACTION ==="
 echo "Timestamp: $(date)"
@@ -81,5 +86,9 @@ echo "## Recovery Instructions"
 echo "After compaction, read $STATE_FILE to recover full working context."
 echo "Then read any files listed above that are being actively worked on."
 echo "=== END SESSION STATE ==="
+}
+
+MESSAGE=$(build_message)
+studio_emit_system_message "$MESSAGE"
 
 exit 0

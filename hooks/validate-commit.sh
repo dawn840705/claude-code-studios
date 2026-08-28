@@ -1,7 +1,7 @@
 #!/bin/bash
-# Claude Code PreToolUse hook: Validates git commit commands
+# Codex PreToolUse hook: validates git commit commands
 # Receives JSON on stdin with tool_input.command
-# Exit 0 = allow, Exit 2 = block (stderr shown to Claude)
+# Exit 0 = allow, Exit 2 = block
 #
 # Input schema (PreToolUse for Bash):
 # { "tool_name": "Bash", "tool_input": { "command": "git commit -m ..." } }
@@ -15,6 +15,11 @@
 
 INPUT=$(cat)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+if [ -f "$SCRIPT_DIR/lib/hook-io.sh" ]; then
+    # shellcheck source=lib/hook-io.sh
+    . "$SCRIPT_DIR/lib/hook-io.sh"
+fi
 
 if [ -f "$SCRIPT_DIR/lib/detect-layout.sh" ]; then
     # shellcheck source=lib/detect-layout.sh
@@ -208,9 +213,12 @@ if [ "$CODE_COUNT" -gt 0 ]; then
     fi
 fi
 
-# Print warnings (non-blocking) and allow commit
+# Return warnings as valid Codex hook JSON and allow the commit.
 if [ -n "$WARNINGS" ]; then
-    echo -e "=== Commit Validation Warnings ===$WARNINGS\n================================" >&2
+    MESSAGE=$(printf '%b' "Commit validation warnings:$WARNINGS")
+    if command -v studio_emit_system_message >/dev/null 2>&1; then
+        studio_emit_system_message "$MESSAGE"
+    fi
 fi
 
 exit 0

@@ -1,9 +1,6 @@
 ---
 name: consistency-check
 description: "Scan all GDDs against the entity registry to detect cross-document inconsistencies: same entity with different stats, same item with different values, same formula with different variables. Grep-first approach — reads registry then targets only conflicting GDD sections rather than full document reads."
-argument-hint: "[full | since-last-review | entity:<name> | item:<name>]"
-user-invocable: true
-allowed-tools: Read, Glob, Grep, Write, Edit, Bash
 ---
 
 # Consistency Check
@@ -13,15 +10,15 @@ entity registry (`design/registry/entities.yaml`). Uses a grep-first approach:
 reads the registry once, then targets only the GDD sections that mention
 registered names — no full document reads unless a conflict needs investigation.
 
-**This skill is the write-time safety net.** It catches what `/design-system`'s
-per-section checks may have missed and what `/review-all-gdds`'s holistic review
+**This skill is the write-time safety net.** It catches what `$design-system`'s
+per-section checks may have missed and what `$review-all-gdds`'s holistic review
 catches too late.
 
 **When to run:**
 - After writing each new GDD (before moving to the next system)
-- Before `/review-all-gdds` (so that skill starts with a clean baseline)
-- Before `/create-architecture` (inconsistencies poison downstream ADRs)
-- On demand: `/consistency-check entity:[name]` to check one entity specifically
+- Before `$review-all-gdds` (so that skill starts with a clean baseline)
+- Before `$create-architecture` (inconsistencies poison downstream ADRs)
+- On demand: `$consistency-check entity:[name]` to check one entity specifically
 
 **Output:** Conflict report + optional registry corrections
 
@@ -42,7 +39,7 @@ Read path="design/registry/entities.yaml"
 ```
 
 If the file does not exist or has no entries:
-> "Entity registry is empty. Run `/design-system` to write GDDs — the registry
+> "Entity registry is empty. Run `$design-system` to write GDDs — the registry
 > is populated automatically after each GDD is completed. Nothing to check yet."
 
 Stop and exit.
@@ -250,7 +247,7 @@ If any 🔴 CONFLICT entries were found (regardless of whether they were resolve
 append an entry to `docs/consistency-failures.md` for each conflict:
 
 ```markdown
-### [YYYY-MM-DD] — /consistency-check — 🔴 CONFLICT
+### [YYYY-MM-DD] — $consistency-check — 🔴 CONFLICT
 **Domain**: [system domain(s) involved]
 **Documents involved**: [source GDD] vs [conflicting GDD]
 **What happened**: [specific conflict — entity name, attribute, differing values]
@@ -266,10 +263,10 @@ skip this step silently — do not create the file from this skill.
 
 ## Next Steps
 
-- **If PASS**: Run `/review-all-gdds` for holistic design-theory review, or
-  `/create-architecture` if all MVP GDDs are complete.
+- **If PASS**: Run `$review-all-gdds` for holistic design-theory review, or
+  `$create-architecture` if all MVP GDDs are complete.
 - **If CONFLICTS FOUND**: Fix the flagged GDDs, then re-run
-  `/consistency-check` to confirm resolution.
+  `$consistency-check` to confirm resolution.
 - **If STALE REGISTRY**: Update the registry (Phase 6), then re-run to verify.
-- Run `/consistency-check` after writing each new GDD to catch issues early,
+- Run `$consistency-check` after writing each new GDD to catch issues early,
   not at architecture time.

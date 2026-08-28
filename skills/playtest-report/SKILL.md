@@ -1,9 +1,6 @@
 ---
 name: playtest-report
 description: "Generates a structured playtest report template or analyzes existing playtest notes into a structured format. Use this to standardize playtest feedback collection and analysis."
-argument-hint: "[new|analyze path-to-notes] [--review full|lean|solo]"
-user-invocable: true
-allowed-tools: Read, Glob, Grep, Write, Task, AskUserQuestion
 ---
 
 ## Phase 1: Parse Arguments
@@ -13,7 +10,7 @@ Resolve the review mode (once, store for all gate spawns this run):
 2. Else read `production/review-mode.txt` → use that value
 3. Else → default to `lean`
 
-See `.claude/docs/director-gates.md` for the full check pattern.
+See `../../docs/director-gates.md` for the full check pattern.
 
 Determine the mode:
 
@@ -107,9 +104,9 @@ Categorize all findings into four buckets:
 
 Present the categorized list, then route:
 
-- **Design changes:** "Run `/propagate-design-change [path]` on the affected design document to find downstream impacts before making changes."
-- **Balance adjustments:** "Run `/balance-check [system]` to verify the full balance picture before tuning values."
-- **Bugs:** "Use `/bug-report` to formally track these."
+- **Design changes:** "Run `$propagate-design-change [path]` on the affected design document to find downstream impacts before making changes."
+- **Balance adjustments:** "Run `$balance-check [system]` to verify the full balance picture before tuning values."
+- **Bugs:** "Use `$bug-report` to formally track these."
 - **Polish items:** "Add to the polish backlog in `production/` when the team reaches that phase."
 
 ---
@@ -121,7 +118,7 @@ Present the categorized list, then route:
 - `lean` → skip (not a PHASE-GATE). Note: "CD-PLAYTEST skipped — Lean mode." Proceed to Phase 4 (save the report).
 - `full` → spawn as normal.
 
-After categorising findings, spawn `creative-director` via Task using gate **CD-PLAYTEST** (`.claude/docs/director-gates.md`).
+After categorising findings, spawn `creative-director` as a Codex subagent using gate **CD-PLAYTEST** (`../../docs/director-gates.md`).
 
 Pass: the structured report content, game pillars and core fantasy (from `design/gdd/game-concept.md`), the specific hypothesis being tested.
 
@@ -142,5 +139,5 @@ If yes, write the file, creating the directory if needed.
 Verdict: **COMPLETE** — playtest report generated.
 
 - Act on the highest-priority finding category first.
-- After addressing design changes: re-run `/design-review` on the updated GDD.
-- After fixing bugs: re-run `/bug-triage` to update priorities.
+- After addressing design changes: re-run `$design-review` on the updated GDD.
+- After fixing bugs: re-run `$bug-triage` to update priorities.

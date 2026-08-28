@@ -1,10 +1,6 @@
 ---
 name: review-all-gdds
 description: "Holistic cross-GDD consistency and game design review. Reads all system GDDs simultaneously and checks for contradictions between them, stale references, ownership conflicts, formula incompatibilities, and game design theory violations (dominant strategies, economic imbalance, cognitive overload, pillar drift). Run after all MVP GDDs are written, before architecture begins."
-argument-hint: "[focus: full | consistency | design-theory | since-last-review]"
-user-invocable: true
-allowed-tools: Read, Glob, Grep, Write, Bash, AskUserQuestion, Task
-model: opus
 ---
 
 # Review All GDDs
@@ -18,18 +14,18 @@ reviews that cannot be done per-GDD in isolation:
    together: dominant strategies, broken economies, cognitive overload, pillar
    drift, competing progression loops
 
-**This is distinct from `/design-review`**, which reviews one GDD for internal
+**This is distinct from `$design-review`**, which reviews one GDD for internal
 completeness. This skill reviews the *relationships* between all GDDs.
 
 **When to run:**
 - After all MVP-tier GDDs are individually approved
 - After any GDD is significantly revised mid-production
-- Before `/create-architecture` begins (architecture built on inconsistent GDDs
+- Before `$create-architecture` begins (architecture built on inconsistent GDDs
   inherits those inconsistencies)
 
 **Argument modes:**
 
-**Focus:** `$ARGUMENTS[0]` (blank = `full`)
+**Focus:** `the first invocation argument` (blank = `full`)
 
 - **No argument / `full`**: Both consistency and design theory passes
 - **`consistency`**: Cross-GDD consistency checks only (faster)
@@ -78,7 +74,7 @@ what to look for.
 
 If the registry is empty or absent: proceed without it. Note in the report:
 "Entity registry is empty — consistency checks rely on full GDD reads only.
-Run `/consistency-check` after this review to populate the registry."
+Run `$consistency-check` after this review to populate the registry."
 
 ### Phase 1c — L1/L2: Full Document Load
 
@@ -94,7 +90,7 @@ Report: "Loaded [N] system GDDs covering [M] systems. Pillars: [list]. Anti-pill
 
 If fewer than 2 system GDDs exist, stop:
 > "Cross-GDD review requires at least 2 system GDDs. Write more GDDs first,
-> then re-run `/review-all-gdds`."
+> then re-run `$review-all-gdds`."
 
 ---
 
@@ -544,11 +540,11 @@ FAIL: One or more blocking issues must be resolved before architecture begins.
 
 ## Phase 6: Write Report and Flag GDDs
 
-Use `AskUserQuestion` for write permission:
+Ask the user directly for write permission:
 - Prompt: "May I write this review to `design/gdd/gdd-cross-review-[date].md`?"
 - Options: `[A] Yes — write the report` / `[B] No — skip`
 
-If any GDDs are flagged for revision, use a second `AskUserQuestion`:
+If any GDDs are flagged for revision, use a second a direct user question:
 - Prompt: "Should I update the systems index to mark these GDDs as needing revision? ([list of flagged GDDs])"
 - Options: `[A] Yes — update systems index` / `[B] No — leave as-is`
 - If yes: update each flagged GDD's Status field in systems-index.md to "Needs Revision".
@@ -560,7 +556,7 @@ If any GDDs are flagged for revision, use a second `AskUserQuestion`:
 After writing the report (and updating systems index if approved), silently
 append to `production/session-state/active.md`:
 
-    ## Session Extract — /review-all-gdds [date]
+    ## Session Extract — $review-all-gdds [date]
     - Verdict: [PASS / CONCERNS / FAIL]
     - GDDs reviewed: [N]
     - Flagged for revision: [comma-separated list, or "None"]
@@ -575,22 +571,22 @@ Confirm in conversation: "Session state updated."
 
 ## Phase 7: Handoff
 
-After all file writes are complete, use `AskUserQuestion` for a closing widget.
+After all file writes are complete, ask the user directly for a closing widget.
 
 Before building options, check project state:
 - Are there any Warning-level items that are simple edits (flagged with "30-second edit", "brief addition", or similar)? → offer inline quick-fix option
-- Are any GDDs in the "Flagged for Revision" table? → offer /design-review option for each
-- Read systems-index.md for the next system with Status: Not Started → offer /design-system option
-- Is the verdict PASS or CONCERNS? → offer /gate-check or /create-architecture
+- Are any GDDs in the "Flagged for Revision" table? → offer $design-review option for each
+- Read systems-index.md for the next system with Status: Not Started → offer $design-system option
+- Is the verdict PASS or CONCERNS? → offer $gate-check or $create-architecture
 
 Build the option list dynamically — only include options that apply:
 
 **Option pool:**
 - `[_] Apply quick fix: [W-XX description] in [gdd-name].md — [effort estimate]` (one option per simple-edit warning; only for Warning-level, not Blocking)
-- `[_] Run /design-review [flagged-gdd-path] — address flagged warnings` (one per flagged GDD, if any)
-- `[_] Run /design-system [next-system] — next in design order` (always include, name the actual system)
-- `[_] Run /create-architecture — begin architecture (verdict is PASS/CONCERNS)` (include if verdict is not FAIL)
-- `[_] Run /gate-check — validate Systems Design phase gate` (include if verdict is PASS)
+- `[_] Run $design-review [flagged-gdd-path] — address flagged warnings` (one per flagged GDD, if any)
+- `[_] Run $design-system [next-system] — next in design order` (always include, name the actual system)
+- `[_] Run $create-architecture — begin architecture (verdict is PASS/CONCERNS)` (include if verdict is not FAIL)
+- `[_] Run $gate-check — validate Systems Design phase gate` (include if verdict is PASS)
 - `[_] Stop here`
 
 Assign letters A, B, C… only to included options. Mark the most pipeline-advancing option as `(recommended)`.
@@ -605,7 +601,7 @@ If any spawned agent returns BLOCKED, errors, or fails to complete:
 
 1. **Surface immediately**: Report "[AgentName]: BLOCKED — [reason]" before continuing
 2. **Assess dependencies**: If the blocked agent's output is required by a later phase, do not proceed past that phase without user input
-3. **Offer options** via AskUserQuestion with three choices:
+3. **Offer options** via direct user question with three choices:
    - Skip this agent and note the gap in the final report
    - Retry with narrower scope (fewer GDDs, single-system focus)
    - Stop here and resolve the blocker first

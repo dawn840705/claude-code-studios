@@ -125,7 +125,7 @@ art-dir = art-director
 ### Pattern 2: Bug Fix
 
 ```
-1. qa-tester          -- Files bug report with /bug-report
+1. qa-tester          -- Files bug report with $bug-report
 2. qa-lead            -- Triages severity and priority
 3. producer           -- Assigns to sprint (if not S1)
 4. lead-programmer    -- Identifies root cause, assigns to programmer
@@ -164,9 +164,9 @@ art-dir = art-director
 ### Pattern 5: Sprint Cycle
 
 ```
-1. producer           -- Plans sprint with /sprint-plan new
+1. producer           -- Plans sprint with $sprint-plan new
 2. [All agents]       -- Execute assigned tasks
-3. producer           -- Daily status with /sprint-plan status
+3. producer           -- Daily status with $sprint-plan status
 4. qa-lead            -- Continuous testing during sprint
 5. lead-programmer    -- Continuous code review during sprint
 6. producer           -- Sprint retrospective with post-sprint hook
@@ -176,7 +176,7 @@ art-dir = art-director
 ### Pattern 6: Milestone Checkpoint
 
 ```
-1. producer           -- Runs /milestone-review
+1. producer           -- Runs $milestone-review
 2. creative-director  -- Reviews creative progress
 3. technical-director -- Reviews technical health
 4. qa-lead            -- Reviews quality metrics
@@ -189,12 +189,12 @@ art-dir = art-director
 
 ```text
 1. producer             -- Declares release candidate, confirms milestone criteria met
-2. release-manager      -- Cuts release branch, generates /release-checklist
+2. release-manager      -- Cuts release branch, generates $release-checklist
 3. qa-lead              -- Runs full regression, signs off on quality
 4. localization-lead    -- Verifies all strings translated, text fitting passes
 5. performance-analyst  -- Confirms performance benchmarks within targets
 6. devops-engineer      -- Builds release artifacts, runs deployment pipeline
-7. release-manager      -- Generates /changelog, tags release, creates release notes
+7. release-manager      -- Generates $changelog, tags release, creates release notes
 8. technical-director   -- Final sign-off on major releases
 9. release-manager      -- Deploys and monitors for 48 hours
 10. producer            -- Marks release complete
@@ -204,7 +204,7 @@ art-dir = art-director
 
 ```text
 1. game-designer        -- Defines the hypothesis and success criteria
-2. prototyper           -- Scaffolds prototype with /prototype
+2. prototyper           -- Scaffolds prototype with $prototype
 3. prototyper           -- Builds minimal implementation (hours, not days)
 4. game-designer        -- Evaluates prototype against criteria
 5. prototyper           -- Documents findings report

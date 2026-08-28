@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Structural linter for claude-code-studios skills and agents.
+"""Structural linter for codex-code-studios skills and role references.
 
 This is the executable form of the 7 static checks defined in
 `skills/skill-test/SKILL.md` (Phase 2A). That skill is read and performed by an
@@ -10,15 +10,15 @@ evaluation on top.
 Standard library only — no third-party dependencies.
 
 Usage:
-    python3 scripts/lint_skills.py skills/ agents/
+    python3 scripts/lint_skills.py skills/ skills/studio-orchestrator/references/roles/
     python3 scripts/lint_skills.py skills/gate-check      # single skill
     python3 scripts/lint_skills.py skills/ --strict       # warnings fail too
     python3 scripts/lint_skills.py skills/ --quiet        # summary line only
 
 Baseline (how CI stays green while pre-existing debt is paid down):
 
-    python3 scripts/lint_skills.py skills/ agents/ --write-baseline
-    python3 scripts/lint_skills.py skills/ agents/ --baseline scripts/lint_baseline.json
+    python3 scripts/lint_skills.py skills/ skills/studio-orchestrator/references/roles/ --write-baseline
+    python3 scripts/lint_skills.py skills/ skills/studio-orchestrator/references/roles/ --baseline scripts/lint_baseline.json
 
 Known failures recorded in the baseline are reported but do not fail the run.
 Anything NOT in the baseline does — so a new skill with a broken frontmatter is
@@ -48,14 +48,8 @@ from console_encoding import force_utf8  # noqa: E402
 
 # --- frontmatter conventions -------------------------------------------------
 
-SKILL_REQUIRED_FIELDS = (
-    "name",
-    "description",
-    "argument-hint",
-    "user-invocable",
-    "allowed-tools",
-)
-AGENT_REQUIRED_FIELDS = ("name", "description", "tools", "model", "maxTurns")
+SKILL_REQUIRED_FIELDS = ("name", "description")
+ROLE_REQUIRED_FIELDS = ("name", "description")
 
 VERDICT_KEYWORDS = (
     "PASS",
@@ -68,8 +62,6 @@ VERDICT_KEYWORDS = (
     "COMPLIANT",
     "NON-COMPLIANT",
 )
-
-WRITE_TOOLS = ("Write", "Edit")
 
 # ask-before-write language (Check 4)
 ASK_PATTERNS = (
@@ -93,9 +85,8 @@ FRONTMATTER = re.compile(r"\A---\s*\n(.*?)\n---\s*\n", re.S)
 
 # --- description quality (Checks 8-10) ---------------------------------------
 #
-# `description` is not documentation. It is the routing instruction Claude reads
-# when deciding whether to auto-invoke a skill or spawn an agent, and this repo
-# ships 85 skills + 45 agents — 130 choices resolved from description text alone.
+# `description` is not documentation. It is the routing instruction Codex reads
+# when deciding whether to use a skill, and this repo ships a large public roster.
 # A description that says only what a skill does, and not when to reach for it
 # or when to reach past it, forces the model to infer. In operation, inference
 # is a design failure: it shows up as a skill firing on the wrong task, or the
@@ -137,7 +128,7 @@ TRIGGER_PATTERNS = (
 #
 # 0.30 sits above p99.9 and selects exactly the pairs a human agrees are
 # confusable: create-prd ~ design-system (0.44 — the product-track and
-# game-track design docs, which is the pack-mixing failure CLAUDE.md warns
+# game-track design docs, which is the pack-mixing failure Code Studios policy warns
 # about), team-combat ~ team-polish (0.32), team-level ~ team-narrative (0.30).
 #
 # If this starts producing noise, change it here and record the new measurement
@@ -162,7 +153,7 @@ class Result:
 
     def __init__(self, path: str, kind: str):
         self.path = path
-        self.kind = kind  # "skill" | "agent"
+        self.kind = kind  # "skill" | "role"
         self.failures: list[str] = []
         self.warnings: list[str] = []
         self.description: str = ""  # kept for the cross-file Check 9 pass
@@ -297,28 +288,15 @@ def lint_skill(path: str, text: str) -> Result:
     if not any(k in body for k in VERDICT_KEYWORDS):
         r.failures.append("Check 3: no verdict keyword")
 
-    # Check 4 — ask-before-write, mandatory when the skill can write
+    # Check 4 — make user-owned file writes explicit. Codex skills do not declare
+    # tool allowlists in frontmatter, so this remains an advisory content check.
     has_ask = any(p.search(body) for p in ASK_PATTERNS)
-    tools = fm.get("allowed-tools", "")
-    can_write = any(t in tools for t in WRITE_TOOLS)
     if not has_ask:
-        if can_write:
-            r.failures.append("Check 4: allowed-tools has Write/Edit but no ask-before-write language")
-        else:
-            r.warnings.append("Check 4: no ask-before-write language (read-only skill, allowed)")
+        r.warnings.append("Check 4: no explicit user-owned-file write boundary")
 
     # Check 5 — next-step handoff
     if not any(p.search(body) for p in HANDOFF_PATTERNS):
         r.warnings.append("Check 5: no next-step handoff")
-
-    # Check 6 — fork context complexity
-    if fm.get("context") == "fork" and phases < 5:
-        r.warnings.append(f"Check 6: context: fork with only {phases} phases (expected >= 5)")
-
-    # Check 7 — argument-hint plausibility
-    hint = fm.get("argument-hint", "").strip().strip('"').strip("'")
-    if "argument-hint" in fm and not hint:
-        r.warnings.append("Check 7: argument-hint is empty")
 
     # Checks 8 & 10 — description as a routing rule (Check 9 runs cross-file)
     check_description_quality(r, unquote(fm.get("description", "")))
@@ -326,22 +304,25 @@ def lint_skill(path: str, text: str) -> Result:
     return r
 
 
-def lint_agent(path: str, text: str) -> Result:
-    r = Result(path, "agent")
+def lint_role(path: str, text: str) -> Result:
+    r = Result(path, "role")
     fm = parse_frontmatter(text)
     if fm is None:
         r.failures.append("no YAML frontmatter block")
         return r
-    missing = [f for f in AGENT_REQUIRED_FIELDS if f not in fm]
+    missing = [f for f in ROLE_REQUIRED_FIELDS if f not in fm]
     if missing:
         r.failures.append("missing " + ", ".join(missing))
     if not fm.get("description", "").strip():
         r.failures.append("empty description")
 
-    # Agents are routed from description text exactly as skills are — the
-    # orchestrator picks one of 45 by reading them.
+    # Role references are selected by the studio orchestrator from description.
     check_description_quality(r, unquote(fm.get("description", "")))
     return r
+
+
+# Compatibility alias for older imports while downstream tooling migrates.
+lint_agent = lint_role
 
 
 def collect(targets: list[str]) -> list[tuple[str, str]]:
@@ -350,17 +331,17 @@ def collect(targets: list[str]) -> list[tuple[str, str]]:
     for t in targets:
         t = t.rstrip("/")
         if os.path.isfile(t):
-            kind = "agent" if os.path.basename(os.path.dirname(t)) == "agents" else "skill"
+            kind = "role" if os.path.basename(os.path.dirname(t)) in {"agents", "roles"} else "skill"
             found.append((t, kind))
             continue
         if not os.path.isdir(t):
             print(f"lint_skills: no such path: {t}", file=sys.stderr)
             continue
         base = os.path.basename(t)
-        if base == "agents":
+        if base in {"agents", "roles"}:
             for name in sorted(os.listdir(t)):
                 if name.endswith(".md"):
-                    found.append((os.path.join(t, name), "agent"))
+                    found.append((os.path.join(t, name), "role"))
         else:
             # a skills/ root, or a single skill directory
             skill_md = os.path.join(t, "SKILL.md")
@@ -411,8 +392,8 @@ def write_baseline(path: str, results: list[Result]) -> int:
 
 def main(argv: list[str]) -> int:
     force_utf8()  # 판정이 콘솔 코드페이지에 좌우되지 않게 (console_encoding 참조)
-    ap = argparse.ArgumentParser(description="Structural linter for studios skills and agents")
-    ap.add_argument("targets", nargs="+", help="skills/ agents/ or a specific path")
+    ap = argparse.ArgumentParser(description="Structural linter for Code Studios skills and roles")
+    ap.add_argument("targets", nargs="+", help="skills/, roles/, or a specific path")
     ap.add_argument("--strict", action="store_true", help="treat warnings as failures")
     ap.add_argument("--quiet", action="store_true", help="print the summary line only")
     ap.add_argument(
@@ -439,7 +420,7 @@ def main(argv: list[str]) -> int:
     for path, kind in files:
         with open(path, encoding="utf-8") as f:
             text = f.read()
-        results.append(lint_skill(path, text) if kind == "skill" else lint_agent(path, text))
+        results.append(lint_skill(path, text) if kind == "skill" else lint_role(path, text))
 
     # Check 9 is a property of the roster, not of any one file.
     flag_near_duplicates(results)

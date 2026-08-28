@@ -1,9 +1,6 @@
 ---
 name: self-loop
-description: "Iterate on a deliverable until it meets strict pass criteria — plan, execute, score each criterion 1-10 with evidence, fix the lowest score first, repeat until all criteria score 8+. Built-in guards against score inflation and runaway loops (max 5 iterations, stop on 2 stalled rounds). Use when the user says 'loop until done', '될 때까지 반복', 'keep fixing until it passes', 'self-loop', or when reworking after a FAIL from /smoke-check, /gate-check, or /story-done."
-argument-hint: "[what to build/fix] [--criteria \"...\"] [--max N]"
-user-invocable: true
-allowed-tools: Read, Glob, Grep, Write, Edit, Bash
+description: "Iterate on a deliverable until it meets strict pass criteria — plan, execute, score each criterion 1-10 with evidence, fix the lowest score first, repeat until all criteria score 8+. Built-in guards against score inflation and runaway loops (max 5 iterations, stop on 2 stalled rounds). Use when the user says 'loop until done', '될 때까지 반복', 'keep fixing until it passes', 'self-loop', or when reworking after a FAIL from $smoke-check, $gate-check, or $story-done."
 ---
 
 # Self-Loop
@@ -11,7 +8,7 @@ allowed-tools: Read, Glob, Grep, Write, Edit, Bash
 Runs the plugin's self-iteration quality protocol on a single deliverable:
 plan → execute → score → judge, repeated until every pass criterion scores
 8/10 or higher. The full rule (including rationale) lives in
-`rules/self-loop.md` — this skill is its executable form.
+`../../rules/self-loop.md` — this skill is its executable form.
 
 Two traps this skill actively defends against:
 
@@ -71,7 +68,7 @@ Each iteration, in strict order:
      judgment does not override it. Non-zero → that criterion scores below 8,
      even if the work looks right to you. Record the command and the code:
      `pytest tests/ → exit 1 (3 failed)`. See
-     [`docs/deterministic-gates.md`](../../docs/deterministic-gates.md) for the
+     [`../../docs/deterministic-gates.md`](../../docs/deterministic-gates.md) for the
      0/1/2/3 contract. A gate that could not run (exit 3) is NOT a pass —
      that criterion is unscored and the loop cannot declare DONE on it.
    - **No** (readability, tone, whether an argument holds) → grade 1-10, and:
@@ -87,7 +84,7 @@ Each iteration, in strict order:
    `claim_id` / `defect_type` / `evidence` / `severity` — and fix only what the
    ticket names. Default `severity` is `local-fix`; `full-rewrite` is for
    structural defects only. **No ticket → preserve that part untouched.**
-   Rule: [`rules/self-loop.md`](../../rules/self-loop.md) § 2.1.
+   Rule: [`../../rules/self-loop.md`](../../rules/self-loop.md) § 2.1.
 4. **Judge** —
    - All criteria >= 8 **and** the policy axis clean → declare `DONE`, go to Phase 3.
    - `scripts/verify_policy.py → exit 2` → `BLOCKED`, whatever the scores say.
@@ -101,7 +98,7 @@ Each iteration, in strict order:
 four things: the previous output (or just the span being fixed), this round's
 defect tickets, the violated criteria with their allowed values, and what must
 be preserved. Re-feeding the whole context makes the model reinterpret the task
-and undo earlier agreements. See `rules/self-loop.md` § 2.2.
+and undo earlier agreements. See `../../rules/self-loop.md` § 2.2.
 
 Emit one progress line per iteration so the user can follow along:
 

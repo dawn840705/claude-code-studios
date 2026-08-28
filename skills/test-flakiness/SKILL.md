@@ -1,9 +1,6 @@
 ---
 name: test-flakiness
 description: "Detect non-deterministic (flaky) tests by reading CI run logs or test result history. Aggregates pass rates per test, identifies intermittent failures, recommends quarantine or fix, and maintains a flaky test registry. Best run during Polish phase or after multiple CI runs."
-argument-hint: "[ci-log-path | scan | registry]"
-user-invocable: true
-allowed-tools: Read, Glob, Grep, Write, Edit, Bash
 ---
 
 # Test Flakiness Detection
@@ -19,17 +16,17 @@ explains likely causes, and recommends whether to quarantine or fix each one.
 **When to run:**
 - Polish phase (tests have had many runs; statistical signal is reliable)
 - When developers start dismissing CI failures as "probably flaky"
-- After `/regression-suite` identifies quarantined tests that need diagnosis
+- After `$regression-suite` identifies quarantined tests that need diagnosis
 
 ---
 
 ## 1. Parse Arguments
 
 **Modes:**
-- `/test-flakiness [ci-log-path]` — analyse a specific CI run log file
-- `/test-flakiness scan` — scan all available CI logs in `.github/` or
+- `$test-flakiness [ci-log-path]` — analyse a specific CI run log file
+- `$test-flakiness scan` — scan all available CI logs in `.github/` or
   standard log output directories
-- `/test-flakiness registry` — read existing regression-suite.md quarantine
+- `$test-flakiness registry` — read existing regression-suite.md quarantine
   section and provide remediation guidance for already-known flaky tests
 - No argument — auto-detect: run `scan` if CI logs are accessible, else
   `registry`
@@ -66,7 +63,7 @@ If no logs found:
 > history from multiple runs. Options:
 > 1. Run the test suite at least 3 times and collect the output logs
 > 2. Check CI pipeline output and save a log to `test-results/`
-> 3. Run `/test-flakiness registry` to review tests already flagged as flaky
+> 3. Run `$test-flakiness registry` to review tests already flagged as flaky
 >    in `tests/regression-suite.md`"
 
 Stop and ask the user which option to pursue.

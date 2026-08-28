@@ -179,7 +179,7 @@ Unresolved rows make the brief **BLOCKED**, not CONCERNS.
 Editing is not done in this document. `docs/video-production-sources.md` §
 "Execution tooling" names the external tool this repo delegates to
 (`browser-use/video-use`) and what it costs — it makes a **paid** transcription
-call per source file, so gate it with `/api-cost-gate` before the first run.
+call per source file, so gate it with `$api-cost-gate` before the first run.
 
 **What crosses the handoff**: this brief, the shot list with captured file paths,
 and the structure table as the intended cut order. What does not cross it: the

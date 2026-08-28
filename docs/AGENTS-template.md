@@ -1,0 +1,38 @@
+# Project AGENTS.md template
+
+Copy the contents below into a consumer project's root `AGENTS.md` and tailor it
+to the repository. Commit shared team rules; keep machine-specific secrets and
+credentials out of this file.
+
+```markdown
+# Project guide
+
+## Product and stack
+
+- Track: game | product
+- Engine/framework and pinned version:
+- Target platforms:
+- Architecture source of truth:
+
+## Working agreements
+
+- Run the relevant tests after code changes.
+- Preserve existing user changes and avoid destructive cleanup.
+- Record major technical choices as ADRs.
+- Keep `production/session-state/active.md` current during multi-session work.
+
+## Local commands
+
+- Build:
+- Unit tests:
+- Integration tests:
+- Lint/format:
+
+## Communication
+
+- Lead with outcomes and verification evidence.
+- Surface decisions that require product or design authority.
+```
+
+Code Studios stores engine and naming preferences separately in
+`.codex/studio/technical-preferences.md`; `$setup-engine` can create it.

@@ -2,9 +2,9 @@
 
 **Global rule. Applies to every project and every domain.**
 
-`CLAUDE.md` already says *"don't spawn agents just because they exist — if the
-task is simple, handle it directly."* That is the right instinct with no way to
-act on it: the decision comes down to the orchestrator's feel for the task.
+`$studio-orchestrator` says *"don't spawn agents just because they exist — if
+the task is simple, handle it directly."* This rule turns that instinct into a
+repeatable routing decision.
 
 Upstream measurement puts a number on what that feel costs. Rewriting a
 10,000-character text as 7 chunks burned **610K tokens**. The same text in a
@@ -18,10 +18,9 @@ structure.
 ## Two principles
 
 **Savings come from fewer calls, not from a cheaper model.** Never silently
-downgrade a model tier to save money — model choice belongs to the user. Cut
-the number of calls instead. A single Opus call routinely beats five Haiku
-calls on both cost and quality, because each of those five re-reads the same
-context.
+downgrade the model or reasoning effort to save money — those choices belong
+to the user. Cut the number of calls instead: several small calls each reload
+the same context.
 
 **Splitting is the last resort.** Prefer one call. Split only when a hard limit
 forces it, and when you do, make sure the shared context is loaded once — not
@@ -59,14 +58,14 @@ diligence — it is the 4.5× above.
 Call count is the first axis; model tier is the second. The no-silent-downgrade
 principle above stands: **the orchestrator never picks a cheaper model on its
 own judgment.** What unlocks tier routing is a **standing policy the user has
-set** — a line in the project's `CLAUDE.md` naming which lanes run on which
+set** — a line in the project's `AGENTS.md` naming which lanes run on which
 tier. With that line in place, routing is obedience, not initiative.
 
-The recommended standing policy (adopt by copying into project `CLAUDE.md`):
+The recommended standing policy (adopt by copying into project `AGENTS.md`):
 
 | Lane | Tier | Why |
 |---|---|---|
-| Mechanical sweeps — exhaustive grep/inventory, format checks, link/path audits, file listing | low tier (e.g. Haiku), low effort | The output is an enumeration; judgment adds nothing |
+| Mechanical sweeps — exhaustive search/inventory, format checks, link/path audits, file listing | lower reasoning effort if the user has pre-authorized it | The output is an enumeration; judgment adds nothing |
 | Exploration/scouting with a defined question | mid tier or session model | Misreading the codebase here poisons every later step |
 | Design judgment, code review, anything adjacent to a user decision | **session model, never downgraded** | This is what the user is paying the premium tier for |
 | Deterministic transforms (renames, link rewrites, bulk edits) | **no model at all — a script** | Exit code beats token spend; see `doc_relink.py` |

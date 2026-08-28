@@ -1,6 +1,6 @@
 # Context Management
 
-Context is the most critical resource in a Claude Code session. Manage it actively.
+Context is a critical resource in a Codex task. Manage it actively.
 
 ## File-Backed State (Primary Strategy)
 
@@ -38,7 +38,7 @@ Task: Implement hitbox detection
 - The status line displays it as a breadcrumb: `Combat System > Melee Combat > Hitboxes`
 - Remove or empty the block when no active work focus exists
 
-After any disruption (compaction, crash, `/clear`), read the state file first.
+After any disruption, compaction, crash, or new task, read the state file first.
 
 ### Incremental File Writing
 
@@ -57,11 +57,11 @@ This keeps the context window holding only the *current* section's discussion
 ## Proactive Compaction
 
 - **Compact proactively** at ~60-70% context usage, not reactively at the limit
-- **Use `/clear`** between unrelated tasks, or after 2+ failed correction attempts
+- **Start a new task** between unrelated workstreams or after repeated failed correction attempts
 - **Natural compaction points:** after writing a section to file, after committing,
   after completing a task, before starting a new topic
-- **Focused compaction:** `/compact Focus on [current task] — sections 1-3 are
-  written to file, working on section 4`
+- **Focused checkpoint:** record that sections 1-3 are written and section 4 is current
+  in `production/session-state/active.md` before compaction
 
 ## Context Budgets by Task Type
 

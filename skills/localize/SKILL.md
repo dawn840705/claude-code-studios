@@ -1,10 +1,6 @@
 ---
 name: localize
 description: "Full localization pipeline: scan for hardcoded strings, extract and manage string tables, validate translations, generate translator briefings, run cultural/sensitivity review, manage VO localization, test RTL/platform requirements, enforce string freeze, and report coverage."
-argument-hint: "[scan|extract|validate|status|brief|cultural-review|vo-pipeline|rtl-check|freeze|qa]"
-user-invocable: true
-agent: localization-lead
-allowed-tools: Read, Glob, Grep, Write, Bash, Task, AskUserQuestion
 ---
 
 # Localization Pipeline
@@ -107,7 +103,7 @@ String freeze: [Active / Not yet called / Lifted]
 | [locale] | [N] | [N] | [N] | [N] | [X]% |
 
 ### Issues
-- [N] hardcoded strings found in source code (run /localize scan)
+- [N] hardcoded strings found in source code (run $localize scan)
 - [N] strings exceeding character limits
 - [N] placeholder mismatches
 - [N] orphaned keys
@@ -179,7 +175,7 @@ Ask: "May I write this translator brief to `production/localization/translator-b
 
 ## Phase 2F: Cultural Review Mode
 
-Spawn `localization-lead` via Task. Ask them to audit the following for cultural sensitivity across the target locales (read from `assets/data/strings/` and `assets/`):
+Spawn `localization-lead` as a Codex subagent. Ask them to audit the following for cultural sensitivity across the target locales (read from `assets/data/strings/` and `assets/`):
 
 ### Content Areas to Review
 
@@ -276,7 +272,7 @@ Grep `src/` for VO audio references. Verify each referenced path exists in `asse
 Right-to-left languages (Arabic, Hebrew, Persian, Urdu) require layout mirroring beyond
 just translating text. This mode validates the implementation.
 
-Read `.claude/docs/technical-preferences.md` to determine the engine. Then check:
+Read `.codex/studio/technical-preferences.md` to determine the engine. Then check:
 
 **Layout mirroring**
 - Is RTL layout enabled in the engine? (Godot: `Control.layout_direction`, Unity: `RTL Support` package, Unreal: text direction flags)
@@ -326,12 +322,12 @@ Pre-Freeze Checklist
 [ ] All planned UI screens are implemented
 [ ] All dialogue lines are final (no further narrative revisions planned)
 [ ] All system strings (error messages, tutorial text) are complete
-[ ] /localize scan shows zero hardcoded strings
-[ ] /localize validate shows no placeholder mismatches in source (en)
+[ ] $localize scan shows zero hardcoded strings
+[ ] $localize validate shows no placeholder mismatches in source (en)
 [ ] Marketing strings (store description, achievements) are final
 ```
 
-Use `AskUserQuestion`:
+Ask the user directly:
 - Prompt: "Are all items above confirmed? Calling string freeze locks the source table."
 - Options: `[A] Yes — call string freeze now` / `[B] No — I still have strings to add`
 
@@ -346,7 +342,7 @@ If [A]: Write `production/localization/freeze-status.md`:
 **Total strings at freeze**: [N]
 
 ## Post-Freeze Changes
-[Any strings added or modified after freeze are listed here automatically by /localize extract]
+[Any strings added or modified after freeze are listed here automatically by $localize extract]
 ```
 
 ### freeze lift
@@ -366,10 +362,10 @@ Localization QA is a dedicated pass that runs after translations are delivered b
 before any locale ships. This is not the same as `/validate` (which checks completeness)
 — this is a structured playthrough-based quality check.
 
-Spawn `localization-lead` via Task with:
+Spawn `localization-lead` as a Codex subagent with:
 - The target locale(s) to QA
-- The list of all screens/flows in the game (from `design/gdd/` or `/content-audit` output)
-- The current `/localize validate` report
+- The list of all screens/flows in the game (from `design/gdd/` or `$content-audit` output)
+- The current `$localize validate` report
 - The cultural review report (if it exists)
 
 Ask the localization-lead to produce a QA plan covering:
@@ -425,16 +421,16 @@ Ask: "May I write this localization QA report to `production/localization/loc-qa
 ### Recommended Workflow
 
 ```
-/localize scan            → find hardcoded strings
-/localize extract         → build string table
-/localize freeze          → lock source before sending to translators
-/localize brief           → generate translator briefing document
+$localize scan            → find hardcoded strings
+$localize extract         → build string table
+$localize freeze          → lock source before sending to translators
+$localize brief           → generate translator briefing document
 [Send to translators]
-/localize validate        → check returned translations
-/localize cultural-review → flag culturally sensitive content
-/localize rtl-check       → if shipping Arabic / Hebrew / Persian
-/localize vo-pipeline     → if shipping dubbed VO
-/localize qa              → full localization QA pass
+$localize validate        → check returned translations
+$localize cultural-review → flag culturally sensitive content
+$localize rtl-check       → if shipping Arabic / Hebrew / Persian
+$localize vo-pipeline     → if shipping dubbed VO
+$localize qa              → full localization QA pass
 ```
 
-After `qa` returns PASS for all shipping locales, include the QA report path when running `/gate-check release`.
+After `qa` returns PASS for all shipping locales, include the QA report path when running `$gate-check release`.

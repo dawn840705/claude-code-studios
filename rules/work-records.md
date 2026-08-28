@@ -20,8 +20,8 @@
 | **`production/session-state/active.md`** | 지금 진행 중인 작업의 재개 지점 | 완료된 작업의 기록. 끝나면 내려간다 |
 | **회의록** (`docs/templates/meeting-template.md`) | **무엇을 결정했나** — 안건, 선택지, 결정, 근거 | 무엇을 배웠나 |
 | **레슨** (`Documents/Lessons/`, `rules/lesson-capture.md`) | **무엇을 배웠나** — 일반화되는 교훈. 실패 과정 포함 | 무엇을 결정했나. 회의록과 중복 OK, 관점이 다르다 |
-| **ADR** (`design/adr/`) | 기술 선택 하나와 그 대안·귀결 | 제품·운영 판단. 그쪽은 `CLAUDE.md` 고정 결정 절 (`rules/decision-lifecycle.md`) |
-| **리포트** (`/playtest-report`, `/sprint-status` 등) | 완결된 조사·측정 산출물 | 진행 중인 상태 |
+| **ADR** (`design/adr/`) | 기술 선택 하나와 그 대안·귀결 | 제품·운영 판단. 그쪽은 `AGENTS.md` 고정 결정 절 (`rules/decision-lifecycle.md`) |
+| **리포트** (`$playtest-report`, `$sprint-status` 등) | 완결된 조사·측정 산출물 | 진행 중인 상태 |
 | **CHANGELOG** | 릴리스 단위의 사용자향 변경 | 내부 리팩터링 이력 |
 | **`production/human-actions.md`** | 에이전트가 대행할 수 없는 일 (§ 2) | 에이전트가 할 수 있는데 아직 안 한 일. 그건 그냥 하거나 스토리로 만든다 |
 
@@ -60,13 +60,12 @@
 
 1. `production/human-actions.md` — 사람의 회신이 와 있으면 그것이 오늘의 첫 작업이다
 2. `production/session-state/active.md` — 중단된 작업의 재개 지점
-3. `CLAUDE.md` 의 고정 결정 절 — 다시 열지 않을 결정 (`rules/decision-lifecycle.md`)
+3. `AGENTS.md` 의 고정 결정 절 — 다시 열지 않을 결정 (`rules/decision-lifecycle.md`)
 
 `hooks/session-start.sh` 가 ①②의 존재를 감지해 세션 컨텍스트에 알린다. **훅은
 존재만 알리고 내용은 읽지 않는다** — 파일이 길면 컨텍스트를 먹고, 짧으면 어차피
 읽어야 한다.
 
-훅 출력에 의존하는 범위를 정확히 알아 둘 것: **SessionStart 훅의 stdout 은 exit 0
-일 때 모델 컨텍스트에 들어간다**(대화형·비대화형 동일). 반면 **PostToolUse 훅의
-stderr 는 exit 0 에서 모델에 닿지 않는다** — 디버그 로그로만 간다. 작업 중 권고를
-모델에 전달하려면 훅이 아니라 규칙이나 스킬 본문에 넣어야 한다.
+훅 출력에 의존하는 범위를 정확히 알아 둘 것: SessionStart의 모델 컨텍스트는
+`hookSpecificOutput.additionalContext`, PostToolUse 권고도 같은 필드로 전달한다.
+일반 stdout/stderr에만 쓴 텍스트가 모델에 들어간다고 가정하지 않는다.

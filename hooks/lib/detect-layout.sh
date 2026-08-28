@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Shared project-layout detection for claude-code-studios hooks.
+# Shared project-layout detection for codex-code-studios hooks.
 #
 # WHY THIS FILE EXISTS
 #   Hooks used to hardcode a lowercase web layout (src/, assets/, design/gdd/).
@@ -19,7 +19,7 @@
 # CONTRACT
 #   Sourced, never executed. Never exits, never writes to stdout/stderr
 #   (except when STUDIO_LAYOUT_DEBUG=1). Detection runs against $PWD, which for
-#   Claude Code hooks is the user's project root — not the plugin root.
+#   Codex hooks is the user's project root — not the plugin root.
 #
 # EXPORTED VARIABLES
 #   STUDIO_ENGINE        unity | godot | unreal | gamemaker | generic
@@ -49,8 +49,9 @@
 #      STUDIO_DESIGN_ROOTS / STUDIO_ASSET_ROOTS / STUDIO_ASSET_NAMING /
 #      STUDIO_PRODUCTION_ROOTS
 #      (colon-separated for the list-valued ones)
-#   2. .claude/studio-layout.json   — dedicated config, preferred
-#   3. .claude/settings.json        — "studio": { "layout": { ... } }
+#   2. .codex/studio-layout.json    — dedicated Codex project config
+#   3. .claude/studio-layout.json   — legacy transition fallback
+#   4. .claude/settings.json        — legacy transition fallback
 #   Keys: engine, srcRoots, srcExtensions, designRoots, assetRoots, assetNaming,
 #   productionRoots.
 #   List values accept a JSON array or a colon-separated string. Without jq
@@ -102,9 +103,13 @@ studio__json_get() {
     printf '%s' "$studio__jg_value"
 }
 
-# studio__config_get <leaf-key> — dedicated file first, then settings.json.
+# studio__config_get <leaf-key> — Codex file first, then legacy fallbacks.
 studio__config_get() {
     studio__cg_value=""
+    if studio__cg_value=$(studio__json_get ".codex/studio-layout.json" ".$1" "$1"); then
+        printf '%s' "$studio__cg_value"
+        return 0
+    fi
     if studio__cg_value=$(studio__json_get ".claude/studio-layout.json" ".$1" "$1"); then
         printf '%s' "$studio__cg_value"
         return 0

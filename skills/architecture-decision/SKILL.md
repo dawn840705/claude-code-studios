@@ -1,9 +1,6 @@
 ---
 name: architecture-decision
 description: "Creates an Architecture Decision Record (ADR) documenting a significant technical decision, its context, alternatives considered, and consequences. Every major technical choice should have an ADR."
-argument-hint: "[title] [--review full|lean|solo]"
-user-invocable: true
-allowed-tools: Read, Glob, Grep, Write, Task, AskUserQuestion
 ---
 
 When this skill is invoked:
@@ -15,16 +12,16 @@ Resolve the review mode (once, store for all gate spawns this run):
 2. Else read `production/review-mode.txt` → use that value
 3. Else → default to `lean`
 
-See `.claude/docs/director-gates.md` for the full check pattern.
+See `../../docs/director-gates.md` for the full check pattern.
 
 **If the argument starts with `retrofit` followed by a file path**
-(e.g., `/architecture-decision retrofit docs/architecture/adr-0001-event-system.md`):
+(e.g., `$architecture-decision retrofit docs/architecture/adr-0001-event-system.md`):
 
 Enter **retrofit mode**:
 
 1. Read the existing ADR file completely.
 2. Identify which template sections are present by scanning headings:
-   - `## Status` — **BLOCKING if missing**: `/story-readiness` cannot check ADR acceptance
+   - `## Status` — **BLOCKING if missing**: `$story-readiness` cannot check ADR acceptance
    - `## ADR Dependencies` — HIGH if missing: dependency ordering breaks
    - `## Engine Compatibility` — HIGH if missing: post-cutoff risk unknown
    - `## GDD Requirements Addressed` — MEDIUM if missing: traceability lost
@@ -55,7 +52,7 @@ Enter **retrofit mode**:
    - Append each missing section to the ADR file using the Edit tool.
    - **Never modify any existing section.** Only append or fill absent sections.
 6. After adding all missing sections, update the ADR's `## Date` field if it is absent.
-7. Suggest: "Run `/architecture-review` to re-validate coverage now that this ADR
+7. Suggest: "Run `$architecture-review` to re-validate coverage now that this ADR
    has its Status and Dependencies fields."
 
 If NOT in retrofit mode, proceed to Step 0 below (normal ADR authoring).
@@ -110,7 +107,7 @@ Before doing anything else, establish the engine environment:
    ```
 
    If no engine has been configured yet, prompt: "No engine is configured.
-   Run `/setup-engine` first, or tell me which engine you are using."
+   Run `$setup-engine` first, or tell me which engine you are using."
 
 ---
 
@@ -169,7 +166,7 @@ or explicitly accepted as an intentional exception.
 
 Before asking anything, derive the skill's best guesses from the context already
 gathered (GDDs read, engine reference loaded, existing ADRs scanned). Then present
-a **confirm/adjust** prompt using `AskUserQuestion` — not open-ended questions.
+a **confirm/adjust** prompt by asking the user directly — not open-ended questions.
 
 **Derive assumptions first:**
 - **Problem**: Infer from the title + GDD context what decision needs to be made
@@ -178,11 +175,11 @@ a **confirm/adjust** prompt using `AskUserQuestion` — not open-ended questions
 - **GDD linkage**: Extract which GDD systems the title directly relates to
 - **Status**: Always `Proposed` for new ADRs — never ask the user what the status is
 
-**Scope of assumptions tab**: Assumptions cover only: problem framing, alternative approaches, upstream dependencies, GDD linkage, and status. Schema design questions (e.g., "How should spawn timing work?", "Should data be inline or external?") are NOT assumptions — they are design decisions belonging to a separate step after the assumptions are confirmed. Do not include schema design questions in the assumptions AskUserQuestion widget.
+**Scope of assumptions tab**: Assumptions cover only: problem framing, alternative approaches, upstream dependencies, GDD linkage, and status. Schema design questions (e.g., "How should spawn timing work?", "Should data be inline or external?") are NOT assumptions — they are design decisions belonging to a separate step after the assumptions are confirmed. Do not include schema design questions in the assumptions direct user question widget.
 
-**After assumptions are confirmed**, if the ADR involves schema or data design choices, use a separate multi-tab `AskUserQuestion` to ask each design question independently before drafting.
+**After assumptions are confirmed**, if the ADR involves schema or data design choices, use a separate multi-tab a direct user question to ask each design question independently before drafting.
 
-**Present assumptions with `AskUserQuestion`:**
+**Present assumptions with a direct user question:**
 
 ```
 Here's what I'm assuming before drafting:
@@ -206,7 +203,7 @@ Status: Proposed
 Do not generate the ADR until the user confirms assumptions or provides corrections.
 
 **After engine specialist and TD reviews return** (Step 4.5/4.6), if unresolved
-decisions remain, present each one as a separate `AskUserQuestion` with the proposed
+decisions remain, present each one as a separate a direct user question with the proposed
 options as choices plus a free-text escape:
 
 ```
@@ -334,8 +331,8 @@ to implement it.]
 - [Links to related design documents]
 ```
 
-4.5. **Engine Specialist Validation** — Before saving, spawn the **primary engine specialist** via Task to validate the drafted ADR:
-   - Read `.claude/docs/technical-preferences.md` `Engine Specialists` section to get the primary specialist
+4.5. **Engine Specialist Validation** — Before saving, spawn the **primary engine specialist** as a Codex subagent to validate the drafted ADR:
+   - Read `.codex/studio/technical-preferences.md` `Engine Specialists` section to get the primary specialist
    - If no engine is configured (`[TO BE CONFIGURED]`), skip this step
    - Spawn `subagent_type: [primary specialist]` with: the ADR's Engine Compatibility section, Decision section, Key Interfaces, and the engine reference docs path. Ask them to:
      1. Confirm the proposed approach is idiomatic for the pinned engine version
@@ -349,7 +346,7 @@ to implement it.]
 - `lean` → skip (not a PHASE-GATE). Note: "TD-ADR skipped — Lean mode." Proceed to Step 4.7 (GDD sync check).
 - `full` → spawn as normal.
 
-4.6. **Technical Director Strategic Review** — After the engine specialist validation, spawn `technical-director` via Task using gate **TD-ADR** (`.claude/docs/director-gates.md`):
+4.6. **Technical Director Strategic Review** — After the engine specialist validation, spawn `technical-director` as a Codex subagent using gate **TD-ADR** (`../../docs/director-gates.md`):
    - Pass: the ADR file path (or draft content), engine version, domain, any existing ADRs in the same domain
    - The TD validates architectural coherence (is this decision consistent with the whole system?) — distinct from the engine specialist's API-level check
    - If CONCERNS or REJECT: revise the Decision or Alternatives sections accordingly before proceeding
@@ -371,7 +368,7 @@ developers reading the GDD from implementing the wrong interface.
 
 If no inconsistencies: skip this block silently.
 
-5. **Write approval** — Use `AskUserQuestion`:
+5. **Write approval** — Ask the user directly:
 
 If GDD sync issues were found:
 - "ADR draft is complete. How would you like to proceed?"
@@ -414,7 +411,7 @@ Registry candidates from this ADR:
 
 **BLOCKING — do not write to `docs/registry/architecture.yaml` without explicit user approval.**
 
-Ask using `AskUserQuestion`:
+Ask by asking the user directly:
 - "May I update `docs/registry/architecture.yaml` with these [N] new stances?"
   - Options: "Yes — update the registry", "Not yet — I want to review the candidates", "Skip registry update"
 
@@ -425,7 +422,7 @@ changing, set the old entry to `status: superseded_by: ADR-[NNNN]` and add the n
 
 ## 7. Closing Next Steps
 
-After the ADR is written (and registry optionally updated), close with `AskUserQuestion`.
+After the ADR is written (and registry optionally updated), close with a direct user question.
 
 Before generating the widget:
 1. Read `docs/registry/architecture.yaml` — check if any priority ADRs are still unwritten (look for ADRs flagged in technical-preferences.md or systems-index.md as prerequisites)
@@ -437,18 +434,18 @@ Widget format:
 ADR-[NNNN] written and registry updated. What would you like to do next?
 [1] Write [next-priority-adr-name] — [brief description from prerequisites list]
 [2] Write [another-priority-adr] — [brief description]  (include ALL remaining ones)
-[N] Start writing GDDs — run `/design-system [first-undesigned-system]` (only show if all prerequisite ADRs are written)
+[N] Start writing GDDs — run `$design-system [first-undesigned-system]` (only show if all prerequisite ADRs are written)
 [N+1] Stop here for this session
 ```
 
-If there are no remaining priority ADRs and no undesigned GDD systems, offer only "Stop here" and suggest running `/architecture-review` in a fresh session.
+If there are no remaining priority ADRs and no undesigned GDD systems, offer only "Stop here" and suggest running `$architecture-review` in a fresh session.
 
 **Always include this fixed notice in the closing output (do NOT omit it):**
 
-> To validate ADR coverage against your GDDs, open a **fresh Claude Code session**
-> and run `/architecture-review`.
+> To validate ADR coverage against your GDDs, open a **fresh Codex session**
+> and run `$architecture-review`.
 >
-> **Never run `/architecture-review` in the same session as `/architecture-decision`.**
+> **Never run `$architecture-review` in the same session as `$architecture-decision`.**
 > The reviewing agent must be independent of the authoring context to give an unbiased
 > assessment. Running it here would invalidate the review.
 

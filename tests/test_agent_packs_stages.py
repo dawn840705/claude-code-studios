@@ -1,8 +1,7 @@
 """docs/agent-packs.yaml `stages:` 와 docs/workflow-catalog.yaml phase 의 정합 검사.
 
-v0.6.3 에서 스테이지별 에이전트 배정을 CLAUDE.md 본문에서 agent-packs.yaml 로
-옮겼다. 그 결과 CLAUDE.md 는 "현재 phase 는 check_phase.py 에게 묻고, 그 phase 의
-담당 에이전트는 agent-packs.yaml 에서 찾아라" 라는 **조인**을 지시한다.
+스테이지별 역할 배정은 agent-packs.yaml, 현재 phase는 workflow-catalog.yaml의
+결정론적 검사에서 나온다. `$studio-orchestrator`는 두 파일을 조인한다.
 
 조인은 양쪽 키가 같을 때만 성립한다. 초안은 스테이지를 5개만 적어서
 concept·systems-design·technical-setup·architecture 가 비어 있었고, 그 상태에서
@@ -22,7 +21,9 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 _ROOT = os.path.dirname(_HERE)
 PACKS = os.path.join(_ROOT, "docs", "agent-packs.yaml")
 CATALOG = os.path.join(_ROOT, "docs", "workflow-catalog.yaml")
-AGENTS_DIR = os.path.join(_ROOT, "agents")
+ROLES_DIR = os.path.join(
+    _ROOT, "skills", "studio-orchestrator", "references", "roles"
+)
 
 TRACKS = ("game", "product")
 
@@ -123,19 +124,19 @@ class TestStageKeysMatchCatalog(unittest.TestCase):
                     f"{track}.{stage}: primary 가 비어 있다 — 담당자 없는 스테이지",
                 )
 
-    def test_all_referenced_agents_exist(self):
-        existing = {f[:-3] for f in os.listdir(AGENTS_DIR) if f.endswith(".md")}
+    def test_all_referenced_roles_exist(self):
+        existing = {f[:-3] for f in os.listdir(ROLES_DIR) if f.endswith(".md")}
         for track in TRACKS:
             for stage, roles in self.packs[track].items():
                 for kind in ("primary", "support"):
                     for name in roles[kind]:
                         self.assertIn(
                             name, existing,
-                            f"{track}.{stage}.{kind}: 존재하지 않는 에이전트 {name}",
+                            f"{track}.{stage}.{kind}: 존재하지 않는 역할 가이드 {name}",
                         )
 
     def test_pack_discipline_is_not_violated_by_staffing(self):
-        """game 스테이지에 product 전용 에이전트가 섞이면 CLAUDE.md 규칙과 모순된다."""
+        """game 스테이지에 product 전용 역할이 섞이면 팩 규칙과 모순된다."""
         text = _read(PACKS)
         def members(pack: str) -> set[str]:
             blk = text.split(f"\n  {pack}:", 1)[1]

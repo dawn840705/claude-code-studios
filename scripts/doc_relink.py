@@ -251,7 +251,7 @@ def main() -> int:
                        help="docs directory relative to root (default: Documents)")
         p.add_argument("--extra", action="append", default=[],
                        help="extra file or directory (relative to root) to scan, repeatable "
-                            "(e.g. CLAUDE.md, .claude/commands)")
+                            "(e.g. Code Studios policy, skills)")
 
     p_check = sub.add_parser("check", help="report broken relative links")
     common(p_check)

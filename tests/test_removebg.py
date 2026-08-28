@@ -1,7 +1,7 @@
 """Tests for scripts/removebg.py — the deterministic remove.bg gate.
 
 The point of these tests is the **exit-code contract**, because that is what
-`/remove-bg` reads instead of parsing stdout:
+`$remove-bg` reads instead of parsing stdout:
 
     0  every requested image processed
     1  partial failure, or nothing processed because everything was skipped
