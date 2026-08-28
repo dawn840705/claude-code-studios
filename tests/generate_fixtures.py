@@ -9,7 +9,7 @@
     python3 generate_fixtures.py fx_b_heavy ...   # 특정 id만
     python3 generate_fixtures.py --dry-run --all  # 파일 안 쓰고 결과만 출력
 
-`codex` CLI 인증 필요. 비결정적이라 생성 후 변경률/시그널을 사람이 한 번 확인 권장.
+`claude` CLI 필요(구독 인증). 비결정적이라 생성 후 변경률/시그널을 사람이 한 번 확인 권장.
 """
 from __future__ import annotations
 
@@ -34,8 +34,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--strict", action="store_true", help="strict 파이프라인으로 생성")
     args = ap.parse_args(argv)
 
-    if hr.CODEX_BIN is None:
-        print("ERROR: codex CLI 없음 — 생성 불가", file=sys.stderr)
+    if hr.CLAUDE_BIN is None:
+        print("ERROR: claude CLI 없음 — 생성 불가", file=sys.stderr)
         return 2
 
     with open(_PATH, encoding="utf-8") as f:

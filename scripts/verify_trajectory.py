@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Golden-trajectory gate for the plugin's own routing.
 
-`$regression-suite` manages tests for the *user's product*. Nothing has ever
+`/regression-suite` manages tests for the *user's product*. Nothing has ever
 regression-tested **the plugin's own behaviour** — and that behaviour is not
 written in any one file. It is a *join*:
 

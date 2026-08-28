@@ -1,6 +1,10 @@
 ---
 name: security-audit
 description: "Audit the game for security vulnerabilities: save tampering, cheat vectors, network exploits, data exposure, and input validation gaps. Produces a prioritised security report with remediation guidance. Run before any public release or multiplayer launch."
+argument-hint: "[full | network | save | input | quick]"
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Bash, Write, Task
+agent: security-engineer
 ---
 
 > **Track check — this skill is game-framed.** Resolve `production/track.txt` (or the
@@ -9,7 +13,7 @@ description: "Audit the game for security vulnerabilities: save tampering, cheat
 > - **`game`** — run as written.
 > - **`product`** (web / mobile / service) — substitute as you read: player becomes user,
 >   game becomes product, GDD becomes PRD (`design/gdd/` → `product/prd/`), engine becomes
->   the stack pinned in `.codex/studio/technical-preferences.md`. Save tampering and cheat vectors do not apply. Audit authn/authz, injection (SQL / XSS / SSRF), secrets in the repo and in transit, PII handling and retention, dependency CVEs, and rate limiting.
+>   the stack pinned in `.claude/docs/technical-preferences.md`. Save tampering and cheat vectors do not apply. Audit authn/authz, injection (SQL / XSS / SSRF), secrets in the repo and in transit, PII handling and retention, dependency CVEs, and rate limiting.
 > - **Unresolved** — ask which track this is before doing anything. A greenfield project
 >   has no signal either way; do not infer one from the repository contents.
 
@@ -41,7 +45,7 @@ remediation plan.
 - `quick` — high-severity checks only (fastest, for iterative use)
 - No argument — run `full`
 
-Read `.codex/studio/technical-preferences.md` to determine:
+Read `.claude/docs/technical-preferences.md` to determine:
 - Engine and language (affects which patterns to search for)
 - Target platforms (affects which attack surfaces apply)
 - Whether multiplayer/networking is in scope
@@ -50,7 +54,7 @@ Read `.codex/studio/technical-preferences.md` to determine:
 
 ## Phase 2: Spawn Security Engineer
 
-Spawn `security-engineer` as a Codex subagent. Pass:
+Spawn `security-engineer` via Task. Pass:
 - The audit scope/mode
 - Engine and language from technical preferences
 - A manifest of all source directories: `src/`, `assets/data/`, any config files
@@ -139,7 +143,7 @@ For each finding, assign:
 **Date**: [date]
 **Scope**: [full | network | save | input | quick]
 **Engine**: [engine + version]
-**Audited by**: security-engineer via $security-audit
+**Audited by**: security-engineer via /security-audit
 **Files scanned**: [N source files, N config files]
 
 ---
@@ -212,7 +216,7 @@ For each finding, assign:
 
 ## Re-Audit Trigger
 
-Run `$security-audit` again after remediating any CRITICAL or HIGH findings.
+Run `/security-audit` again after remediating any CRITICAL or HIGH findings.
 The Polish → Release gate requires this report with no open CRITICAL or HIGH items.
 ```
 
@@ -232,13 +236,13 @@ Write only after approval.
 
 This report is a required artifact for the **Polish → Release gate**.
 
-After remediating findings, re-run: `$security-audit quick` to confirm CRITICAL/HIGH items are resolved before running `$gate-check release`.
+After remediating findings, re-run: `/security-audit quick` to confirm CRITICAL/HIGH items are resolved before running `/gate-check release`.
 
 If CRITICAL findings exist:
-> "⛔ CRITICAL security findings must be resolved before any public release. Do not proceed to `$launch-checklist` until these are addressed."
+> "⛔ CRITICAL security findings must be resolved before any public release. Do not proceed to `/launch-checklist` until these are addressed."
 
 If no CRITICAL/HIGH findings:
-> "✅ No blocking security findings. Report written to `production/security/`. Include this path when running `$gate-check release`."
+> "✅ No blocking security findings. Report written to `production/security/`. Include this path when running `/gate-check release`."
 
 ---
 

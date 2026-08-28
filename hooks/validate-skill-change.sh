@@ -1,23 +1,39 @@
-#!/usr/bin/env bash
-# Codex PostToolUse hook: remind the agent to validate changed plugin skills.
+#!/bin/bash
+# Claude Code PostToolUse hook: Advises running skill-test after skill file changes
+# Fires when any file inside .claude/skills/ is written or edited.
+#
+# Exit behavior:
+#   exit 0 = advisory only (non-blocking)
+#
+# Input schema (PostToolUse for Write|Edit):
+# { "tool_name": "Write", "tool_input": { "file_path": "...", "content": "..." } }
 
-set +e
 INPUT=$(cat)
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-[ -f "$SCRIPT_DIR/lib/hook-io.sh" ] || exit 0
-# shellcheck source=lib/hook-io.sh
-. "$SCRIPT_DIR/lib/hook-io.sh"
 
-PATHS=$(studio_extract_changed_paths "$INPUT")
-[ -n "$PATHS" ] || exit 0
+# Parse file path -- use jq if available, fall back to grep
+if command -v jq >/dev/null 2>&1; then
+    FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
+else
+    FILE_PATH=$(echo "$INPUT" | grep -oE '"file_path"[[:space:]]*:[[:space:]]*"[^"]*"' | sed 's/"file_path"[[:space:]]*:[[:space:]]*"//;s/"$//')
+fi
 
-SKILLS=$(printf '%s\n' "$PATHS" \
-    | sed -nE 's#(^|.*/)skills/([^/]+)/SKILL\.md$#\2#p' \
-    | awk 'NF && !seen[$0]++')
+# Normalize path separators (Windows backslash to forward slash)
+FILE_PATH=$(echo "$FILE_PATH" | sed 's|\\|/|g')
 
-[ -n "$SKILLS" ] || exit 0
+# Only act on files inside .claude/skills/
+if ! echo "$FILE_PATH" | grep -qE '(^|/)\.claude/skills/'; then
+    exit 0
+fi
 
-NAMES=$(printf '%s' "$SKILLS" | tr '\n' ' ' | sed 's/[[:space:]]*$//')
-studio_emit_additional_context "Code Studios skill modified: $NAMES. Run \\$skill-test static for each changed skill and validate its SKILL.md with the Codex skill validator."
+# Extract skill name from path (.claude/skills/[skill-name]/SKILL.md)
+SKILL_NAME=$(echo "$FILE_PATH" | grep -oE '\.claude/skills/[^/]+' | sed 's|\.claude/skills/||')
+
+if [ -z "$SKILL_NAME" ]; then
+    exit 0
+fi
+
+echo "=== Skill Modified: $SKILL_NAME ===" >&2
+echo "Run /skill-test static $SKILL_NAME to validate structural compliance." >&2
+echo "====================================" >&2
 
 exit 0

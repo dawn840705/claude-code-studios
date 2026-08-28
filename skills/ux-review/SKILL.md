@@ -1,6 +1,10 @@
 ---
 name: ux-review
 description: "Validates a UX spec, HUD design, or interaction pattern library for completeness, accessibility compliance, GDD alignment, and implementation readiness. Produces APPROVED / NEEDS REVISION / MAJOR REVISION NEEDED verdict with specific gaps."
+argument-hint: "[file-path or 'all' or 'hud' or 'patterns']"
+user-invocable: true
+allowed-tools: Read, Glob, Grep
+agent: ux-designer
 ---
 
 > **Track check — this skill is game-framed.** Resolve `production/track.txt` (or the
@@ -9,7 +13,7 @@ description: "Validates a UX spec, HUD design, or interaction pattern library fo
 > - **`game`** — run as written.
 > - **`product`** (web / mobile / service) — substitute as you read: player becomes user,
 >   game becomes product, GDD becomes PRD (`design/gdd/` → `product/prd/`), engine becomes
->   the stack pinned in `.codex/studio/technical-preferences.md`. Validate against the PRD. "Accessibility tier" means WCAG 2.1 AA conformance, not controller remapping and subtitle scaling.
+>   the stack pinned in `.claude/docs/technical-preferences.md`. Validate against the PRD. "Accessibility tier" means WCAG 2.1 AA conformance, not controller remapping and subtitle scaling.
 > - **Unresolved** — ask which track this is before doing anything. A greenfield project
 >   has no signal either way; do not infer one from the repository contents.
 
@@ -17,10 +21,10 @@ description: "Validates a UX spec, HUD design, or interaction pattern library fo
 
 Validates UX design documents before they enter the implementation pipeline.
 Acts as the quality gate between UX Design and Visual Design/Implementation in
-the `$team-ui` pipeline.
+the `/team-ui` pipeline.
 
 **Run this skill:**
-- After completing a UX spec with `$ux-design`
+- After completing a UX spec with `/ux-design`
 - Before handing off to `ui-programmer` or `art-director`
 - Before the Pre-Production to Production gate check (which requires key screens
   to have reviewed UX specs)
@@ -36,7 +40,7 @@ the `$team-ui` pipeline.
 
 ## Phase 1: Parse Arguments
 
-- **Specific file path** (e.g., `$ux-review design/ux/inventory.md`): validate
+- **Specific file path** (e.g., `/ux-review design/ux/inventory.md`): validate
   that one document
 - **`all`**: find all files in `design/ux/` and validate each
 - **`hud`**: validate `design/ux/hud.md` specifically
@@ -52,7 +56,7 @@ full detail for each.
 
 Before validating any spec, load:
 
-1. **Input & Platform config**: Read `.codex/studio/technical-preferences.md` and
+1. **Input & Platform config**: Read `.claude/docs/technical-preferences.md` and
    extract `## Input & Platform`. This is the authoritative source for which input
    methods the game supports — use it to drive the Input Method Coverage checks in
    Phase 3A, not the spec's own header. If unconfigured, fall back to the spec header.
@@ -239,14 +243,14 @@ Run all checks against a `hud-design.md`-based document.
 **Blocking issues**: [N] — must be resolved before implementation
 **Advisory issues**: [N] — recommended but not blocking
 
-[For APPROVED]: This spec is ready for handoff to `$team-ui` Phase 2
+[For APPROVED]: This spec is ready for handoff to `/team-ui` Phase 2
 (Visual Design).
 
 [For NEEDS REVISION]: Address the [N] blocking issues above, then re-run
-`$ux-review`.
+`/ux-review`.
 
 [For MAJOR REVISION NEEDED]: The spec has fundamental gaps in [areas].
-Recommend returning to `$ux-design` to rework [sections].
+Recommend returning to `/ux-design` to rework [sections].
 ```
 
 ---
@@ -256,11 +260,11 @@ Recommend returning to `$ux-design` to rework [sections].
 This skill is READ-ONLY — it never edits or writes files. It reports findings only.
 
 After delivering the verdict:
-- For **APPROVED**: suggest running `$team-ui` to begin implementation coordination
+- For **APPROVED**: suggest running `/team-ui` to begin implementation coordination
 - For **NEEDS REVISION**: offer to help fix specific gaps ("Would you like me to
   help draft the missing error state?") — but do not auto-fix; wait for user
   instruction
-- For **MAJOR REVISION NEEDED**: suggest returning to `$ux-design` with the
+- For **MAJOR REVISION NEEDED**: suggest returning to `/ux-design` with the
   specific sections to rework
 
 Never block the user from proceeding — the verdict is advisory. Document risks,

@@ -1,6 +1,9 @@
 ---
 name: story-done
 description: "End-of-story completion review. Reads the story file, verifies each acceptance criterion against the implementation, checks for GDD/ADR deviations, prompts code review, updates story status to Complete, and surfaces the next ready story from the sprint."
+argument-hint: "[story-file-path] [--review full|lean|solo]"
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Bash, Edit, AskUserQuestion, Task
 ---
 
 > **Track check — this skill is game-framed.** Resolve `production/track.txt` (or the
@@ -9,7 +12,7 @@ description: "End-of-story completion review. Reads the story file, verifies eac
 > - **`game`** — run as written.
 > - **`product`** (web / mobile / service) — substitute as you read: player becomes user,
 >   game becomes product, GDD becomes PRD (`design/gdd/` → `product/prd/`), engine becomes
->   the stack pinned in `.codex/studio/technical-preferences.md`. Check deviations against the PRD and the ADRs, not a GDD.
+>   the stack pinned in `.claude/docs/technical-preferences.md`. Check deviations against the PRD and the ADRs, not a GDD.
 > - **Unresolved** — ask which track this is before doing anything. A greenfield project
 >   has no signal either way; do not infer one from the repository contents.
 
@@ -32,9 +35,9 @@ Resolve the review mode (once, store for all gate spawns this run):
 2. Else read `production/review-mode.txt` → use that value
 3. Else → default to `lean`
 
-See `../../docs/director-gates.md` for the full check pattern.
+See `.claude/docs/director-gates.md` for the full check pattern.
 
-**If a file path is provided** (e.g., `$story-done production/epics/core/story-damage-calculator.md`):
+**If a file path is provided** (e.g., `/story-done production/epics/core/story-damage-calculator.md`):
 read that file directly.
 
 **If no argument is provided:**
@@ -42,7 +45,7 @@ read that file directly.
 1. Check `production/session-state/active.md` for the currently active story.
 2. If not found there, read the most recent file in `production/sprints/` and
    look for stories marked IN PROGRESS.
-3. If multiple in-progress stories are found, ask the user directly:
+3. If multiple in-progress stories are found, use `AskUserQuestion`:
    - "Which story are we completing?"
    - Options: list the in-progress story file names.
 4. If no story can be found, ask the user to provide the path.
@@ -92,13 +95,13 @@ three methods:
   that should be in localization files.
 - **Dependency check**: if a criterion says "depends on X", check that X exists.
 
-### Manual verification with confirmation (ask the user directly)
+### Manual verification with confirmation (use `AskUserQuestion`)
 
 - Criteria about subjective qualities ("feels responsive", "animations play correctly")
 - Criteria about gameplay behaviour ("player takes damage when...", "enemy responds to...")
 - Performance criteria ("completes within Xms") — ask if profiled or accept as assumed
 
-Batch up to 4 manual verification questions into a single a direct user question call:
+Batch up to 4 manual verification questions into a single `AskUserQuestion` call:
 
 ```
 question: "Does [criterion]?"
@@ -122,7 +125,7 @@ For each acceptance criterion in the story:
    - **Unit test**: check `tests/unit/` for a test file or function name that
      matches the criterion's subject (use `Glob` and `Grep`)
    - **Integration test**: check `tests/integration/` similarly
-   - **Manual confirmation**: if the criterion was verified by asking the user directly
+   - **Manual confirmation**: if the criterion was verified via `AskUserQuestion`
      above with a "Yes — passes" answer, count that as a manual test
 
 2. Produce a traceability table:
@@ -180,7 +183,7 @@ referencing this story. If none: flag as **ADVISORY** —
 using the test-evidence template and obtain sign-off before final closure."
 
 **For Config/Data stories**: check for any `production/qa/smoke-*.md` file.
-If none: flag as **ADVISORY** — "No smoke check report found. Run `$smoke-check`."
+If none: flag as **ADVISORY** — "No smoke check report found. Run `/smoke-check`."
 
 **If no Story Type is set**: flag as **ADVISORY** —
 "Story Type not declared. Add `Type: [Logic|Integration|Visual/Feel|UI|Config/Data]`
@@ -208,7 +211,7 @@ Run these checks automatically:
    - If they match → pass silently.
    - If the story's version is older → flag as ADVISORY:
      `ADVISORY: Story was written against manifest v[story-date]; current manifest
-     is v[current-date]. New rules may apply. Run $story-readiness to check.`
+     is v[current-date]. New rules may apply. Run /story-readiness to check.`
    - If control-manifest.md does not exist → skip this check.
 
 3. **ADR constraints check**: Read the referenced ADR's Decision section. Check
@@ -239,7 +242,7 @@ For each deviation found, categorize:
 - `lean` → skip (not a PHASE-GATE). Note: "QL-TEST-COVERAGE skipped — Lean mode." Proceed to Phase 5.
 - `full` → spawn as normal.
 
-After completing the deviation checks in Phase 4, spawn `qa-lead` as a Codex subagent using gate **QL-TEST-COVERAGE** (`../../docs/director-gates.md`).
+After completing the deviation checks in Phase 4, spawn `qa-lead` via Task using gate **QL-TEST-COVERAGE** (`.claude/docs/director-gates.md`).
 
 Pass:
 - The story file path and story type
@@ -265,11 +268,11 @@ Skip this phase for Config/Data stories (no code tests required).
 - `lean` → skip (not a PHASE-GATE). Note: "LP-CODE-REVIEW skipped — Lean mode." Proceed to Phase 6 (completion report).
 - `full` → spawn as normal.
 
-Spawn `lead-programmer` as a Codex subagent using gate **LP-CODE-REVIEW** (`../../docs/director-gates.md`).
+Spawn `lead-programmer` via Task using gate **LP-CODE-REVIEW** (`.claude/docs/director-gates.md`).
 
 Pass: implementation file paths, story file path, relevant GDD section, governing ADR.
 
-Present the verdict to the user. If CONCERNS, surface them by asking the user directly:
+Present the verdict to the user. If CONCERNS, surface them via `AskUserQuestion`:
 - Options: `Revise flagged issues` / `Accept and proceed` / `Discuss further`
 If REJECT, do not proceed to Phase 6 verdict until the issues are resolved.
 
@@ -291,11 +294,11 @@ Run the policy axis. It is independent of the completion axis — neither
 overrides the other, and both are reported.
 
 ```bash
-python3 ../../scripts/verify_policy.py --story [story-file-path]
+python3 "${CLAUDE_PLUGIN_ROOT:-.claude}/scripts/verify_policy.py" --story [story-file-path]
 ```
 
 **Read the exit code. Do not re-derive the verdict from the output** — see
-`../../docs/deterministic-gates.md`.
+`.claude/docs/deterministic-gates.md`.
 
 | Exit | Meaning | What to do |
 |---|---|---|
@@ -403,7 +406,7 @@ If yes, edit the story file:
 After updating the story file, silently append to
 `production/session-state/active.md`:
 
-    ## Session Extract — $story-done [date]
+    ## Session Extract — /story-done [date]
     - Verdict: [COMPLETE / COMPLETE WITH NOTES / BLOCKED]
     - Story: [story file path] — [story title]
     - Tech debt logged: [N items, or "None"]
@@ -432,7 +435,7 @@ The following stories are ready to pick up:
 1. [Story name] — [1-line description] — Est: [X hrs]
 2. [Story name] — [1-line description] — Est: [X hrs]
 
-Run `$story-readiness [path]` to confirm a story is implementation-ready
+Run `/story-readiness [path]` to confirm a story is implementation-ready
 before starting.
 ```
 
@@ -444,11 +447,11 @@ If no more Must Have stories remain in this sprint (all are Complete or Blocked)
 All Must Have stories are complete. QA sign-off is required before advancing.
 Run these in order:
 
-1. `$smoke-check sprint` — verify the critical path still works end-to-end
-2. `$team-qa sprint` — full QA cycle: test case execution, bug triage, sign-off report
-3. `$gate-check` — advance to the next phase once QA approves
+1. `/smoke-check sprint` — verify the critical path still works end-to-end
+2. `/team-qa sprint` — full QA cycle: test case execution, bug triage, sign-off report
+3. `/gate-check` — advance to the next phase once QA approves
 
-Do not run `$gate-check` until `$team-qa` returns APPROVED or APPROVED WITH CONDITIONS.
+Do not run `/gate-check` until `/team-qa` returns APPROVED or APPROVED WITH CONDITIONS.
 ```
 
 If there are Should Have stories still unstarted, surface them alongside the close-out sequence so the user can choose: close the sprint now, or pull in more work first.
@@ -467,13 +470,13 @@ If no more stories are ready but Must Have stories are still In Progress (not Co
   decides if they are acceptable.
 - **BLOCKED verdict is advisory** — the user can override and mark complete
   anyway; document the risk explicitly if they do.
-- Ask the user directly for the code review prompt and for batching manual
+- Use `AskUserQuestion` for the code review prompt and for batching manual
   criteria confirmations.
 
 ---
 
 ## Recommended Next Steps
 
-- Run `$story-readiness [next-story-path]` to validate the next story before starting implementation
-- If all Must Have stories are complete: run `$smoke-check sprint` → `$team-qa sprint` → `$gate-check`
-- If tech debt was logged: track it via `$tech-debt` to keep the register current
+- Run `/story-readiness [next-story-path]` to validate the next story before starting implementation
+- If all Must Have stories are complete: run `/smoke-check sprint` → `/team-qa sprint` → `/gate-check`
+- If tech debt was logged: track it via `/tech-debt` to keep the register current

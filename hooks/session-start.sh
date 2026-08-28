@@ -1,11 +1,10 @@
 #!/bin/bash
-# Codex SessionStart hook: load project context at session start
+# Claude Code SessionStart hook: Load project context at session start
+# Outputs context information that Claude sees when a session begins
 #
 # Input schema (SessionStart): No stdin input
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-echo "=== Code Studios — Codex Session Context ==="
+echo "=== Claude Code Game Studios — Session Context ==="
 
 # Current branch
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
@@ -94,7 +93,7 @@ echo "=== Self-Loop Rule (always active) ==="
 echo "Deliverables with clear quality criteria are NOT one-shot. Iterate:"
 echo "  plan -> execute -> score each criterion 1-10 (strict, evidence-cited) -> all >=8 ? done : fix lowest first"
 echo "Guards: scores of 8+ require quoted evidence | max 5 iterations | stop+report after 2 stalled rounds."
-echo "Full protocol: ${SCRIPT_DIR}/../rules/self-loop.md. Explicit run: \$self-loop"
+echo "Full protocol: rules/self-loop.md in this plugin. Explicit run: /self-loop"
 echo "Scoring order: if a script can decide a criterion, its EXIT CODE sets the score — not your judgment."
 
 # --- Route hint (call-count routing; applies to every project) ---
@@ -102,7 +101,7 @@ echo ""
 echo "=== Route Hint (always active) ==="
 echo "Pick a route BEFORE spawning: light = handle it yourself (0 agents) | standard = 1 specialist | heavy = fan-out + gates"
 echo "Savings come from FEWER CALLS, not a cheaper model. Splitting is the last resort — measured: 7 chunks 610K tok vs 134K single call, equal quality."
-echo "Tied between two routes? Take the lighter one. Full rule: ${SCRIPT_DIR}/../rules/route-hint.md"
+echo "Tied between two routes? Take the lighter one. Full rule: rules/route-hint.md"
 
 # --- Lesson Ledger (교육용 노하우 원장) ---
 LESSON_DIR="Documents/Lessons"
@@ -111,11 +110,11 @@ if [ -d "$LESSON_DIR" ]; then
     LATEST_LESSON=$(ls -t "$LESSON_DIR"/LES-*.md 2>/dev/null | head -1)
     echo ""
     echo "Lesson Ledger: $LESSON_COUNT lessons recorded$([ -n "$LATEST_LESSON" ] && echo ", latest: $(basename "$LATEST_LESSON" .md)")"
-    echo "  (교육 자료 원칙: 함정 반복/설계 구멍/뒤집힌 가정/도구 함정/기획 패턴 발생 시 \$lesson-log 로 기록)"
+    echo "  (교육 자료 원칙: 함정 반복/설계 구멍/뒤집힌 가정/도구 함정/기획 패턴 발생 시 /lesson-log 로 기록)"
 else
     echo ""
     echo "Lesson Ledger: not initialized — this studio treats every project as teaching material."
-    echo "  First lesson-worthy moment: run \$lesson-log to create Documents/Lessons/ (${SCRIPT_DIR}/../rules/lesson-capture.md)"
+    echo "  First lesson-worthy moment: run /lesson-log to create Documents/Lessons/ (rules/lesson-capture.md)"
 fi
 
 echo "==================================="

@@ -1,6 +1,10 @@
 ---
 name: content-audit
 description: "Audit GDD-specified content counts against implemented content. Identifies what's planned vs built."
+argument-hint: "[system-name | --summary | (no arg = full audit)]"
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Write
+agent: producer
 ---
 
 When this skill is invoked:
@@ -178,12 +182,12 @@ After writing the report, ask:
 > "Would you like to create backlog stories for any of the content gaps?"
 
 If yes: for each system the user selects, suggest a story title and point them
-to `$create-stories [epic-slug]` or `$quick-design` depending on the size of the gap.
+to `/create-stories [epic-slug]` or `/quick-design` depending on the size of the gap.
 
 ### --summary mode
 
 Print the Gap Table and Summary directly to conversation. Do not write a file.
-End with: "Run `$content-audit` without `--summary` to write the full report."
+End with: "Run `/content-audit` without `--summary` to write the full report."
 
 ---
 
@@ -191,10 +195,10 @@ End with: "Run `$content-audit` without `--summary` to write the full report."
 
 After the audit, recommend the highest-value follow-up actions:
 
-- If any system is `NOT STARTED` and MVP-tagged → "Run `$design-system [name]` to
+- If any system is `NOT STARTED` and MVP-tagged → "Run `/design-system [name]` to
   add missing content counts to the GDD before implementation begins."
-- If total gap is >50% → "Run `$sprint-plan` to allocate content work across upcoming sprints."
-- If backlog stories are needed → "Run `$create-stories [epic-slug]` for each HIGH PRIORITY gap."
-- If `--summary` was used → "Run `$content-audit` (no flag) to write the full report to `docs/`."
+- If total gap is >50% → "Run `/sprint-plan` to allocate content work across upcoming sprints."
+- If backlog stories are needed → "Run `/create-stories [epic-slug]` for each HIGH PRIORITY gap."
+- If `--summary` was used → "Run `/content-audit` (no flag) to write the full report to `docs/`."
 
 Verdict: **COMPLETE** — content audit finished.

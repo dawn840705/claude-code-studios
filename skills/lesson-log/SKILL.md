@@ -1,13 +1,17 @@
 ---
 name: lesson-log
 description: "교육용 노하우 기록 — 최근 작업에서 강의 가치가 있는 레슨을 추출해 Documents/Lessons/ 에 표준 포맷으로 기록하고 INDEX 를 갱신한다. 모든 프로젝트는 교육 자료(바이브 코딩 강의 소스)라는 스튜디오 원칙의 실행 도구."
+argument-hint: "[주제 또는 비워두면 최근 작업에서 자동 추출]"
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Bash, Write, Edit
+context: |
+  !git log --oneline -15 2>/dev/null
+  !ls Documents/Lessons/ 2>/dev/null | tail -10
 ---
-
-먼저 최근 커밋 15개와 `Documents/Lessons/`의 최근 항목을 확인한다.
 
 ## Phase 1: 레슨 후보 식별
 
-인자가 주어지면 그 주제를 레슨으로 정리한다. 인자가 없으면 최근 커밋 로그·현재 대화 맥락에서 **캡처 트리거 5종** (../../rules/lesson-capture.md) 에 해당하는 사건을 찾는다:
+인자가 주어지면 그 주제를 레슨으로 정리한다. 인자가 없으면 최근 커밋 로그·현재 대화 맥락에서 **캡처 트리거 5종** (rules/lesson-capture.md) 에 해당하는 사건을 찾는다:
 
 1. 반복된 함정 (같은 실수 2회+)
 2. 사용자 지적으로 드러난 설계 구멍
@@ -21,7 +25,7 @@ description: "교육용 노하우 기록 — 최근 작업에서 강의 가치�
 
 ## Phase 2: 레슨 작성
 
-`../../templates/lesson.md` 템플릿을 따라 `Documents/Lessons/LES-YYYYMMDD-NN-<slug>.md` 를 작성한다 (NN = 같은 날짜 내 순번).
+`${CLAUDE_PLUGIN_ROOT}/templates/lesson.md` 템플릿을 따라 `Documents/Lessons/LES-YYYYMMDD-NN-<slug>.md` 를 작성한다 (NN = 같은 날짜 내 순번).
 
 작성 원칙:
 - **"시도와 실패" 절이 본체** — 무엇을 믿었고 왜 틀렸는지를 생략하면 강의 가치가 사라진다. 결과만 쓰지 말 것.
@@ -42,7 +46,7 @@ description: "교육용 노하우 기록 — 최근 작업에서 강의 가치�
 ```markdown
 # Lessons Index — <프로젝트명>
 
-> 강의 소스용 노하우 원장. 포맷/규칙 = 플러그인 ../../rules/lesson-capture.md
+> 강의 소스용 노하우 원장. 포맷/규칙 = 플러그인 rules/lesson-capture.md
 
 ## 커리큘럼 맵
 | 카테고리 | 레슨 수 | 난이도 분포 |

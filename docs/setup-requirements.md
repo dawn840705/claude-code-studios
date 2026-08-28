@@ -9,7 +9,7 @@ you'll lose validation features.
 | Tool | Purpose | Install |
 | ---- | ---- | ---- |
 | **Git** | Version control, branch management | [git-scm.com](https://git-scm.com/) |
-| **Codex** | Desktop app or AI agent CLI | `npm install -g @openai/codex` |
+| **Claude Code** | AI agent CLI | `npm install -g @anthropic-ai/claude-code` |
 
 ## Recommended
 
@@ -46,7 +46,8 @@ sudo pacman -S jq       # Arch
 - Git for Windows includes **Git Bash**, which provides the `bash` command
   used by all hooks in `settings.json`
 - Ensure Git Bash is on your PATH (default if installed via the Git installer)
-- Codex loads hook commands from the installed plugin's `hooks/hooks.json`
+- Hooks use `bash .claude/hooks/[name].sh` — this works on Windows because
+  Claude Code invokes commands through a shell that can find `bash.exe`
 
 ### macOS / Linux
 - Bash is available natively
@@ -67,10 +68,13 @@ python3 --version      # Should show python version (optional)
 
 | Missing Tool | Effect |
 | ---- | ---- |
-| **jq** | Hooks fall back to Python or basic JSON extraction; complex `apply_patch` payloads require either jq or Python. |
+| **jq** | Commit validation, push protection, asset validation, and agent audit hooks silently skip their checks. Commits and pushes still work. |
 | **Python 3** | JSON data file validation in commit and asset hooks is skipped. Invalid JSON can be committed without warning. |
 | **Both** | All hooks still execute without error (exit 0) but provide no validation. You're flying without safety nets. |
 
 ## Recommended IDE
 
-Codex can be used from the Codex desktop app, its editor integrations, or the terminal CLI.
+Claude Code works with any editor, but the template is optimized for:
+- **VS Code** with the Claude Code extension
+- **Cursor** (Claude Code compatible)
+- Terminal-based Claude Code CLI

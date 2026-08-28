@@ -1,6 +1,11 @@
 ---
 name: prototype
 description: "Rapid prototyping workflow. Skips normal standards to quickly validate a game concept or mechanic. Produces throwaway code and a structured prototype report."
+argument-hint: "[concept-description] [--review full|lean|solo]"
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Write, Edit, Bash, Task
+agent: prototyper
+isolation: worktree
 ---
 
 ## Phase 1: Define the Question
@@ -10,7 +15,7 @@ Resolve the review mode (once, store for all gate spawns this run):
 2. Else read `production/review-mode.txt` → use that value
 3. Else → default to `lean`
 
-See `../../docs/director-gates.md` for the full check pattern.
+See `.claude/docs/director-gates.md` for the full check pattern.
 
 Read the concept description from the argument. Identify the core question this prototype must answer. If the concept is vague, state the question explicitly before proceeding — a prototype without a clear question wastes time.
 
@@ -18,7 +23,7 @@ Read the concept description from the argument. Identify the core question this 
 
 ## Phase 2: Load Project Context
 
-Read `AGENTS.md` for project context and the current tech stack. Understand what engine, language, and frameworks are in use so the prototype is built with compatible tooling.
+Read `CLAUDE.md` for project context and the current tech stack. Understand what engine, language, and frameworks are in use so the prototype is built with compatible tooling.
 
 ---
 
@@ -116,7 +121,7 @@ If yes, write the file.
 - `lean` → skip (not a PHASE-GATE). Note: "CD-PLAYTEST skipped — Lean mode." Proceed to Phase 7 summary with the prototyper's recommendation as the final verdict.
 - `full` → spawn as normal.
 
-Spawn `creative-director` as a Codex subagent using gate **CD-PLAYTEST** (`../../docs/director-gates.md`).
+Spawn `creative-director` via Task using gate **CD-PLAYTEST** (`.claude/docs/director-gates.md`).
 
 Pass: the full REPORT.md content, the original design question, game pillars and core fantasy from `design/gdd/game-concept.md` (if it exists).
 
@@ -128,7 +133,7 @@ The creative director evaluates the prototype result against the game's creative
 
 Output a summary to the user: the core question, the result, the prototyper's initial recommendation, and the creative-director's final decision. Link to the full report at `prototypes/[concept-name]/REPORT.md`.
 
-If **PROCEED**: run `$design-system` to begin the production GDD for this mechanic, or `$architecture-decision` to record key technical decisions before implementation.
+If **PROCEED**: run `/design-system` to begin the production GDD for this mechanic, or `/architecture-decision` to record key technical decisions before implementation.
 
 If **PIVOT** or **KILL**: no further action needed — the prototype report is the deliverable.
 
@@ -146,7 +151,7 @@ Verdict: **COMPLETE** — prototype finished. Recommendation is PROCEED, PIVOT, 
 
 ## Recommended Next Steps
 
-- **If PROCEED**: Run `$design-system [mechanic]` to author the production GDD, or `$architecture-decision` to record key technical decisions before implementation
-- **If PIVOT**: Run `$prototype [revised-concept]` to test the adjusted direction
+- **If PROCEED**: Run `/design-system [mechanic]` to author the production GDD, or `/architecture-decision` to record key technical decisions before implementation
+- **If PIVOT**: Run `/prototype [revised-concept]` to test the adjusted direction
 - **If KILL**: No further action required — the prototype report is the deliverable
-- Run `$playtest-report` to formally document any playtest sessions conducted during prototyping
+- Run `/playtest-report` to formally document any playtest sessions conducted during prototyping

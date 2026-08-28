@@ -6,13 +6,13 @@ This plugin ships with optional Unity-specific safeguards. They auto-detect a Un
 
 | Asset | Type | Activation |
 |---|---|---|
-| `hooks/unity-meta-check.sh` | PostToolUse (`apply_patch`/edit aliases) | **Auto** — checks every changed Unity asset and warns when the paired `.meta` is missing. |
-| `hooks/unity-animator-string-lint.sh` | PostToolUse (`apply_patch`/edit aliases) | **Auto** — checks changed `.cs` files for `Animator.SetBool("name", ...)` instead of cached `StringToHash`. |
+| `hooks/unity-meta-check.sh` | PostToolUse (Write/Edit/MultiEdit) | **Auto** — fires when in a Unity project. Warns on `.cs`/`.shader`/`.asset`/`.prefab`/`.mat`/`.controller` writes if the paired `.meta` is missing. |
+| `hooks/unity-animator-string-lint.sh` | PostToolUse (Write/Edit/MultiEdit) | **Auto** — warns when `.cs` files use `Animator.SetBool("name", ...)` instead of cached `StringToHash`. |
 | `templates/githooks/unity-pre-commit` | git pre-commit | **Manual opt-in** — blocks commit if a staged Unity asset is missing its paired `.meta`. |
 
 ## Auto-opt-in hooks (no setup needed)
 
-If your project root has both `Assets/` and `ProjectSettings/`, the two PostToolUse hooks (`unity-meta-check.sh`, `unity-animator-string-lint.sh`) automatically inspect every file in a Codex `apply_patch`. In any other project they exit immediately with no output.
+If your project root has both `Assets/` and `ProjectSettings/`, the two PostToolUse hooks (`unity-meta-check.sh`, `unity-animator-string-lint.sh`) automatically fire after every Write/Edit/MultiEdit. In any other project they exit immediately with no output.
 
 These are **advisory** — they print to stderr but never block tool execution.
 
@@ -32,7 +32,7 @@ name has to match its class name. If your project's design docs live somewhere
 other than `design/gdd/` or `Documents/`, point the hooks at them:
 
 ```json
-// .codex/studio-layout.json
+// .claude/studio-layout.json
 { "designRoots": ["Documents/Specs"], "assetNaming": "pascal" }
 ```
 
@@ -40,7 +40,7 @@ Full contract: [../hooks-reference.md](../hooks-reference.md).
 
 ### Why these checks?
 
-- **`.meta` missing** — Unity generates `.meta` (GUID mapping) only when the Editor has window focus. If Codex creates a `.cs` while Unity is backgrounded, the `.meta` is generated *later*. A commit in that window pushes the asset without its `.meta` → GUID corruption on other machines or CI.
+- **`.meta` missing** — Unity generates `.meta` (GUID mapping) only when the Editor has window focus. If Claude creates a `.cs` while Unity is backgrounded, the `.meta` is generated *later*. A commit in that window pushes the asset without its `.meta` → GUID corruption on other machines or CI.
 - **Animator string access** — `Animator.SetBool("IsRun", true)` performs a string-to-hash search every call. Cache the hash once via `Animator.StringToHash("IsRun")` in `Start`/`Awake`, then pass the cached `int`.
 
 ## Manual git pre-commit (recommended for teams)
@@ -49,10 +49,10 @@ The advisory hooks warn but don't block. For zero-tolerance `.meta` enforcement 
 
 ```bash
 # In your Unity project root:
-mkdir -p .codex/githooks
-cp /path/to/codex-code-studios/templates/githooks/unity-pre-commit .codex/githooks/pre-commit
-chmod +x .codex/githooks/pre-commit
-git config core.hooksPath .codex/githooks
+mkdir -p .claude/githooks
+cp ~/.claude/plugins/marketplaces/game-studios/plugins/claude-code-studios/templates/githooks/unity-pre-commit .claude/githooks/pre-commit
+chmod +x .claude/githooks/pre-commit
+git config core.hooksPath .claude/githooks
 ```
 
 (Adjust the source path if you cloned the plugin elsewhere.)
@@ -64,7 +64,7 @@ After activation:
 
 ### Bypass policy
 
-Using `--no-verify` is a common cause of GUID corruption. Record a team policy in `AGENTS.md` that it requires explicit user authorization. The plugin's `validate-commit.sh` hook and this template cover complementary checks.
+Skipping `--no-verify` is the most common cause of GUID corruption. Configure your team's Claude Code settings to require explicit user authorization for `--no-verify` flags. The plugin's existing `validate-commit.sh` hook already handles this for non-Unity contexts; this template extends the safety net to Unity-specific concerns.
 
 ## Compatibility
 
@@ -76,16 +76,31 @@ Using `--no-verify` is a common cause of GUID corruption. Record a team policy i
 
 | Symptom | Cause / Fix |
 |---|---|
-| Hook never fires | Verify `Assets/` and `ProjectSettings/` both exist at the cwd where you run Codex and that plugin hooks were trusted. |
-| JSON payload not parsed | Install `jq` or Python 3; simple file-path payloads retain a guarded fallback. |
+| Hook never fires | Verify `Assets/` and `ProjectSettings/` both exist at the cwd where you run Claude Code. |
+| `jq` warning | Hooks fall back to `grep`-based JSON parsing automatically; no action needed. Install `jq` for slightly faster execution. |
 | `.meta` warning on every save | Unity Editor backgrounded — focus once to flush all pending `.meta` files. |
 | Pre-commit triggers on legitimate deletes | The hook only checks `--diff-filter=AM` (Added/Modified). Pure deletes pass through. |
 
 ## Disabling
 
-Disable or remove the plugin to stop its registered hooks. For a customized
-hook set, fork the plugin and edit `hooks/hooks.json`; Codex will require a new
-trust review after the hook configuration changes.
+To silence both PostToolUse hooks without uninstalling the plugin, override in your project's `.claude/settings.local.json`:
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      { "matcher": "Write|Edit",
+        "hooks": [
+          { "type": "command",
+            "command": "true",
+            "timeout": 1 }
+        ] }
+    ]
+  }
+}
+```
+
+(This replaces the hook chain entirely. For finer control, fork the plugin or contribute a per-hook disable flag.)
 
 To remove the git pre-commit:
 

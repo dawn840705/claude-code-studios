@@ -1,6 +1,10 @@
 ---
 name: story-readiness
 description: "Validate that a story file is implementation-ready. Checks for embedded GDD requirements, ADR references, engine notes, clear acceptance criteria, and no open design questions. Produces READY / NEEDS WORK / BLOCKED verdict with specific gaps. Use when user says 'is this story ready', 'can I start on this story', 'is story X ready to implement'."
+argument-hint: "[story-file-path or 'all' or 'sprint']"
+user-invocable: true
+allowed-tools: Read, Glob, Grep, AskUserQuestion, Task
+model: haiku
 ---
 
 # Story Readiness
@@ -25,15 +29,15 @@ Resolve the review mode once at startup (store for all gate spawns this run):
 2. Else read `production/review-mode.txt` → use that value
 3. Else → default to `lean`
 
-See `../../docs/director-gates.md` for the full check pattern and mode definitions.
+See `.claude/docs/director-gates.md` for the full check pattern and mode definitions.
 
 ---
 
 ## 1. Parse Arguments
 
-**Scope:** `the first invocation argument` (blank = ask user via direct user question)
+**Scope:** `$ARGUMENTS[0]` (blank = ask user via AskUserQuestion)
 
-- **Specific path** (e.g., `$story-readiness production/epics/combat/story-001-basic-attack.md`):
+- **Specific path** (e.g., `/story-readiness production/epics/combat/story-001-basic-attack.md`):
   validate that single story file.
 - **`sprint`**: read the current sprint plan from `production/sprints/` (most
   recent file), extract every story path it references, validate each one.
@@ -41,7 +45,7 @@ See `../../docs/director-gates.md` for the full check pattern and mode definitio
   validate every story file found.
 - **No argument**: ask the user which scope to validate.
 
-If no argument is given, ask the user directly:
+If no argument is given, use `AskUserQuestion`:
 - "What would you like to validate?"
   - Options: "A specific story file", "All stories in the current sprint",
     "All stories in production/epics/", "Stories for a specific epic"
@@ -113,7 +117,7 @@ items pass or are explicitly marked N/A with a stated reason.
     NEEDS WORK: the requirement was removed or replaced.
     Fix: update the story to reference the current requirement ID or remove if no longer applicable.
   - If the ID does not exist in the registry → NEEDS WORK: ID was not registered
-    (story may predate registry, or registry needs an `$architecture-review` run).
+    (story may predate registry, or registry needs an `/architecture-review` run).
   - Auto-pass if the story has no TR-ID reference OR if the registry does not exist.
 - [ ] **Manifest version is current**: If the story has a `Manifest Version:` date
   in its header AND `docs/architecture/control-manifest.md` exists:
@@ -256,7 +260,7 @@ add a prominent warning at the top of the output:
 ```
 WARNING: [N] Must Have stories are not implementation-ready.
 [List them with their primary gap or blocker.]
-Resolve these before the sprint begins or replan with `$sprint-plan update`.
+Resolve these before the sprint begins or replan with `/sprint-plan update`.
 ```
 
 ---
@@ -272,14 +276,14 @@ draft the missing sections for your approval."
 
 If the user says yes for a specific story, draft only the missing sections
 in conversation. Do not use Write or Edit tools — the user (or
-`$create-stories`) handles writing.
+`/create-stories`) handles writing.
 
 **Redirect rules:**
 - If a story file does not exist at all: "This story file is missing entirely.
-  Run `$create-epics [layer]` then `$create-stories [epic-slug]` to generate stories from the GDD and ADR."
+  Run `/create-epics [layer]` then `/create-stories [epic-slug]` to generate stories from the GDD and ADR."
 - If a story has no GDD reference and the work appears small: "This story has
   no GDD reference. If the change is small (under ~4 hours), run
-  `$quick-design [description]` to create a Quick Design Spec, then reference
+  `/quick-design [description]` to create a Quick Design Spec, then reference
   that spec in the story."
 - If a story's scope has grown beyond its original sizing: "This story appears
   to have expanded in scope. Consider splitting it or escalating to the producer
@@ -306,7 +310,7 @@ If any are found, surface up to 3:
 1. [Story name] — [1-line description] — Est: [X hrs]
 2. [Story name] — [1-line description] — Est: [X hrs]
 
-Run `$story-readiness [path]` to validate before starting.
+Run `/story-readiness [path]` to validate before starting.
 ```
 
 If no sprint file exists or no other ready stories are found, skip this section silently.
@@ -321,7 +325,7 @@ Apply the review mode resolved in Phase 0 before spawning QL-STORY-READY:
 - `lean` → skip. Note: "QL-STORY-READY skipped — Lean mode." Proceed to close.
 - `full` → spawn as normal.
 
-Spawn `qa-lead` as a Codex subagent using gate **QL-STORY-READY** (`../../docs/director-gates.md`).
+Spawn `qa-lead` via Task using gate **QL-STORY-READY** (`.claude/docs/director-gates.md`).
 
 Pass the following context:
 - Story title
@@ -331,7 +335,7 @@ Pass the following context:
 
 Handle the verdict per standard rules in `director-gates.md`:
 - **ADEQUATE** → story is cleared. Proceed to close.
-- **GAPS [list]** → surface the specific gaps to the user by asking the user directly:
+- **GAPS [list]** → surface the specific gaps to the user via `AskUserQuestion`:
   options: `Update story with suggested gaps` / `Accept and proceed anyway` / `Discuss further`.
 - **INADEQUATE** → surface the specific gaps; ask user whether to update the story or proceed anyway.
 
@@ -339,6 +343,6 @@ Handle the verdict per standard rules in `director-gates.md`:
 
 ## Recommended Next Steps
 
-- Run `$dev-story [story-path]` to begin implementation once the story is READY
-- Run `$story-readiness sprint` to check all stories in the current sprint at once
-- Run `$create-stories [epic-slug]` if a story file is missing entirely
+- Run `/dev-story [story-path]` to begin implementation once the story is READY
+- Run `/story-readiness sprint` to check all stories in the current sprint at once
+- Run `/create-stories [epic-slug]` if a story file is missing entirely

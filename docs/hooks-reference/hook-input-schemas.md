@@ -1,90 +1,126 @@
-# Codex Hook Input/Output Schemas
+# Hook Input/Output Schemas
 
-Codex sends a JSON object on stdin. Common fields include the event name,
-session metadata, `tool_name`, and `tool_input`. Hooks must use the payload for
-the event they match and return valid JSON when they want to add model context.
+This documents the JSON payloads each Claude Code hook receives on stdin for every event type.
 
-## PreToolUse: command execution
+## PreToolUse
 
-Codex may report the command tool as `exec_command`; the `Bash` matcher alias is
-kept for compatibility.
+Fired before a tool is executed. Can **allow** (exit 0) or **block** (exit 2).
+
+### PreToolUse: Bash
 
 ```json
 {
-  "tool_name": "exec_command",
+  "tool_name": "Bash",
   "tool_input": {
-    "command": "git commit -m 'feat: add player health system'"
+    "command": "git commit -m 'feat: add player health system'",
+    "description": "Commit changes with message",
+    "timeout": 120000
   }
 }
 ```
 
-Exit 0 allows the tool. Exit 2 plus stderr blocks it. Advisory text on an
-allowed call should be valid JSON, for example:
-
-```json
-{"systemMessage":"Review the protected-branch checklist before pushing."}
-```
-
-## PostToolUse: apply_patch
-
-Codex's native file editor reports `tool_name: "apply_patch"`. One patch can
-contain multiple file operations, so validators must extract every `Add File`,
-`Update File`, `Delete File`, and `Move to` header from `tool_input.command`.
+### PreToolUse: Write
 
 ```json
 {
-  "tool_name": "apply_patch",
+  "tool_name": "Write",
   "tool_input": {
-    "command": "*** Begin Patch\n*** Update File: src/gameplay/health.gd\n*** Add File: assets/data/enemy_stats.json\n*** End Patch"
+    "file_path": "src/gameplay/health.gd",
+    "content": "extends Node\n..."
   }
 }
 ```
 
-The `Write`, `Edit`, and `MultiEdit` aliases may still provide
-`tool_input.file_path`; `hooks/lib/hook-io.sh` supports both shapes.
-
-PostToolUse advisory context uses:
+### PreToolUse: Edit
 
 ```json
 {
-  "hookSpecificOutput": {
-    "hookEventName": "PostToolUse",
-    "additionalContext": "The changed asset name violates the project convention."
+  "tool_name": "Edit",
+  "tool_input": {
+    "file_path": "src/gameplay/health.gd",
+    "old_string": "var health = 100",
+    "new_string": "var health: int = 100"
   }
 }
 ```
 
-Exit 2 plus stderr replaces the tool result with a blocking error for an
-unambiguous mechanical failure such as invalid JSON.
+### PreToolUse: Read
+
+```json
+{
+  "tool_name": "Read",
+  "tool_input": {
+    "file_path": "src/gameplay/health.gd"
+  }
+}
+```
+
+## PostToolUse
+
+Fired after a tool completes. **Cannot block** (exit code ignored for blocking). Stderr messages are shown as warnings.
+
+### PostToolUse: Write
+
+```json
+{
+  "tool_name": "Write",
+  "tool_input": {
+    "file_path": "assets/data/enemy_stats.json",
+    "content": "{\"goblin\": {\"health\": 50}}"
+  },
+  "tool_output": "File written successfully"
+}
+```
+
+### PostToolUse: Edit
+
+```json
+{
+  "tool_name": "Edit",
+  "tool_input": {
+    "file_path": "assets/data/enemy_stats.json",
+    "old_string": "\"health\": 50",
+    "new_string": "\"health\": 75"
+  },
+  "tool_output": "File edited successfully"
+}
+```
+
+## SubagentStart
+
+Fired when a subagent is spawned via the Task tool.
+
+```json
+{
+  "agent_name": "game-designer",
+  "model": "sonnet",
+  "description": "Design the combat healing mechanic"
+}
+```
 
 ## SessionStart
 
-Stdout is added as initial session context. Code Studios uses this to report
-the project track, stage hints, documentation gaps, and recovery state.
+Fired when a Claude Code session begins. **No stdin input** — the hook just runs and its stdout is shown to Claude as context.
 
-## PreCompact and PostCompact
+## PreCompact
 
-Plain stdout is ignored for these events. Return a JSON `systemMessage` so the
-checkpoint or recovery instruction reaches Codex.
+Fired before context window compression. **No stdin input** — the hook runs to save state before compression occurs.
 
-## SubagentStart and SubagentStop
+## Stop
 
-The payload includes `agent_id` and `agent_type`. Code Studios records those in
-`production/session-logs/agent-audit.log`. `SubagentStop` returns `{}` on a
-successful exit because the event expects JSON output.
+Fired when the Claude Code session ends. **No stdin input** — the hook runs for cleanup and logging.
 
-## SessionEnd
+## Exit Code Reference
 
-Runs on actual session shutdown. Code Studios uses it for session logging. Do
-not map this behavior to `Stop`, which fires at the end of individual turns.
+| Exit Code | Meaning | Applicable Events |
+|-----------|---------|-------------------|
+| 0 | Allow / Success | All events |
+| 2 | Block (stderr shown to Claude) | PreToolUse only |
+| Other | Treated as error, tool proceeds | All events |
 
-## Exit codes
+## Notes
 
-| Exit | Meaning |
-| --- | --- |
-| `0` | Allow/success; stdout must match the event's JSON contract when present |
-| `2` | Block the matched operation and surface stderr to Codex |
-| other | Hook failure; do not use as a policy verdict |
-
-Prefer `jq` for parsing, then Python's standard JSON parser, with a guarded
-fallback. Normalize Windows path separators before matching paths.
+- Hooks receive JSON on **stdin** (pipe). Use `INPUT=$(cat)` to capture.
+- Parse with `jq` if available, fall back to `grep` for cross-platform compatibility.
+- On Windows, `grep -P` (Perl regex) is often unavailable. Use `grep -E` (POSIX extended) instead.
+- Path separators may be `\` on Windows. Normalize with `sed 's|\\|/|g'` when comparing paths.

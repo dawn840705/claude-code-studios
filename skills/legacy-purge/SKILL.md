@@ -1,6 +1,10 @@
 ---
 name: legacy-purge
 description: "Audit a codebase for legacy residue after a pivot, deprecation, or major migration. Produces a categorized table of suspect files / patterns / strings — never auto-deletes. Use when user says 'purge v1', 'clean up old API', 'find legacy residue', 'audit migration leftovers'."
+argument-hint: "<from-context> <to-context> [scope-glob]"
+user-invocable: true
+allowed-tools: Read, Glob, Grep
+agent: technical-director
 ---
 
 ## Purpose
@@ -20,7 +24,7 @@ Examples of pivot/migration scenarios:
 
 ## Phase 1: Identify the migration
 
-From `the invocation arguments`:
+From `$ARGUMENTS`:
 - `$1` = from-context (e.g. `v1`, `legacy-input`, `mobile-only`, `monolith`)
 - `$2` = to-context (e.g. `v2`, `input-system`, `cross-platform`, `modular`)
 - `$3` (optional) = scope glob (e.g. `src/**`, `Assets/02.Scripts/**`, `docs/**`)

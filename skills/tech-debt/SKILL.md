@@ -1,6 +1,9 @@
 ---
 name: tech-debt
 description: "Track, categorize, and prioritize technical debt across the codebase. Scans for debt indicators, maintains a debt register, and recommends repayment scheduling."
+argument-hint: "[scan|add|prioritize|report]"
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Write
 ---
 
 ## Phase 1: Parse Subcommand
@@ -96,8 +99,8 @@ Output the report to the user. This mode is read-only — no files are written. 
 
 ## Phase 3: Next Steps
 
-- Run `$sprint-plan` to schedule high-priority debt items into the next sprint.
-- Run `$tech-debt report` at the start of each sprint to track debt trends over time.
+- Run `/sprint-plan` to schedule high-priority debt items into the next sprint.
+- Run `/tech-debt report` at the start of each sprint to track debt trends over time.
 
 ### Debt Register Format
 

@@ -1,13 +1,16 @@
 ---
 name: estimate
 description: "Estimates task effort by analyzing complexity, dependencies, historical velocity, and risk factors. Produces a structured estimate with confidence levels."
+argument-hint: "[task-description]"
+user-invocable: true
+allowed-tools: Read, Glob, Grep
 ---
 
 ## Phase 1: Understand the Task
 
 Read the task description from the argument. If the description is too vague to estimate meaningfully, ask for clarification before proceeding.
 
-Read AGENTS.md for project context: tech stack, coding standards, architectural patterns, and any estimation guidelines.
+Read CLAUDE.md for project context: tech stack, coding standards, architectural patterns, and any estimation guidelines.
 
 Read relevant design documents from `design/gdd/` if the task relates to a documented feature or system.
 
@@ -116,9 +119,9 @@ This skill is read-only — no files are written. Verdict: **COMPLETE** — esti
 
 ## Phase 5: Next Steps
 
-- If confidence is Low: recommend a time-boxed spike (`$prototype`) before committing.
-- If the task is > 10 days: recommend breaking it into smaller stories via `$create-stories`.
-- To schedule the task: run `$sprint-plan update` to add it to the next sprint.
+- If confidence is Low: recommend a time-boxed spike (`/prototype`) before committing.
+- If the task is > 10 days: recommend breaking it into smaller stories via `/create-stories`.
+- To schedule the task: run `/sprint-plan update` to add it to the next sprint.
 
 ### Guidelines
 

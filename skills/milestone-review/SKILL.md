@@ -1,6 +1,9 @@
 ---
 name: milestone-review
 description: "Generates a comprehensive milestone progress review including feature completeness, quality metrics, risk assessment, and go/no-go recommendation. Use at milestone checkpoints or when evaluating readiness for a milestone deadline."
+argument-hint: "[milestone-name|current] [--review full|lean|solo]"
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Write, Task, AskUserQuestion
 ---
 
 ## Phase 0: Parse Arguments
@@ -10,7 +13,7 @@ Extract the milestone name (`current` or a specific name) and resolve the review
 2. Else read `production/review-mode.txt` → use that value
 3. Else → default to `lean`
 
-See `../../docs/director-gates.md` for the full check pattern.
+See `.claude/docs/director-gates.md` for the full check pattern.
 
 ---
 
@@ -110,7 +113,7 @@ Read all sprint reports for sprints within this milestone from `production/sprin
 - `lean` → skip (not a PHASE-GATE). Note: "PR-MILESTONE skipped — Lean mode." Present the Go/No-Go section without a producer verdict.
 - `full` → spawn as normal.
 
-Before generating the Go/No-Go recommendation, spawn `producer` as a Codex subagent using gate **PR-MILESTONE** (`../../docs/director-gates.md`).
+Before generating the Go/No-Go recommendation, spawn `producer` via Task using gate **PR-MILESTONE** (`.claude/docs/director-gates.md`).
 
 Pass: milestone name and target date, current completion percentage, blocked story count, velocity data from sprint reports (if available), list of cut candidates.
 
@@ -132,5 +135,5 @@ If no, stop here. Verdict: **BLOCKED** — user declined write.
 
 ## Phase 5: Next Steps
 
-- Run `$gate-check` for a formal phase gate verdict if this milestone marks a development phase boundary.
-- Run `$sprint-plan` to adjust the next sprint based on the scope recommendations above.
+- Run `/gate-check` for a formal phase gate verdict if this milestone marks a development phase boundary.
+- Run `/sprint-plan` to adjust the next sprint based on the scope recommendations above.

@@ -14,7 +14,6 @@
 
 set +e
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TYPE=""
 AI_FLAG=""
 
@@ -22,7 +21,7 @@ has() { grep -qiE "$1" "$2" 2>/dev/null; }
 
 # --- 0. Explicit override — production/track.txt beats every heuristic ---
 # Every signal below is a build artifact of a stack already chosen, so a greenfield
-# project detects as `unknown` — which is exactly when \$start and \$brainstorm run.
+# project detects as `unknown` — which is exactly when /start and /brainstorm run.
 # When the orchestrator asks the user which track this is, it writes the answer here
 # so the decision survives the session. scripts/check_phase.py reads the same file.
 # Contents: one line, `game` | `product` | `web` | `mobile` | `service`.
@@ -95,19 +94,19 @@ echo "PROJECT_TYPE=${TYPE}${AI_FLAG}"
 
 case "$TYPE" in
   game)
-    echo "→ Active packs: core + game. The studio orchestrator should load game role guides and skip the product pack." ;;
+    echo "→ Active packs: core + game. Orchestrator: use game agents (game-designer, level-designer, etc.). Skip product-pack." ;;
   product|web|mobile|service)
-    echo "→ Active packs: core + product. The studio orchestrator should load product role guides and skip the game pack." ;;
+    echo "→ Active packs: core + product. Orchestrator: use product agents (product-manager, frontend/backend/mobile/data/growth-engineer, technical-writer). Skip game-pack." ;;
   unknown)
     echo "→ Could not auto-detect domain. All packs available — ask the user whether this is a game or an app/web/service project."
-    echo "→ Then lock it by writing game or product to production/track.txt. Role guides with conditional framing read that file." ;;
+    echo "→ Then LOCK it: write the answer (game | product) to production/track.txt. Agents with conditional domain framing read that file; leaving it unwritten leaves them unresolved." ;;
 esac
 
 if [ -n "$AI_FLAG" ]; then
-  echo "→ AI integration detected: use a suitable current model and gate paid AI calls with \$api-cost-gate."
+  echo "→ AI integration detected: prefer the latest Claude models; gate paid AI calls with /api-cost-gate."
 fi
 
-echo "→ Pack classification source of truth: ${SCRIPT_DIR}/../docs/agent-packs.yaml"
+echo "→ Pack classification source of truth: docs/agent-packs.yaml"
 echo "=============================="
 
 exit 0

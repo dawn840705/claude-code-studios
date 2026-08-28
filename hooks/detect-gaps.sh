@@ -39,7 +39,7 @@ done <<< "$STUDIO_SRC_ROOTS"
 PRIMARY_DESIGN_ROOT=$(printf '%s\n' "$STUDIO_DESIGN_ROOTS" | head -1)
 DESIGN_ROOT_LIST=$(printf '%s' "$STUDIO_DESIGN_ROOTS" | tr '\n' ' ')
 
-# --- Check 0: Fresh project detection (suggests \$start) ---
+# --- Check 0: Fresh project detection (suggests /start) ---
 FRESH_PROJECT=true
 
 # An engine project is never fresh — Unity/Godot/Unreal/GameMaker all require
@@ -49,8 +49,8 @@ if studio_is_engine_project; then
 fi
 
 # Check if engine is configured
-if [ -f ".codex/studio/technical-preferences.md" ]; then
-  ENGINE_LINE=$(grep -E "^\- \*\*Engine\*\*:" .codex/studio/technical-preferences.md 2>/dev/null)
+if [ -f ".claude/docs/technical-preferences.md" ]; then
+  ENGINE_LINE=$(grep -E "^\- \*\*Engine\*\*:" .claude/docs/technical-preferences.md 2>/dev/null)
   if [ -n "$ENGINE_LINE" ] && ! echo "$ENGINE_LINE" | grep -q "TO BE CONFIGURED" 2>/dev/null; then
     FRESH_PROJECT=false
   fi
@@ -85,9 +85,9 @@ fi
 if [ "$FRESH_PROJECT" = true ]; then
   echo ""
   echo "🚀 NEW PROJECT: No engine configured, no game concept, no source code."
-  echo "   This looks like a fresh start! Run: \$start"
+  echo "   This looks like a fresh start! Run: /start"
   echo ""
-  echo "💡 To get a comprehensive project analysis, run: \$project-stage-detect"
+  echo "💡 To get a comprehensive project analysis, run: /project-stage-detect"
   echo "==================================="
   exit 0
 fi
@@ -95,8 +95,8 @@ fi
 # --- Check 1: Substantial codebase but sparse design docs ---
 if [ "$SRC_FILES" -gt 50 ] && [ "$DESIGN_FILES" -lt 5 ]; then
   echo "⚠️  GAP: Substantial codebase ($SRC_FILES source files) but sparse design docs ($DESIGN_FILES files in: $DESIGN_ROOT_LIST)"
-  echo "    Suggested action: \$reverse-document design $PRIMARY_SRC_ROOT/[system]"
-  echo "    Or run: \$project-stage-detect to get full analysis"
+  echo "    Suggested action: /reverse-document design $PRIMARY_SRC_ROOT/[system]"
+  echo "    Or run: /project-stage-detect to get full analysis"
 fi
 
 # --- Check 2: Prototypes without documentation ---
@@ -121,7 +121,7 @@ if [ -d "prototypes" ]; then
       for proto in "${UNDOCUMENTED_PROTOS[@]}"; do
         echo "    - prototypes/$proto/ (no README or CONCEPT doc)"
       done
-      echo "    Suggested action: \$reverse-document concept prototypes/[name]"
+      echo "    Suggested action: /reverse-document concept prototypes/[name]"
     fi
   fi
 fi
@@ -143,11 +143,11 @@ if [ -n "$CORE_DIRS" ]; then
 
   if [ -z "$ADR_ROOT" ]; then
     echo "⚠️  GAP: Core engine/systems exist but no architecture docs directory (looked for docs/architecture/, design/adr/)"
-    echo "    Suggested action: Create design/adr/ and run \$architecture-decision"
+    echo "    Suggested action: Create design/adr/ and run /architecture-decision"
   elif [ "$ADR_COUNT" -lt 3 ]; then
     FIRST_CORE=$(printf '%s\n' "$CORE_DIRS" | head -1)
     echo "⚠️  GAP: Core systems exist but only $ADR_COUNT ADR(s) documented in $ADR_ROOT/"
-    echo "    Suggested action: \$reverse-document architecture $FIRST_CORE"
+    echo "    Suggested action: /reverse-document architecture $FIRST_CORE"
   fi
 fi
 
@@ -177,7 +177,7 @@ if [ -n "$GAMEPLAY_DIRS" ]; then
         if ! studio_design_doc_exists "$system_name" && ! studio_design_doc_exists "$system_slug"; then
           echo "⚠️  GAP: Gameplay system '$system_dir/' ($file_count files) has no design doc"
           echo "    Expected: $PRIMARY_DESIGN_ROOT/${system_slug}-system.md or $PRIMARY_DESIGN_ROOT/${system_slug}.md"
-          echo "    Suggested action: \$reverse-document design $system_dir"
+          echo "    Suggested action: /reverse-document design $system_dir"
         fi
       fi
     done <<< "$GAMEPLAY_SYSTEMS"
@@ -197,13 +197,13 @@ if [ "$SRC_FILES" -gt 100 ]; then
   if ! studio_production_planning_exists; then
     echo "⚠️  GAP: Large codebase ($SRC_FILES files) but no production planning found"
     echo "    Looked in: $PRODUCTION_ROOT_LIST"
-    echo "    Suggested action: \$sprint-plan, or set \"productionRoots\" in .codex/studio-layout.json"
+    echo "    Suggested action: /sprint-plan, or set \"productionRoots\" in .claude/studio-layout.json"
   fi
 fi
 
 # --- Summary ---
 echo ""
-echo "💡 To get a comprehensive project analysis, run: \$project-stage-detect"
+echo "💡 To get a comprehensive project analysis, run: /project-stage-detect"
 echo "==================================="
 
 exit 0

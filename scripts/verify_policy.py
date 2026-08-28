@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""Policy compliance gate — the axis `$story-done` was missing.
+"""Policy compliance gate — the axis `/story-done` was missing.
 
 Every gate in this plugin judges the same question: *did the work get done?*
-`$story-done` verifies acceptance criteria, `$smoke-check` runs the suite,
+`/story-done` verifies acceptance criteria, `/smoke-check` runs the suite,
 `check_phase.py` checks artifacts exist. All of them are the **completion** axis.
 
 None of them asks the second question: *was it done the way we said?* A story
 that reaches `Status: Complete` by skipping the failing test, or by writing its
 artifacts outside the documented tree, records exactly the same `exit 0` as one
-that did the work properly. `Code Studios policy` has a "Don't do this" section, but it is
+that did the work properly. `CLAUDE.md` has a "Don't do this" section, but it is
 prose — no script has ever read it, so nothing has ever enforced it.
 
 That failure mode has a name: **unsafe-success**. It is worse than a plain
@@ -132,13 +132,13 @@ POLICY_OPT_OUT = "policy-allow-file: skip-marker"
 
 # --- P3: track mixing --------------------------------------------------------
 #
-# Code Studios policy: a game project does not get a frontend-engineer, a web app does not
+# CLAUDE.md: a game project does not get a frontend-engineer, a web app does not
 # get a level-designer. Runtime spawns are invisible to a script, but the
 # artifacts those agents leave behind are not.
 GAME_TRACK_GLOB = ("design/gdd", ".md")
 PRODUCT_TRACK_GLOB = ("product/prd", ".md")
 
-# --- P4: path conventions (Code Studios policy "File conventions the plugin expects") ---
+# --- P4: path conventions (CLAUDE.md "File conventions the plugin expects") ---
 
 # Kept in sync with the artifact globs in docs/workflow-catalog.yaml. A path the
 # catalog declares as a canonical artifact location must not warn here — a gate
@@ -343,7 +343,7 @@ def check_p3_track_mixing(root: str) -> list[Finding]:
 
     Two shapes, and the first one only became checkable when production/track.txt
     arrived. Before that the declared track existed nowhere on disk, so a product
-    project misrouted into `$brainstorm` or `$design-system` — writing design/gdd/
+    project misrouted into `/brainstorm` or `/design-system` — writing design/gdd/
     and nothing else — was indistinguishable from a game project doing its job, and
     this check could only fire on the symmetric case where both roots were present.
     With the track declared, one root plus a contradicting declaration is no longer
@@ -380,7 +380,7 @@ def check_p3_track_mixing(root: str) -> list[Finding]:
                     "both design/gdd/*.md (game track) and product/prd/*.md "
                     "(product track) exist, and production/track.txt does not say "
                     "which is intended — write `game` or `product` to that file so "
-                    "this is decidable. Code Studios policy says not to mix packs")
+                    "this is decidable. CLAUDE.md says not to mix packs")
         ]
     return []
 
@@ -398,7 +398,7 @@ def check_p4_path_conventions(root: str, base: str | None) -> list[Finding]:
         findings.append(
             Finding("P4", WARN, path,
                     "new file outside the documented layout "
-                    "(Code Studios policy 'File conventions the plugin expects')")
+                    "(CLAUDE.md 'File conventions the plugin expects')")
         )
     return findings
 

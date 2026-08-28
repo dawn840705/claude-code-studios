@@ -1,6 +1,10 @@
 ---
 name: propagate-design-change
 description: "When a GDD is revised, scans all ADRs and the traceability index to identify which architectural decisions are now potentially stale. Produces a change impact report and guides the user through resolution."
+argument-hint: "[path/to/changed-gdd.md]"
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Write, Bash, Task
+agent: technical-director
 ---
 
 # Propagate Design Change
@@ -9,14 +13,14 @@ When a GDD changes, architectural decisions written against it may no longer be
 valid. This skill finds every affected ADR, compares what the ADR assumed against
 what the GDD now says, and guides the user through resolution.
 
-**Usage:** `$propagate-design-change design/gdd/combat-system.md`
+**Usage:** `/propagate-design-change design/gdd/combat-system.md`
 
 ---
 
 ## 1. Validate Argument
 
 A GDD path argument is **required**. If missing, fail with:
-> "Usage: `$propagate-design-change design/gdd/[system].md`
+> "Usage: `/propagate-design-change design/gdd/[system].md`
 > Provide the path to the GDD that was changed."
 
 Verify the file exists. If not, fail with:
@@ -148,7 +152,7 @@ ADRs referencing this GDD: [M]
 - `lean` → skip. Note: "TD-CHANGE-IMPACT skipped — Lean mode." Proceed to Phase 7.
 - `full` → spawn as normal.
 
-Spawn `technical-director` as a Codex subagent using gate **TD-CHANGE-IMPACT** (`../../docs/director-gates.md`).
+Spawn `technical-director` via Task using gate **TD-CHANGE-IMPACT** (`.claude/docs/director-gates.md`).
 
 Pass: the full Design Change Impact Report from Phase 6 (change summary, all affected ADRs with their Still Valid / Needs Review / Likely Superseded classifications, and recommended actions).
 
@@ -159,7 +163,7 @@ The technical-director reviews whether:
 
 Apply the verdict:
 - **APPROVE** → proceed to Phase 7 resolution workflow
-- **CONCERNS** → surface the specific ADRs or recommendations flagged; ask the user directly with options: `Revise the impact assessment` / `Accept with noted concerns` / `Discuss further`
+- **CONCERNS** → surface the specific ADRs or recommendations flagged; use `AskUserQuestion` with options: `Revise the impact assessment` / `Accept with noted concerns` / `Discuss further`
 - **REJECT** → do not proceed to resolution; re-analyze the impact before continuing
 
 ---
@@ -217,10 +221,10 @@ If user declined: Verdict: **BLOCKED** — user declined write.
 
 Based on the resolution decisions, suggest:
 
-- **ADRs marked Superseded**: "Run `$architecture-decision [title]` to write the
-  replacement ADR. Then re-run `$propagate-design-change` to verify coverage."
+- **ADRs marked Superseded**: "Run `/architecture-decision [title]` to write the
+  replacement ADR. Then re-run `/propagate-design-change` to verify coverage."
 - **ADRs to update in place**: List the specific fields to update in each ADR
-- **If many ADRs affected**: "Run `$architecture-review` after all ADRs are updated
+- **If many ADRs affected**: "Run `/architecture-review` after all ADRs are updated
   to verify the full traceability matrix is still coherent."
 
 ---

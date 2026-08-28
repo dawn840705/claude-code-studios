@@ -13,7 +13,7 @@ __pycache__/
 _workspace/
 _to_delete/
 
-# legacy Claude transition: machine-local trust/permission state
+# 머신별 플러그인 신뢰(trust) 승인 기록 — .claude/settings.json 만 커밋한다
 .claude/settings.local.json
 
 # 상류 흡수 후보 스캔 리포트 (평일 자동 실행 — 로컬 관찰 기록, 배포물 아님)

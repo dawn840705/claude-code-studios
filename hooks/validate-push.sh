@@ -1,5 +1,5 @@
 #!/bin/bash
-# Codex PreToolUse hook: validates git push commands
+# Claude Code PreToolUse hook: Validates git push commands
 # Warns on pushes to protected branches
 # Exit 0 = allow, Exit 2 = block
 #
@@ -7,11 +7,6 @@
 # { "tool_name": "Bash", "tool_input": { "command": "git push origin main" } }
 
 INPUT=$(cat)
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [ -f "$SCRIPT_DIR/lib/hook-io.sh" ]; then
-    # shellcheck source=lib/hook-io.sh
-    . "$SCRIPT_DIR/lib/hook-io.sh"
-fi
 
 # Parse command -- use jq if available, fall back to grep
 if command -v jq >/dev/null 2>&1; then
@@ -42,10 +37,8 @@ for branch in develop main master; do
 done
 
 if [ -n "$MATCHED_BRANCH" ]; then
-    MESSAGE="Push to protected branch '$MATCHED_BRANCH' detected. Ensure the build and unit tests pass and no S1/S2 bugs remain before pushing."
-    if command -v studio_emit_system_message >/dev/null 2>&1; then
-        studio_emit_system_message "$MESSAGE"
-    fi
+    echo "Push to protected branch '$MATCHED_BRANCH' detected." >&2
+    echo "Reminder: Ensure build passes, unit tests pass, and no S1/S2 bugs exist." >&2
     # Allow the push but warn -- uncomment below to block instead:
     # echo "BLOCKED: Run tests before pushing to $CURRENT_BRANCH" >&2
     # exit 2

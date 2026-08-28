@@ -124,7 +124,7 @@ class TestBackwardCompatibility(unittest.TestCase):
         _, payload = _run_json(check_phase.main, ["--root", _ROOT, "--json"])
         for key in ("track", "phase", "verdict", "exit_code", "steps"):
             self.assertIn(key, payload, f"기존 키 {key} 가 사라졌다 — "
-                                        "$project-stage-detect 가 이 출력을 읽는다")
+                                        "/project-stage-detect 가 이 출력을 읽는다")
 
 
 if __name__ == "__main__":

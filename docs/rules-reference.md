@@ -1,9 +1,4 @@
-# Workflow Rule References
-
-These Markdown files are resources that Code Studios skills load explicitly.
-They are **not** Codex command-approval rules and are not auto-enforced merely
-because they live in `rules/`. Codex execpolicy uses `.codex/rules/*.rules`, a
-different syntax and purpose. Do not copy these Markdown files there.
+# Rules Reference
 
 ## Global Rules (always active, path-independent)
 
@@ -11,20 +6,18 @@ These apply to every project using the plugin, regardless of which files are bei
 
 | Rule File | Enforces |
 | ---- | ---- |
-| `verify-route.md` | Routes **verification** by reversibility, the axis `route-hint.md` does not cover: R1 (one edit undoes it) → the file's own gate · R2 (revert undoes it) → gates + review · R3 (needs coordination) → gates + a *separate* reviewing subagent + `$gate-check` · **R4 (irreversible, or costs users) → never unattended**. Uncertainty escalates; de-escalation must state a reason; the route is reported in the output |
-| `self-loop.md` | Quality-gated deliverables are never one-shot: plan → execute → score (script exit code first, model grading only for the rest) → judge, until all criteria ≥ 8. Guards three failure modes: score inflation, runaway loops (max 5 iterations, stall detection), and **rewriting without evidence** (§ 2.1 — no defect ticket, no edit). Terminates DONE / FAILED / BLOCKED; the policy axis (`verify_policy.py`) can block regardless of scores. Executable form: `$self-loop` |
+| `verify-route.md` | Routes **verification** by reversibility, the axis `route-hint.md` does not cover: R1 (one edit undoes it) → the file's own gate · R2 (revert undoes it) → gates + review · R3 (needs coordination) → gates + a *separate* reviewing subagent + `/gate-check` · **R4 (irreversible, or costs users) → never unattended**. Uncertainty escalates; de-escalation must state a reason; the route is reported in the output |
+| `self-loop.md` | Quality-gated deliverables are never one-shot: plan → execute → score (script exit code first, model grading only for the rest) → judge, until all criteria ≥ 8. Guards three failure modes: score inflation, runaway loops (max 5 iterations, stall detection), and **rewriting without evidence** (§ 2.1 — no defect ticket, no edit). Terminates DONE / FAILED / BLOCKED; the policy axis (`verify_policy.py`) can block regardless of scores. Executable form: `/self-loop` |
 | `subagent-collaboration.md` | Multi-subagent parallel collaboration pattern for broad/deep design decisions — when to fan out, prompt requirements, result integration, meeting minutes. § 2.1: **write ownership is partitioned before spawning** — two agents never get the same file, because a lost Edit is the one failure mode that reports success |
-| `decision-lifecycle.md` | Settled decisions do not reopen. A pinned decision needs three parts — the call, the evidence link, and the **revisit trigger** (a decision without one is deadlock, not closure); cap the pinned list at 20. Deprecated values are marked in the body, never deleted; product/ops calls live in `AGENTS.md`, technical ones in ADRs, never both. Agents report contrary evidence and stop rather than overturning a pin — a *decision-authority* axis, separate from `verify-route.md`'s reversibility axis, and never a reason to raise an R grade |
+| `decision-lifecycle.md` | Settled decisions do not reopen. A pinned decision needs three parts — the call, the evidence link, and the **revisit trigger** (a decision without one is deadlock, not closure); cap the pinned list at 20. Deprecated values are marked in the body, never deleted; product/ops calls live in `CLAUDE.md`, technical ones in ADRs, never both. Agents report contrary evidence and stop rather than overturning a pin — a *decision-authority* axis, separate from `verify-route.md`'s reversibility axis, and never a reason to raise an R grade |
 | `claim-confidence.md` | Verified facts, estimates, and unknowns are marked apart — source, `(추정)` + the arithmetic, or `[확인 필요]`. Statutes, prices, fees, competitor facts and API signatures are never written from memory. An unmarked estimate can fill a `self-loop.md` § 2.1 defect ticket (`defect_type: 누락`) if the evidence names *where you looked*. Not script-decidable, and not in `subagent-collaboration.md` § 3's mandatory prompt items — so it only catches when the caller puts it in the review prompt |
 | `route-hint.md` | Pick a route before spawning: **light** (orchestrator handles it, 0 agents) / **standard** (1 specialist) / **heavy** (team fan-out + gates). Savings come from fewer calls, not a cheaper model; splitting is the last resort. Measured upstream: 7-chunk fan-out 610K tokens vs. 134K single call at equal quality |
-| `lesson-capture.md` | Every project doubles as teaching material. 5 standing triggers (repeated trap ×2, design hole exposed by feedback, assumption overturned, tooling pitfall, design pattern locked by data) prompt a lesson entry in `Documents/Lessons/`. A lesson proven wrong is **superseded, never deleted** (`supersedes:` front-matter + an INDEX marker) — the bad diagnosis is the only material that teaches the limits of a procedure. Executable form: `$lesson-log`, `$lesson-review` |
+| `lesson-capture.md` | Every project doubles as teaching material. 5 standing triggers (repeated trap ×2, design hole exposed by feedback, assumption overturned, tooling pitfall, design pattern locked by data) prompt a lesson entry in `Documents/Lessons/`. A lesson proven wrong is **superseded, never deleted** (`supersedes:` front-matter + an INDEX marker) — the bad diagnosis is the only material that teaches the limits of a procedure. Executable form: `/lesson-log`, `/lesson-review` |
 | `work-records.md` | What goes where when record types overlap (commit / session state / meeting minutes / lesson / ADR / report / CHANGELOG), and what the next session is required to read. § 2: a BLOCKED verdict needs somewhere to **accumulate** — `production/human-actions.md` holds the things only a person can do, split into execute (🔴) and decide (🟡), each with the reason it is a person's, completed items demoted rather than deleted. § 3: SessionStart stdout reaches the model on exit 0; PostToolUse stderr does not |
 
-## Path-scoped review references
+## Path-Specific Rules
 
-Files with `paths:` frontmatter describe where their guidance applies. The
-relevant workflow skill or reviewing subagent must read the matching reference;
-Codex does not automatically interpret the Markdown frontmatter as execpolicy.
+Rules in `.claude/rules/` are automatically enforced when editing files in matching paths:
 
 | Rule File | Path Pattern | Enforces |
 | ---- | ---- | ---- |

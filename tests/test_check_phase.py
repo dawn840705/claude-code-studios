@@ -39,7 +39,7 @@ def test_real_catalog_game_track_preserved():
     ]
     engine = next(s for s in game["concept"]["steps"] if s["id"] == "engine-setup")
     assert engine["required"] is True
-    assert engine["artifact"]["glob"] == ".codex/studio/technical-preferences.md"
+    assert engine["artifact"]["glob"] == ".claude/docs/technical-preferences.md"
     assert engine["artifact"]["pattern"] == "Engine: [^[]"
     adr = next(s for s in game["technical-setup"]["steps"] if s["id"] == "architecture-decision")
     assert adr["artifact"]["min_count"] == 3
@@ -52,7 +52,7 @@ def test_real_catalog_product_track_shape():
         "discovery", "architecture", "build", "hardening", "ship", "growth",
     ]
     prd = next(s for s in product["discovery"]["steps"] if s["id"] == "create-prd")
-    assert prd["command"] == "$create-prd"
+    assert prd["command"] == "/create-prd"
     assert prd["artifact"]["glob"] == "product/prd/prd-*.md"
     assert product["growth"]["next_phase"] is None
 
@@ -152,8 +152,8 @@ def test_exit_1_fresh_project(tmp_path):
 
 
 def test_exit_0_concept_phase_complete(tmp_path):
-    (tmp_path / ".codex" / "studio").mkdir(parents=True)
-    (tmp_path / ".codex" / "studio" / "technical-preferences.md").write_text("Engine: Godot 4.3")
+    (tmp_path / ".claude" / "docs").mkdir(parents=True)
+    (tmp_path / ".claude" / "docs" / "technical-preferences.md").write_text("Engine: Godot 4.3")
     (tmp_path / "design" / "gdd").mkdir(parents=True)
     (tmp_path / "design" / "gdd" / "game-concept.md").write_text("x")
     (tmp_path / "design" / "gdd" / "systems-index.md").write_text("x")

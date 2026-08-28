@@ -1,6 +1,6 @@
 # Level Design Sources — cite, link, do not copy
 
-Reference list for `$spatial-audit` and the spatial-design skills. **This file
+Reference list for `/spatial-audit` and the spatial-design skills. **This file
 holds links and one-line summaries only.** The licensing section below is the
 reason, and it is not a formality.
 
@@ -15,7 +15,7 @@ reason, and it is not a formality.
 three clauses are incompatible with this repo:
 
 - **ShareAlike** — any derivative must carry CC BY-NC-SA 4.0. This plugin is
-  **MIT** (`.codex-plugin/plugin.json`). Pasting their prose into `docs/` or a
+  **MIT** (`.claude-plugin/plugin.json`). Pasting their prose into `docs/` or a
   skill would relicense that material and put two incompatible licenses in one
   distribution.
 - **NonCommercial** — this plugin is used to build commercial games. NC material
@@ -83,8 +83,7 @@ number, it carries a read date; when it matters, re-read before relying on it.
 
 Cite these by name rather than presenting them as house method. Both are used in
 `docs/templates/player-metrics.md`, `docs/templates/level-design-document.md`
-(Teaching Structure) and
-`skills/studio-orchestrator/references/roles/level-designer.md`.
+(Teaching Structure) and `agents/level-designer.md`.
 
 | Source | What it gives us | Link |
 | ---- | ---- | ---- |

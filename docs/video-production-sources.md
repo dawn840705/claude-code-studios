@@ -1,6 +1,6 @@
 # Video Production Sources — cite, link, verify before you rely
 
-Reference list for `$video-brief`. Same discipline as
+Reference list for `/video-brief`. Same discipline as
 `docs/level-design-sources.md`: **this file holds links, one-line summaries, and
 read dates. It copies nothing.**
 
@@ -19,7 +19,7 @@ plugin is MIT and cannot carry someone else's article inside it.
 Store requirements are vendor documentation that changes without notice. **Every
 platform number in this repo carries a read date, and a read date is not a
 guarantee — it is a timestamp on a claim.** Before a brief is used to commission
-real footage, `$video-brief` re-reads the vendor page for the target platform and
+real footage, `/video-brief` re-reads the vendor page for the target platform and
 records the date it did so. A spec table nobody re-read is the fastest way this
 plugin produces a rejected store submission.
 
@@ -50,7 +50,7 @@ is his — practitioner experience, not a study.
 **Caveat on this row.** Unlike the trailer and platform rows, this is aggregated
 marketing-blog advice, not a primary source or a vendor rule. Treat the
 *structure* as a useful default and treat the *percentages* those posts quote as
-unverified — none of them publish their sample. `$video-brief` must not present
+unverified — none of them publish their sample. `/video-brief` must not present
 them as measured.
 
 ## Platform requirements
@@ -78,7 +78,7 @@ before capture, which is the whole argument for briefing video at all.
 
 | Tool | Role | Note |
 | ---- | ---- | ---- |
-| [`browser-use/video-use`](https://github.com/browser-use/video-use) | Agent-driven editing: transcribe → pack → EDL → render → self-eval | MIT. **An external skill repository, not a Code Studios plugin dependency.** Its upstream installation instructions target Claude Code and are not used by this Codex plugin. Needs `ffmpeg` and an ElevenLabs API key (a paid call per source — gate it with `$api-cost-gate`) |
+| [`browser-use/video-use`](https://github.com/browser-use/video-use) | Agent-driven editing: transcribe → pack → EDL → render → self-eval | MIT. **A skill repo, not a Claude Code plugin marketplace** — it installs by symlinking the clone into `~/.claude/skills/`, so it does not belong in `.claude/settings.json`. Needs `ffmpeg` and an ElevenLabs API key (a paid call per source — gate it with `/api-cost-gate`) |
 | [OBS Studio](https://obsproject.com/) | Capture | Free. The capture settings (resolution, frame rate, HUD on/off) are brief decisions, not editor decisions |
 
 ### What we take from video-use, and what we do not
@@ -86,6 +86,6 @@ before capture, which is the whole argument for briefing video at all.
 We do not reimplement its editing helpers, and we do not restate its design
 principles — its three (structured text surface with visuals on demand; ask →
 confirm → execute → self-eval; a bounded re-render loop) are conclusions this
-repo already holds, in `$spatial-audit`, the ask-before-write protocol, and
+repo already holds, in `/spatial-audit`, the ask-before-write protocol, and
 `rules/self-loop.md` respectively. Worth knowing as convergent evidence; not
 worth a second copy here.

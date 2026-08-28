@@ -1,11 +1,14 @@
 ---
 name: test-evidence-review
 description: "Quality review of test files and manual evidence documents. Goes beyond existence checks — evaluates assertion coverage, edge case handling, naming conventions, and evidence completeness. Produces ADEQUATE/INCOMPLETE/MISSING verdict per story. Run before QA sign-off or on demand."
+argument-hint: "[story-path | sprint | system-name]"
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Write
 ---
 
 # Test Evidence Review
 
-`$smoke-check` verifies that test files **exist** and **pass**. This skill
+`/smoke-check` verifies that test files **exist** and **pass**. This skill
 goes further — it reviews the **quality** of those tests and evidence documents.
 A test file that exists and passes may still leave critical behaviour uncovered.
 A manual evidence doc that exists may lack the sign-offs required for closure.
@@ -13,7 +16,7 @@ A manual evidence doc that exists may lack the sign-offs required for closure.
 **Output:** Summary report (in conversation) + optional `production/qa/evidence-review-[date].md`
 
 **When to run:**
-- Before QA hand-off sign-off (`$team-qa` Phase 5)
+- Before QA hand-off sign-off (`/team-qa` Phase 5)
 - On any story where test quality is in question
 - As part of milestone review for Logic and Integration story quality audit
 
@@ -22,9 +25,9 @@ A manual evidence doc that exists may lack the sign-offs required for closure.
 ## 1. Parse Arguments
 
 **Modes:**
-- `$test-evidence-review [story-path]` — review a single story's evidence
-- `$test-evidence-review sprint` — review all stories in the current sprint
-- `$test-evidence-review [system-name]` — review all stories in an epic/system
+- `/test-evidence-review [story-path]` — review a single story's evidence
+- `/test-evidence-review sprint` — review all stories in the current sprint
+- `/test-evidence-review [system-name]` — review all stories in an epic/system
 - No argument — ask which scope: "Single story", "Current sprint", "A system"
 
 ---
@@ -225,9 +228,9 @@ wants a persistent record.
 
 After the report:
 
-- For BLOCKING items: "These must be resolved before `$story-done` can mark the
+- For BLOCKING items: "These must be resolved before `/story-done` can mark the
   story Complete. Would you like to address any of them now?"
-- For thin assertions: "Consider running `$test-helpers [system]` to see
+- For thin assertions: "Consider running `/test-helpers [system]` to see
   scaffolded assertion patterns for common cases."
 - For missing sign-offs: "Manual sign-off is required from [role]. Share
   `[evidence-path]` with them to complete sign-off."

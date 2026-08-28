@@ -1,14 +1,52 @@
 #!/usr/bin/env bash
-# Codex PostToolUse hook: advise on direct Unity Animator string access.
+# Claude Code PostToolUse hook — Unity Animator string-access lint (advisory)
+#
+# After Edit/Write/MultiEdit on .cs files, scans for direct string access to
+# Animator parameters (SetBool/SetFloat/SetTrigger/etc with "literal-string" first arg).
+#
+# Why: Animator string lookups perform a per-frame string-to-hash search internally.
+# Best practice — cache via Animator.StringToHash in Start/Awake, then pass the
+# cached int to SetBool/SetFloat/etc.
+#
+# Reference: Unity Manual — Animation Best Practices
+# https://docs.unity3d.com/Manual/AnimationBestPractices.html
+#
+# This hook is *advisory only* (exit 0). Findings printed to stderr.
+#
+# Auto-opt-in: only runs in Unity projects (Assets/ + ProjectSettings/ detected).
 
-set +e
-[ -d "Assets" ] && [ -d "ProjectSettings" ] || exit 0
+set -e
 
-INPUT=$(cat)
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-[ -f "$SCRIPT_DIR/lib/hook-io.sh" ] || exit 0
-# shellcheck source=lib/hook-io.sh
-. "$SCRIPT_DIR/lib/hook-io.sh"
+# Auto-opt-in: skip if not a Unity project
+if [ ! -d "Assets" ] || [ ! -d "ProjectSettings" ]; then
+    exit 0
+fi
+
+input=$(cat)
+
+if command -v jq >/dev/null 2>&1; then
+    file=$(echo "$input" | jq -r '.tool_input.file_path // empty')
+else
+    file=$(echo "$input" | grep -oE '"file_path"[[:space:]]*:[[:space:]]*"[^"]+"' | head -1 | sed -E 's/.*"file_path"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/')
+fi
+
+[ -z "$file" ] && exit 0
+
+# .cs only
+case "$file" in
+    *.cs) ;;
+    *) exit 0 ;;
+esac
+
+# File missing (deleted / Editor closed) — skip
+[ ! -f "$file" ] && exit 0
+
+# grep tool
+if command -v rg >/dev/null 2>&1; then
+    GREPCMD="rg -n --no-heading"
+else
+    GREPCMD="grep -nE"
+fi
 
 # <animator-ish receiver>.<Setter|Getter>("...") — first arg a literal string.
 #
@@ -28,29 +66,16 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # 오탐 여지가 없어 함께 잡는다. 해시 접근(`SetBool(hash, ...)`)과 권장 해법인
 # `Animator.StringToHash("...")` 는 따옴표·메서드가 달라 걸리지 않는다.
 ANIM_STR_PAT='(\b[A-Za-z0-9_]*[Aa]nim[A-Za-z0-9_]*|GetComponent<Animator>\(\))\.(SetBool|SetInteger|SetFloat|SetTrigger|ResetTrigger|GetBool|GetInteger|GetFloat)\("[^_"]'
-PATHS=$(studio_extract_changed_paths "$INPUT")
-WARNINGS=""
+findings=$($GREPCMD "$ANIM_STR_PAT" "$file" 2>/dev/null || true)
 
-while IFS= read -r FILE_PATH; do
-    case "$FILE_PATH" in
-        *.cs) ;;
-        *) continue ;;
-    esac
-    [ -f "$FILE_PATH" ] || continue
+if [ -n "$findings" ]; then
+    base=$(basename "$file")
+    echo "" >&2
+    echo "─── unity-animator-string-lint: $base ───" >&2
+    echo "⚠️  Animator string-access detected:" >&2
+    echo "$findings" | sed 's/^/   /' >&2
+    echo "   → Cache hash via Animator.StringToHash in Start/Awake." >&2
+    echo "" >&2
+fi
 
-    if command -v rg >/dev/null 2>&1; then
-        FINDINGS=$(rg -n --no-heading "$ANIM_STR_PAT" "$FILE_PATH" 2>/dev/null || true)
-    else
-        FINDINGS=$(grep -nE "$ANIM_STR_PAT" "$FILE_PATH" 2>/dev/null || true)
-    fi
-
-    if [ -n "$FINDINGS" ]; then
-        WARNINGS="$WARNINGS
-Unity Animator string access in $FILE_PATH:
-$FINDINGS
-Cache parameters with Animator.StringToHash and pass the integer hash."
-    fi
-done <<< "$PATHS"
-
-[ -n "$WARNINGS" ] && studio_emit_additional_context "$WARNINGS"
 exit 0

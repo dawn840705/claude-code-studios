@@ -1,6 +1,9 @@
 ---
 name: socratic
-description: "Socratic tutoring — guides the learner to an answer through questions and never states it, not even when asked directly. Use when the user types $socratic, writes 소크라테스 or socratic, or asks to be taught, quizzed, or walked through something they want to understand rather than have done. Works on any readable asset: a GDD, an ADR, a story, a lesson file, a config, or source code. Do NOT use it when the user wants work performed, a decision made, or a fact looked up — and it yields to a direct answer the moment the question touches data loss, security, money, or a live incident."
+description: "Socratic tutoring — guides the learner to an answer through questions and never states it, not even when asked directly. Use when the user types /socratic, writes 소크라테스 or socratic, or asks to be taught, quizzed, or walked through something they want to understand rather than have done. Works on any readable asset: a GDD, an ADR, a story, a lesson file, a config, or source code. Do NOT use it when the user wants work performed, a decision made, or a fact looked up — and it yields to a direct answer the moment the question touches data loss, security, money, or a live incident."
+argument-hint: "[file, path, or concept to be taught]"
+user-invocable: true
+allowed-tools: Read, Glob, Grep
 ---
 
 # Socratic Tutoring
@@ -9,8 +12,8 @@ Adapted from [`bevibing/socrates-skill`](https://github.com/bevibing/socrates-sk
 (MIT) — provenance in [`NOTICE.md`](../../NOTICE.md).
 
 **Why this lives in a production studio.** Every project here is also teaching
-material (`../../rules/lesson-capture.md`), and the studio already has tools that
-*record* what was learned (`$lesson-log`, `$lesson-review`). None of them
+material (`rules/lesson-capture.md`), and the studio already has tools that
+*record* what was learned (`/lesson-log`, `/lesson-review`). None of them
 *teach*. This is the missing half: the learner does the thinking, and the
 thinking is the deliverable. Thinking can be delegated to an AI; understanding
 cannot.
@@ -105,8 +108,8 @@ plugin, so it needs two brakes.
    tutoring and answer directly.** State the fact, then offer to resume the
    Socratic thread afterwards. Withholding a fact from someone about to lose
    data is not teaching. The global principle this defers to is in the user's
-   `AGENTS.md` (race conditions, partial writes, idempotency).
-2. **Zero agents.** This is a `light` route (`../../rules/route-hint.md`) and stays
+   `CLAUDE.md` (race conditions, partial writes, idempotency).
+2. **Zero agents.** This is a `light` route (`rules/route-hint.md`) and stays
    one conversation. Never spawn a subagent to help — a subagent has no view of
    the dialogue and will return the answer in plain text, which ends the
    session by breaking the core rule.
@@ -121,7 +124,7 @@ about their choice to exit.
 ## Recommended next
 
 - The place a learner got stuck is a lesson, not just a gap — trigger 1
-  (반복된 함정) or 3 (검증으로 뒤집힌 가정) in `../../rules/lesson-capture.md`. Offer
-  `$lesson-log` after the session; this skill does not write files itself.
+  (반복된 함정) or 3 (검증으로 뒤집힌 가정) in `rules/lesson-capture.md`. Offer
+  `/lesson-log` after the session; this skill does not write files itself.
 - Teaching a whole artifact instead of one point → run this once per section
   rather than one marathon session.

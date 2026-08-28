@@ -1,19 +1,23 @@
 ---
 name: humanize-redo
-description: 가장 최근 윤문 결과를 2차로 다시 다듬는다 — 특정 카테고리·문단·강도 조정도 가능. humanize-korean 의 윤문 콜을 기존 run_id 에 재실행해 잔존 finding 을 처리한다. 트리거 — "$humanize-redo". **명시적 슬래시 호출 전용** — 자연어 후속 요청은 `humanize-korean` 오케스트레이터가 받는다.
+description: 가장 최근 윤문 결과를 2차로 다시 다듬는다 — 특정 카테고리·문단·강도 조정도 가능. humanize-korean 의 윤문 콜을 기존 run_id 에 재실행해 잔존 finding 을 처리한다. 트리거 — "/humanize-redo". **명시적 슬래시 호출 전용** — 자연어 후속 요청은 `humanize-korean` 오케스트레이터가 받는다.
+argument-hint: "[조정 지시 — 예: \"번역투만 다시\" \"이 문단만\" \"강도 낮춰\"]"
+user-invocable: true
+allowed-tools: Read, Glob, Write, Bash, Task
+pack: writing
 ---
 
-# $humanize-redo — 2차 윤문 / 부분 재실행
+# /humanize-redo — 2차 윤문 / 부분 재실행
 
 cwd 기준 가장 최근 `_workspace/{run_id}/`를 찾아 `humanize-korean` 의 윤문 콜부터 재호출한다.
 
 ## 사용자 지시
-the invocation arguments
+$ARGUMENTS
 
 ## Phase 1: 이전 실행 식별
 
 `Glob`으로 `_workspace/YYYY-MM-DD-*/final.md`(또는 `01_input.txt`)를 매칭해 최신 `run_id`를
-식별한다. 없으면 "이전 실행이 없습니다. `$humanize`로 시작하세요" 안내 후 종료.
+식별한다. 없으면 "이전 실행이 없습니다. `/humanize`로 시작하세요" 안내 후 종료.
 
 ## Phase 2: 지시 파싱
 
@@ -52,7 +56,7 @@ the invocation arguments
 같은 finding이 2 round 연속 해결되지 않으면 더 돌리지 않고 그 사실을 보고한다.
 
 ## 후속 작업 (Recommended next)
-- 풀 파이프라인 신규 실행은 `$humanize`
+- 풀 파이프라인 신규 실행은 `/humanize`
 - 반복해서 잡히는 새 패턴이면 → `korean-ai-tell-taxonomist`로 SSOT 승격 검토
 
 ## 참고

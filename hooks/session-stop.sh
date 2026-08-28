@@ -1,5 +1,5 @@
 #!/bin/bash
-# Codex SessionEnd hook: log a summary when the task session ends
+# Claude Code Stop hook: Log session summary when Claude finishes
 # Records what was worked on for audit trail and sprint tracking
 
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)

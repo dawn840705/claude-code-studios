@@ -1,19 +1,22 @@
 ---
 name: quick-design
 description: "Lightweight design spec for small changes — tuning adjustments, minor mechanics, balance tweaks. Skips full GDD authoring when a system GDD already exists or the change is too small to warrant one. Produces a Quick Design Spec that embeds directly into story files."
+argument-hint: "[brief description of the change]"
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Write, Edit
 ---
 
 # Quick Design
 
 This is the **lightweight design path** for changes that don't need a full GDD.
-Full GDD authoring via `$design-system` is the heavyweight path. Use this skill
+Full GDD authoring via `/design-system` is the heavyweight path. Use this skill
 for work under approximately 4 hours of implementation — tuning adjustments,
 minor behavioral tweaks, small additions to existing systems, or standalone
 features too small to warrant a full document.
 
 **Output:** `design/quick-specs/[name]-[date].md`
 
-**When to run:** Anytime a change is too small for `$design-system` but too
+**When to run:** Anytime a change is too small for `/design-system` but too
 meaningful to implement without a written rationale.
 
 ---
@@ -38,7 +41,7 @@ First, read the argument and determine which category this change falls into:
 If the change does NOT fit these categories — it introduces a new system with
 significant cross-system dependencies, requires more than one week of
 implementation, or fundamentally alters an existing system's core rules — stop
-and redirect to `$design-system` instead.
+and redirect to `/design-system` instead.
 
 Present the classification to the user and confirm it is correct before
 proceeding. If there is no argument, ask the user to describe the change.
@@ -239,7 +242,7 @@ Type: [Tuning / Tweak / Addition / New Small System]
 System: [system name]
 GDD update: [Required — pending approval / Applied / Not required]
 
-Next step: This spec is ready for `$story-readiness` validation before
+Next step: This spec is ready for `/story-readiness` validation before
 implementation. Reference this spec in the story's GDD Reference field.
 ```
 
@@ -247,7 +250,7 @@ implementation. Reference this spec in the story's GDD Reference field.
 
 Verdict: **COMPLETE** — quick design spec written and ready for implementation.
 
-Quick Design Specs **bypass** `$design-review` and `$review-all-gdds` by
+Quick Design Specs **bypass** `/design-review` and `/review-all-gdds` by
 design. They are for small, low-risk, well-scoped changes where the cost of
 the full review pipeline exceeds the risk of the change itself.
 
@@ -260,12 +263,12 @@ Redirect to the full pipeline if any of the following are true:
 - Implementation is likely to exceed one week of work
 
 In those cases: "This change has grown beyond quick-spec scope. I recommend
-using `$design-system` to author a full GDD for this."
+using `/design-system` to author a full GDD for this."
 
 ---
 
 ## Recommended Next Steps
 
-- Run `$story-readiness [story-path]` to validate the story before implementation begins — reference this spec in the story's GDD Reference field
-- Run `$dev-story [story-path]` to implement once the story passes readiness checks
-- If the change is larger than expected, run `$design-system [system-name]` to author a full GDD instead
+- Run `/story-readiness [story-path]` to validate the story before implementation begins — reference this spec in the story's GDD Reference field
+- Run `/dev-story [story-path]` to implement once the story passes readiness checks
+- If the change is larger than expected, run `/design-system [system-name]` to author a full GDD instead

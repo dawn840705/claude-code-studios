@@ -1,6 +1,9 @@
 ---
 name: api-cost-gate
 description: "Pre-flight cost approval gate for any paid AI API call (image / 3D / audio / video / text generation services). Forces explicit 4-point disclosure (call type / cost estimate / purpose / use) before invocation. Use before any Suno/ElevenLabs/Midjourney/OpenAI/Tripo/etc. paid call. Use when user says 'check cost first', 'cost gate', 'approve API call'."
+argument-hint: "<service-name> <call-description>"
+user-invocable: true
+allowed-tools: Read, Bash
 ---
 
 ## Purpose
@@ -23,7 +26,7 @@ Auto-mode does **not** override this gate. Even when the agent is running autono
 
 ## Phase 1: Identify the call
 
-From `the invocation arguments`:
+From `$ARGUMENTS`:
 - `$1` = service name (e.g. `suno`, `elevenlabs`, `midjourney`, `openai`)
 - `$2` = brief description (e.g. `combat-bgm-30s`, `npc-dialogue-line`, `concept-art-key-visual`)
 
@@ -74,7 +77,7 @@ Do **not** make the API call until the user responds with explicit approval. Acc
 
 Treat ambiguous responses (silence, unrelated message, `maybe`) as **not approved** — do not call.
 
-If `the invocation arguments` was originated *by the user themselves* with full intent (e.g. they typed `$api-cost-gate suno combat-bgm-30s` and immediately follow with `Y` in the same message), the gate is satisfied — but only if all 4 points are still presented and acknowledged.
+If `$ARGUMENTS` was originated *by the user themselves* with full intent (e.g. they typed `/api-cost-gate suno combat-bgm-30s` and immediately follow with `Y` in the same message), the gate is satisfied — but only if all 4 points are still presented and acknowledged.
 
 ---
 
@@ -122,11 +125,11 @@ Confirmed services where this gate has prevented surprise spend or wasted output
 | Midjourney / Stable Diffusion (image) | seconds / generations | varies by tier |
 | Tripo (3D) | credits | varies by mesh complexity |
 | OpenAI / Anthropic (text) | tokens | input + output, varies by model |
-| remove.bg (background removal) | credits | `size=preview` ≈ 0.25 cr, `size=full` ≈ 1 cr per image — a 4× spread, so preview is the default. Gate is wired into `$remove-bg`; `scripts/removebg.py estimate` produces point 2 without charging. |
+| remove.bg (background removal) | credits | `size=preview` ≈ 0.25 cr, `size=full` ≈ 1 cr per image — a 4× spread, so preview is the default. Gate is wired into `/remove-bg`; `scripts/removebg.py estimate` produces point 2 without charging. |
 
 Add your service to the table when adopted. The 4-point disclosure works identically for all of them.
 
-**Where a service has a dedicated skill, use it.** `$remove-bg` already embeds
+**Where a service has a dedicated skill, use it.** `/remove-bg` already embeds
 this gate (Phases 2-3) and backs the estimate with a real balance lookup, so
-invoking `$api-cost-gate` separately just duplicates the block. This skill is
+invoking `/api-cost-gate` separately just duplicates the block. This skill is
 for services that have no wrapper yet.

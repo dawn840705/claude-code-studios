@@ -1,14 +1,18 @@
 ---
 name: humanize
-description: AI가 쓴 한글 텍스트를 자연스럽게 윤문하는 진입 명령. humanize-korean 파이프라인을 Fast 모드(기본)로 실행하고 `--strict`면 정밀 3콜(진단→겨냥 윤문→finalize). 트리거 — "$humanize". **명시적 슬래시 호출 전용** — 자연어로 윤문을 요청받았을 때는 이 래퍼가 아니라 `humanize-korean` 오케스트레이터를 쓴다.
+description: AI가 쓴 한글 텍스트를 자연스럽게 윤문하는 진입 명령. humanize-korean 파이프라인을 Fast 모드(기본)로 실행하고 `--strict`면 정밀 3콜(진단→겨냥 윤문→finalize). 트리거 — "/humanize". **명시적 슬래시 호출 전용** — 자연어로 윤문을 요청받았을 때는 이 래퍼가 아니라 `humanize-korean` 오케스트레이터를 쓴다.
+argument-hint: "[윤문할 텍스트 또는 파일 경로] [--strict]"
+user-invocable: true
+allowed-tools: Read, Glob, Bash, Task
+pack: writing
 ---
 
-# $humanize — 한글 AI 티 제거
+# /humanize — 한글 AI 티 제거
 
 `humanize-korean` 스킬을 발동해 인자로 전달된 한글 텍스트(또는 파일)에 윤문을 실행한다.
 
 ## 입력
-the invocation arguments
+$ARGUMENTS
 
 ## Phase 1: 입력 해석
 
@@ -31,7 +35,7 @@ PASS를 선언하지 않는다.
 - 윤문본 본문(마크다운 블록)
 - 카테고리별 탐지 건수 before/after
 - 주요 변경 하이라이트 3~5건
-- 게이트 FAIL 또는 등급 B 이하면 → "`$humanize-redo`로 2차 윤문 가능" 안내
+- 게이트 FAIL 또는 등급 B 이하면 → "`/humanize-redo`로 2차 윤문 가능" 안내
 
 결과는 **응답으로 보여주는 것이 기본이다.** 사용자 파일에 덮어쓰기 전에는 반드시 먼저
 묻는다 — "윤문 결과를 `<경로>`에 쓸까요?" (May I write this to the file?)
@@ -43,7 +47,7 @@ PASS를 선언하지 않는다.
 - `--strict` — 정밀 3콜(진단→겨냥 윤문→finalize) 강제
 
 ## 후속 작업 (Recommended next)
-- 결과가 미흡하면 → `$humanize-redo`
+- 결과가 미흡하면 → `/humanize-redo`
 - 오케스트레이터 전체 절차·장르별 허용 표 → `humanize-korean` SKILL.md
 
 ## 참고

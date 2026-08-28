@@ -21,9 +21,8 @@ needs — with nothing left to interpret. A skill reads `status`; a human reads
 
 **`status` is a pure function of `exit_code`.** That is the point: a gate cannot
 print ABORT while exiting 0, which is exactly the class of bug that shipped in
-`validate-assets.sh` (it printed "Blocking" without returning a matching
-machine-readable result). Deriving one from the other makes that state
-unrepresentable.
+`validate-assets.sh` (it printed "Blocking" and exited 1, a code Claude never
+sees). Deriving one from the other makes that state unrepresentable.
 
 Standard library only, and deliberately small — this is an envelope, not a
 framework. Gates keep their own reporting; they add this alongside it.

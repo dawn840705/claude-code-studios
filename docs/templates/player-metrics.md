@@ -196,23 +196,23 @@ both from the same underlying fact — the player has one attention budget:
 | If this changes | These become wrong | Action |
 |-----------------|-------------------|--------|
 | Any § 2 metric | Every § 3 constant derived from it | Re-derive § 3 before touching any level |
-| Running jump distance | Every gap in every level document | Run `$propagate-design-change` with this document as the origin |
-| Cover heights (capsule) | Every cover placement | Re-run `$spatial-audit` on built levels — it measures cover against the capsule directly |
-| Weapon range or TTK | Every arena size and encounter length | Re-check § 3's arena minimum, then `$balance-check` |
+| Running jump distance | Every gap in every level document | Run `/propagate-design-change` with this document as the origin |
+| Cover heights (capsule) | Every cover placement | Re-run `/spatial-audit` on built levels — it measures cover against the capsule directly |
+| Weapon range or TTK | Every arena size and encounter length | Re-check § 3's arena minimum, then `/balance-check` |
 | Margin (§ 3) | Every constant, no metric changed | A deliberate difficulty-wide decision. Pin it as a decision with a revisit trigger (`rules/decision-lifecycle.md`) |
 
 **Drift check.** This document and the built levels are two witnesses to the same
-truth. When you suspect they have separated, `$sot-audit` is the skill built for
+truth. When you suspect they have separated, `/sot-audit` is the skill built for
 N-witness drift — do not hand-check more than a couple of levels.
 
 ---
 
 ## 6. What this document does NOT decide
 
-- **Whether a challenge is fun.** That is a playtest result (`$playtest-report`).
+- **Whether a challenge is fun.** That is a playtest result (`/playtest-report`).
   Metrics make a playtest verdict *interpretable*; they do not substitute for one.
 - **Whether the character controller is good.** A measured jump of 4.1 is a fact.
-  Whether 4.1 feels good is a `$prototype` and playtest question.
+  Whether 4.1 feels good is a `/prototype` and playtest question.
 - **Where challenges go.** Placement is the level document's job.
 - **The macro difficulty arc.** That is `docs/templates/difficulty-curve.md`.
 

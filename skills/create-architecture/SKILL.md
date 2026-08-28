@@ -1,6 +1,10 @@
 ---
 name: create-architecture
 description: "Guided, section-by-section authoring of the master architecture document for the game. Reads all GDDs, the systems index, existing ADRs, and the engine reference library to produce a complete architecture blueprint before any code is written. Engine-version-aware: flags knowledge gaps and validates decisions against the pinned engine version."
+argument-hint: "[focus-area: full | layers | data-flow | api-boundaries | adr-audit] [--review full|lean|solo]"
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Write, Bash, AskUserQuestion, Task
+agent: technical-director
 ---
 
 > **Track check — this skill is game-framed.** Resolve `production/track.txt` (or the
@@ -9,7 +13,7 @@ description: "Guided, section-by-section authoring of the master architecture do
 > - **`game`** — run as written.
 > - **`product`** (web / mobile / service) — substitute as you read: player becomes user,
 >   game becomes product, GDD becomes PRD (`design/gdd/` → `product/prd/`), engine becomes
->   the stack pinned in `.codex/studio/technical-preferences.md`. Read `product/prd/product-concept.md` and every `product/prd/prd-*.md` in place of `design/gdd/game-concept.md` and the GDDs. There is no systems-index; the concept's scope tiers bound the layers. The engine section becomes the pinned stack — framework, hosting, data store.
+>   the stack pinned in `.claude/docs/technical-preferences.md`. Read `product/prd/product-concept.md` and every `product/prd/prd-*.md` in place of `design/gdd/game-concept.md` and the GDDs. There is no systems-index; the concept's scope tiers bound the layers. The engine section becomes the pinned stack — framework, hosting, data store.
 > - **Unresolved** — ask which track this is before doing anything. A greenfield project
 >   has no signal either way; do not infer one from the repository contents.
 
@@ -19,7 +23,7 @@ This skill produces `docs/architecture/architecture.md` — the master architect
 document that translates all approved GDDs into a concrete technical blueprint.
 It sits between design and implementation, and must exist before sprint planning begins.
 
-**Distinct from `$architecture-decision`**: ADRs record individual point decisions.
+**Distinct from `/architecture-decision`**: ADRs record individual point decisions.
 This skill creates the whole-system blueprint that gives ADRs their context.
 
 Resolve the review mode (once, store for all gate spawns this run):
@@ -27,7 +31,7 @@ Resolve the review mode (once, store for all gate spawns this run):
 2. Else read `production/review-mode.txt` → use that value
 3. Else → default to `lean`
 
-See `../../docs/director-gates.md` for the full check pattern.
+See `.claude/docs/director-gates.md` for the full check pattern.
 
 **Argument modes:**
 - **No argument / `full`**: Full guided walkthrough — all sections, start to finish
@@ -58,7 +62,7 @@ Read the engine reference library completely:
    → Extract: current API patterns per domain
 
 If no engine is configured, stop and prompt:
-> "No engine is configured. Run `$setup-engine` first. Architecture cannot be
+> "No engine is configured. Run `/setup-engine` first. Architecture cannot be
 > written without knowing which engine and version you are targeting."
 
 ### 0b. Design Context + Technical Requirements Extraction
@@ -67,7 +71,7 @@ Read all approved design documents and extract technical requirements from each:
 
 1. `design/gdd/game-concept.md` — game pillars, genre, core loop
 2. `design/gdd/systems-index.md` — all systems, dependencies, priority tiers
-3. `.codex/studio/technical-preferences.md` — naming conventions, performance budgets,
+3. `.claude/docs/technical-preferences.md` — naming conventions, performance budgets,
    allowed libraries, forbidden patterns
 4. **Every GDD in `design/gdd/`** — for each, extract technical requirements:
    - Data structures implied by the game rules
@@ -263,10 +267,10 @@ not yet have a corresponding ADR, PLUS all uncovered Technical Requirements.
 Group by layer — Foundation first:
 
 **Foundation Layer (must create before any coding):**
-- `$architecture-decision [title]` → covers: TR-[id], TR-[id]
+- `/architecture-decision [title]` → covers: TR-[id], TR-[id]
 
 **Core Layer:**
-- `$architecture-decision [title]` → covers: TR-[id]
+- `/architecture-decision [title]` → covers: TR-[id]
 
 ---
 
@@ -343,14 +347,14 @@ After writing the master architecture document, perform an explicit sign-off bef
 
 **Step 1 — Technical Director self-review** (this skill runs as technical-director):
 
-Apply gate **TD-ARCHITECTURE** (`../../docs/director-gates.md`) as a self-review. Check all four criteria from that gate definition against the completed document.
+Apply gate **TD-ARCHITECTURE** (`.claude/docs/director-gates.md`) as a self-review. Check all four criteria from that gate definition against the completed document.
 
 **Review mode check** — apply before spawning LP-FEASIBILITY:
 - `solo` → skip. Note: "LP-FEASIBILITY skipped — Solo mode." Proceed to Phase 8 handoff.
 - `lean` → skip (not a PHASE-GATE). Note: "LP-FEASIBILITY skipped — Lean mode." Proceed to Phase 8 handoff.
 - `full` → spawn as normal.
 
-**Step 2 — Spawn `lead-programmer` as a Codex subagent using gate LP-FEASIBILITY (`../../docs/director-gates.md`):**
+**Step 2 — Spawn `lead-programmer` via Task using gate LP-FEASIBILITY (`.claude/docs/director-gates.md`):**
 
 Pass: architecture document path, technical requirements baseline summary, ADR list.
 
@@ -358,7 +362,7 @@ Pass: architecture document path, technical requirements baseline summary, ADR l
 
 Show the Technical Director assessment and Lead Programmer verdict side by side.
 
-Ask the user directly — "Technical Director and Lead Programmer have reviewed the architecture. How would you like to proceed?"
+Use `AskUserQuestion` — "Technical Director and Lead Programmer have reviewed the architecture. How would you like to proceed?"
 Options: `Accept — proceed to handoff` / `Revise flagged items first` / `Discuss specific concerns`
 
 **Step 4 — Record sign-off in the architecture document:**
@@ -378,7 +382,7 @@ Ask: "May I update the Document Status section in `docs/architecture/architectur
 After writing the document, provide a clear handoff:
 
 1. **Run these ADRs next** (from Phase 6, prioritised): list the top 3
-2. **Gate check**: "The master architecture document is complete. Run `$gate-check
+2. **Gate check**: "The master architecture document is complete. Run `/gate-check
    pre-production` when all required ADRs are also written."
 3. **Update session state**: Write a summary to `production/session-state/active.md`
 
@@ -403,6 +407,6 @@ unsure, present 2-4 options with pros/cons before asking them to decide.
 
 ## Recommended Next Steps
 
-- Run `$architecture-decision [title]` for each required ADR listed in Phase 6 — Foundation layer ADRs first
-- Run `$create-control-manifest` once the required ADRs are written to produce the layer rules manifest
-- Run `$gate-check pre-production` when all required ADRs are written and the architecture is signed off
+- Run `/architecture-decision [title]` for each required ADR listed in Phase 6 — Foundation layer ADRs first
+- Run `/create-control-manifest` once the required ADRs are written to produce the layer rules manifest
+- Run `/gate-check pre-production` when all required ADRs are written and the architecture is signed off

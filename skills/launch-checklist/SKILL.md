@@ -1,9 +1,12 @@
 ---
 name: launch-checklist
 description: "Complete launch readiness validation covering every department: code, content, store, marketing, community, infrastructure, legal, and go/no-go sign-offs."
+argument-hint: "[launch-date or 'dry-run']"
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Write
 ---
 
-> **Explicit invocation only**: This skill should only run when the user explicitly requests it with `$launch-checklist`. Do not auto-invoke based on context matching.
+> **Explicit invocation only**: This skill should only run when the user explicitly requests it with `/launch-checklist`. Do not auto-invoke based on context matching.
 
 ## Phase 1: Parse Arguments
 
@@ -13,7 +16,7 @@ Read the argument for the launch date or `dry-run` mode. Dry-run mode generates 
 
 ## Phase 2: Gather Project Context
 
-- Read `AGENTS.md` for tech stack, target platforms, and team structure
+- Read `CLAUDE.md` for tech stack, target platforms, and team structure
 - Read the latest milestone in `production/milestones/`
 - Read any existing release checklist in `production/releases/`
 - Read the content calendar in `design/live-ops/content-calendar.md` if it exists
@@ -232,5 +235,5 @@ If yes, write the file, creating directories as needed.
 
 ## Phase 6: Next Steps
 
-- Run `$gate-check` to get a formal PASS/CONCERNS/FAIL verdict before launch.
-- Coordinate sign-offs via `$team-release`.
+- Run `/gate-check` to get a formal PASS/CONCERNS/FAIL verdict before launch.
+- Coordinate sign-offs via `/team-release`.

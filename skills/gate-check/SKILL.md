@@ -1,6 +1,10 @@
 ---
 name: gate-check
 description: "Validate readiness to advance between development phases, on either track. Produces a PASS/CONCERNS/FAIL verdict with specific blockers and required artifacts. Use when user says 'are we ready to move to X', 'can we advance to production', 'check if we can start the next phase', 'pass the gate'."
+argument-hint: "[target-phase — game: systems-design | technical-setup | pre-production | production | polish | release · product: architecture | build | hardening | ship | growth] [--review full|lean|solo]"
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Bash, Write, Task, AskUserQuestion
+model: opus
 ---
 
 # Phase Gate Validation
@@ -8,7 +12,7 @@ description: "Validate readiness to advance between development phases, on eithe
 This skill validates whether the project is ready to advance to the next development
 phase. It checks for required artifacts, quality standards, and blockers.
 
-**Distinct from `$project-stage-detect`**: That skill is diagnostic ("where are we?").
+**Distinct from `/project-stage-detect`**: That skill is diagnostic ("where are we?").
 This skill is prescriptive ("are we ready to advance?" with a formal verdict).
 
 ## Stages — two tracks
@@ -52,17 +56,17 @@ immediately.
 ## 1. Parse Arguments
 
 **Track first.** Read `PROJECT_TYPE` from the session-start hook output, or run
-`../../hooks/detect-project-type.sh`. `game` → game gates. `web`/`mobile`/
+`.claude/hooks/detect-project-type.sh`. `game` → game gates. `web`/`mobile`/
 `service` → product gates. `unknown` → ask which the project is with
-a direct user question before doing anything else, and do not guess from the
+`AskUserQuestion` before doing anything else, and do not guess from the
 directory layout — a product project that happens to have a `design/` folder
 would be misrouted into the game gates.
 
-If the target phase names a phase from the **other** track (e.g. `$gate-check
+If the target phase names a phase from the **other** track (e.g. `/gate-check
 polish` on a service project), do not translate it. Say which track the project
 is on, list that track's gate targets, and ask.
 
-**Target phase:** `the first invocation argument` (blank = auto-detect current stage, then validate next transition)
+**Target phase:** `$ARGUMENTS[0]` (blank = auto-detect current stage, then validate next transition)
 
 Also resolve the review mode (once, store for all gate spawns this run):
 1. If `--review [full|lean|solo]` was passed → use that
@@ -71,11 +75,11 @@ Also resolve the review mode (once, store for all gate spawns this run):
 
 Note: in `solo` mode, director spawns (CD-PHASE-GATE, TD-PHASE-GATE, PR-PHASE-GATE, AD-PHASE-GATE) are skipped — gate-check becomes artifact-existence checks only. In `lean` mode, all four directors still run (phase gates are the purpose of lean mode).
 
-- **With argument**: `$gate-check production` — validate readiness for that specific phase
+- **With argument**: `/gate-check production` — validate readiness for that specific phase
 - **No argument**: Auto-detect current stage using the same heuristics as
-  `$project-stage-detect`, then **confirm with the user before running**:
+  `/project-stage-detect`, then **confirm with the user before running**:
 
-  Ask the user directly:
+  Use `AskUserQuestion`:
   - Prompt: "Detected stage: **[current stage]**. Running gate for [Current] → [Next] transition. Is this correct?"
   - Options:
     - `[A] Yes — run this gate`
@@ -105,7 +109,7 @@ supposed to have.
 - [ ] Visual Identity Anchor section exists in `design/gdd/game-concept.md` (from brainstorm Phase 4 art-director output)
 
 **Quality Checks:**
-- [ ] Game concept has been reviewed (`$design-review` verdict not MAJOR REVISION NEEDED)
+- [ ] Game concept has been reviewed (`/design-review` verdict not MAJOR REVISION NEEDED)
 - [ ] Core loop is described and understood
 - [ ] Target audience is identified
 - [ ] Visual Identity Anchor contains a one-line visual rule and at least 2 supporting visual principles
@@ -116,13 +120,13 @@ supposed to have.
 
 **Required Artifacts:**
 - [ ] Systems index exists at `design/gdd/systems-index.md` with at least MVP systems enumerated
-- [ ] All MVP-tier GDDs exist in `design/gdd/` and individually pass `$design-review`
-- [ ] A cross-GDD review report exists in `design/gdd/` (from `$review-all-gdds`)
+- [ ] All MVP-tier GDDs exist in `design/gdd/` and individually pass `/design-review`
+- [ ] A cross-GDD review report exists in `design/gdd/` (from `/review-all-gdds`)
 
 **Quality Checks:**
 - [ ] All MVP GDDs pass individual design review (8 required sections, no MAJOR REVISION NEEDED verdict)
-- [ ] `$review-all-gdds` verdict is not FAIL (cross-GDD consistency and design theory checks pass)
-- [ ] All cross-GDD consistency issues flagged by `$review-all-gdds` are resolved or explicitly accepted
+- [ ] `/review-all-gdds` verdict is not FAIL (cross-GDD consistency and design theory checks pass)
+- [ ] All cross-GDD consistency issues flagged by `/review-all-gdds` are resolved or explicitly accepted
 - [ ] System dependencies are mapped in the systems index and are bidirectionally consistent
 - [ ] MVP priority tier is defined
 - [ ] No stale GDD references flagged (older GDDs updated to reflect decisions made in later GDDs)
@@ -132,8 +136,8 @@ supposed to have.
 ### Gate: Technical Setup → Pre-Production
 
 **Required Artifacts:**
-- [ ] Engine chosen (AGENTS.md Technology Stack is not `[CHOOSE]`)
-- [ ] Technical preferences configured (`.codex/studio/technical-preferences.md` populated)
+- [ ] Engine chosen (CLAUDE.md Technology Stack is not `[CHOOSE]`)
+- [ ] Technical preferences configured (`.claude/docs/technical-preferences.md` populated)
 - [ ] Art bible exists at `design/art/art-bible.md` with at least Sections 1–4 (Visual Identity Foundation)
 - [ ] At least 3 Architecture Decision Records in `docs/architecture/` covering
       Foundation-layer systems (scene management, event architecture, save/load)
@@ -143,7 +147,7 @@ supposed to have.
 - [ ] At least one example test file exists to confirm the framework is functional
 - [ ] Master architecture document exists at `docs/architecture/architecture.md`
 - [ ] Architecture traceability index exists at `docs/architecture/architecture-traceability.md`
-- [ ] `$architecture-review` has been run (a review report file exists in `docs/architecture/`)
+- [ ] `/architecture-review` has been run (a review report file exists in `docs/architecture/`)
 - [ ] `design/accessibility-requirements.md` exists with accessibility tier committed
 - [ ] `design/ux/interaction-patterns.md` exists (pattern library initialized, even if minimal)
 
@@ -169,7 +173,7 @@ A depends on B). If any cycle is detected (e.g. A→B→A, or A→B→C→A):
 
 **Engine Validation** (read `docs/engine-reference/[engine]/VERSION.md` first):
 - [ ] ADRs that touch post-cutoff engine APIs are flagged with Knowledge Risk: HIGH/MEDIUM
-- [ ] `$architecture-review` engine audit shows no deprecated API usage
+- [ ] `/architecture-review` engine audit shows no deprecated API usage
 - [ ] All ADRs agree on the same engine version (no stale version references)
 
 ---
@@ -185,17 +189,17 @@ A depends on B). If any cycle is detected (e.g. A→B→A, or A→B→C→A):
 - [ ] Master architecture document exists at `docs/architecture/architecture.md`
 - [ ] At least 3 ADRs covering Foundation-layer decisions exist in `docs/architecture/`
 - [ ] Control manifest exists at `docs/architecture/control-manifest.md`
-      (generated by `$create-control-manifest` from Accepted ADRs)
+      (generated by `/create-control-manifest` from Accepted ADRs)
 - [ ] Epics defined in `production/epics/` with at least Foundation and Core
-      layer epics present (use `$create-epics layer: foundation` and
-      `$create-epics layer: core` to create them, then `$create-stories [epic-slug]`
+      layer epics present (use `/create-epics layer: foundation` and
+      `/create-epics layer: core` to create them, then `/create-stories [epic-slug]`
       for each epic)
 - [ ] Vertical Slice build exists and is playable (not just scope-defined)
 - [ ] Vertical Slice has been playtested with at least 3 sessions (internal OK)
 - [ ] Vertical Slice playtest report exists at `production/playtests/` or equivalent
 - [ ] UX specs exist for key screens: main menu, core gameplay HUD (at `design/ux/`), pause menu
 - [ ] HUD design document exists at `design/ux/hud.md` (if game has in-game HUD)
-- [ ] All key screen UX specs have passed `$ux-review` (verdict APPROVED or NEEDS REVISION accepted)
+- [ ] All key screen UX specs have passed `/ux-review` (verdict APPROVED or NEEDS REVISION accepted)
 
 **Quality Checks:**
 - [ ] **Core loop fun is validated** — playtest data confirms the central mechanic is enjoyable, not just functional. Explicitly check the Vertical Slice playtest report.
@@ -209,7 +213,7 @@ A depends on B). If any cycle is detected (e.g. A→B→A, or A→B→C→A):
 - [ ] All ADRs have Engine Compatibility sections stamped with the engine version
 - [ ] All ADRs have ADR Dependencies sections (even if all fields are "None")
 - [ ] Manual validation confirms GDDs + architecture + epics are coherent
-      (run `$review-all-gdds` and `$architecture-review` if not done recently)
+      (run `/review-all-gdds` and `/architecture-review` if not done recently)
 - [ ] **Core fantasy is delivered** — at least one playtester independently described an experience that matches the Player Fantasy section of the core system GDDs (without being prompted).
 
 **Vertical Slice Validation** (FAIL if any item is NO):
@@ -233,8 +237,8 @@ A depends on B). If any cycle is detected (e.g. A→B→A, or A→B→C→A):
 - [ ] Test files exist in `tests/unit/` and `tests/integration/` covering Logic and Integration stories
 - [ ] All Logic stories from this sprint have corresponding unit test files in `tests/unit/`
 - [ ] Smoke check has been run with a PASS or PASS WITH WARNINGS verdict — report exists in `production/qa/`
-- [ ] QA plan exists in `production/qa/` (generated by `$qa-plan`) covering this sprint or final production sprint
-- [ ] QA sign-off report exists in `production/qa/` (generated by `$team-qa`) with verdict APPROVED or APPROVED WITH CONDITIONS
+- [ ] QA plan exists in `production/qa/` (generated by `/qa-plan`) covering this sprint or final production sprint
+- [ ] QA sign-off report exists in `production/qa/` (generated by `/team-qa`) with verdict APPROVED or APPROVED WITH CONDITIONS
 - [ ] At least 3 distinct playtest sessions documented in `production/playtests/`
 - [ ] Playtest reports cover: new player experience, mid-game systems, and difficulty curve
 - [ ] Fun hypothesis from Game Concept has been explicitly validated or revised
@@ -259,13 +263,13 @@ A depends on B). If any cycle is detected (e.g. A→B→A, or A→B→C→A):
 - [ ] All features from milestone plan are implemented
 - [ ] Content is complete (all levels, assets, dialogue referenced in design docs exist)
 - [ ] Localization strings are externalized (no hardcoded player-facing text in `src/`)
-- [ ] QA test plan exists (`$qa-plan` output in `production/qa/`)
-- [ ] QA sign-off report exists (`$team-qa` output — APPROVED or APPROVED WITH CONDITIONS)
+- [ ] QA test plan exists (`/qa-plan` output in `production/qa/`)
+- [ ] QA sign-off report exists (`/team-qa` output — APPROVED or APPROVED WITH CONDITIONS)
 - [ ] All Must Have story test evidence is present (Logic/Integration: test files pass; Visual/Feel/UI: sign-off docs in `production/qa/evidence/`)
 - [ ] Smoke check passes cleanly (PASS verdict) on the release candidate build
 - [ ] No test regressions from previous sprint (test suite passes fully)
-- [ ] Balance data has been reviewed (`$balance-check` run)
-- [ ] Release checklist completed (`$release-checklist` or `$launch-checklist` run)
+- [ ] Balance data has been reviewed (`/balance-check` run)
+- [ ] Release checklist completed (`/release-checklist` or `/launch-checklist` run)
 - [ ] Store metadata prepared (if applicable)
 - [ ] Changelog / patch notes drafted
 
@@ -291,9 +295,9 @@ not from symmetry with the game track.**
 ### Gate: Discovery → Architecture
 
 **Required Artifacts:**
-- [ ] `product/prd/product-concept.md` exists with real content (from `$product-concept`)
-- [ ] `.codex/studio/technical-preferences.md` is populated — stack and versions pinned, not `[CHOOSE]`
-- [ ] At least one feature PRD in `product/prd/prd-*.md` (from `$create-prd`)
+- [ ] `product/prd/product-concept.md` exists with real content (from `/product-concept`)
+- [ ] `.claude/docs/technical-preferences.md` is populated — stack and versions pinned, not `[CHOOSE]`
+- [ ] At least one feature PRD in `product/prd/prd-*.md` (from `/create-prd`)
 - [ ] UX specs exist in `design/ux/` for the primary flow
 
 **Quality Checks:**
@@ -301,9 +305,9 @@ not from symmetry with the game track.**
 - [ ] MVP scope tier is defined and is genuinely smaller than the full vision
 - [ ] Out-of-scope section exists and is non-empty
 - [ ] Every MVP-tier feature in the concept either has a PRD or is explicitly deferred — no silent gaps
-- [ ] PRDs do not contradict each other or the concept (`$design-review <prd>` verdict is not MAJOR REVISION NEEDED — that is the catalog's `prd-review` step)
+- [ ] PRDs do not contradict each other or the concept (`/design-review <prd>` verdict is not MAJOR REVISION NEEDED — that is the catalog's `prd-review` step)
 - [ ] Success metrics name a threshold that would make you stop, not only ones that would make you continue
-- [ ] Market, pricing, and competitor claims are sourced or marked per `../../rules/claim-confidence.md`
+- [ ] Market, pricing, and competitor claims are sourced or marked per `rules/claim-confidence.md`
 
 ---
 
@@ -312,7 +316,7 @@ not from symmetry with the game track.**
 **Required Artifacts:**
 - [ ] Master architecture document exists at `docs/architecture/architecture.md`
 - [ ] At least 3 ADRs in `docs/architecture/` covering foundation decisions (data model, auth, state management, deployment)
-- [ ] `$architecture-review` has been run (a review report exists in `docs/architecture/`)
+- [ ] `/architecture-review` has been run (a review report exists in `docs/architecture/`)
 - [ ] `design/accessibility-requirements.md` exists with the tier committed
 - [ ] Test framework initialized (`tests/` with at least one running example) and a CI workflow exists
 
@@ -321,7 +325,7 @@ not from symmetry with the game track.**
 - [ ] No circular ADR dependencies (build the graph from each ADR's "Depends On"; a cycle is a **FAIL** — neither ADR can reach Accepted)
 - [ ] Accessibility tier is defined (even "Basic"; undefined is not acceptable)
 - [ ] Data retention, PII handling, and third-party processors are addressed if the product stores user data — not deferred to Hardening, where changing them means a migration
-- [ ] Per-user cost of any paid API is estimated with the arithmetic shown, and a cap exists (`$api-cost-gate`)
+- [ ] Per-user cost of any paid API is estimated with the arithmetic shown, and a cap exists (`/api-cost-gate`)
 
 ---
 
@@ -330,12 +334,12 @@ not from symmetry with the game track.**
 **Required Artifacts:**
 - [ ] Epics in `production/epics/` and stories in `production/stories/`
 - [ ] At least one completed sprint in `production/sprints/`
-- [ ] All Must Have stories are marked done (`$story-done` verdicts recorded)
+- [ ] All Must Have stories are marked done (`/story-done` verdicts recorded)
 - [ ] Test evidence present for Must Have stories (test files pass; UI/visual items have sign-off in `production/qa/evidence/`)
 
 **Quality Checks:**
 - [ ] The MVP feature set from the product concept is implemented — not a different set that emerged along the way. If it diverged, the concept is updated to say so
-- [ ] `$smoke-check` passes on the current build
+- [ ] `/smoke-check` passes on the current build
 - [ ] No test regressions from the previous sprint
 - [ ] Analytics events for the success metrics are actually instrumented — a metric with no event is a plan, not a measurement
 - [ ] Error and empty states exist for the primary flow (the states QA finds last and users hit first)
@@ -345,11 +349,11 @@ not from symmetry with the game track.**
 ### Gate: Hardening → Ship
 
 **Required Artifacts:**
-- [ ] QA test plan exists (`$qa-plan` output in `production/qa/`)
-- [ ] QA sign-off recorded (`$team-qa` — APPROVED or APPROVED WITH CONDITIONS)
-- [ ] `$security-audit` has been run and its findings are resolved or explicitly accepted
-- [ ] `$perf-profile` results recorded against a stated budget
-- [ ] Regression suite exists and passes (`$regression-suite`)
+- [ ] QA test plan exists (`/qa-plan` output in `production/qa/`)
+- [ ] QA sign-off recorded (`/team-qa` — APPROVED or APPROVED WITH CONDITIONS)
+- [ ] `/security-audit` has been run and its findings are resolved or explicitly accepted
+- [ ] `/perf-profile` results recorded against a stated budget
+- [ ] Regression suite exists and passes (`/regression-suite`)
 
 **Quality Checks:**
 - [ ] No known critical or high-severity bugs open
@@ -363,7 +367,7 @@ not from symmetry with the game track.**
 ### Gate: Ship → Growth
 
 **Required Artifacts:**
-- [ ] `$release-checklist` and `$launch-checklist` completed
+- [ ] `/release-checklist` and `/launch-checklist` completed
 - [ ] Release notes or changelog published
 - [ ] Store listing / landing copy finalized if applicable
 - [ ] Monitoring in place: error reporting, uptime, and cost alerts
@@ -397,10 +401,10 @@ reaches it. Everything else in section 3 runs on both tracks; where it names a g
 path, read the product equivalent (`design/gdd/` → `product/prd/`, GDD → PRD).
 
 **Systems Design → Technical Setup gate — cross-GDD review check**:
-Use `Glob('design/gdd/gdd-cross-review-*.md')` to find the `$review-all-gdds` report.
+Use `Glob('design/gdd/gdd-cross-review-*.md')` to find the `/review-all-gdds` report.
 If no file matches, mark the "cross-GDD review report exists" artifact as **FAIL** and
-surface it prominently: "No `$review-all-gdds` report found in `design/gdd/`. Run
-`$review-all-gdds` before advancing to Technical Setup."
+surface it prominently: "No `/review-all-gdds` report found in `design/gdd/`. Run
+`/review-all-gdds` before advancing to Technical Setup."
 If a file is found, read it and check the verdict line: a FAIL verdict means the
 cross-GDD consistency check failed and must be resolved before advancing.
 
@@ -410,7 +414,7 @@ cross-GDD consistency check failed and must be resolved before advancing.
   product — `Read` the PRD in `product/prd/` and check its template sections, with every
   success metric measurable and every acceptance criterion testable
 - For performance checks: `Read` technical-preferences.md and compare against any
-  profiling data in `tests/performance/` or recent `$perf-profile` output
+  profiling data in `tests/performance/` or recent `/perf-profile` output
 - For localization checks: `Grep` for hardcoded strings in `src/`
 
 ### Cross-Reference Checks
@@ -427,7 +431,7 @@ For items that can't be automatically verified, **ask the user**:
 
 - "I can't automatically verify that the core loop plays well. Has it been playtested?"
 - "No playtest report found. Has informal testing been done?"
-- "Performance profiling data isn't available. Would you like to run `$perf-profile`?"
+- "Performance profiling data isn't available. Would you like to run `/perf-profile`?"
 
 **Never assume PASS for unverifiable items.** Mark them as MANUAL CHECK NEEDED.
 
@@ -435,14 +439,14 @@ For items that can't be automatically verified, **ask the user**:
 
 ## 4b. Director Panel Assessment
 
-Before generating the final verdict, spawn all four directors as **parallel subagents** as a Codex subagent using the parallel gate protocol from `../../docs/director-gates.md`. Issue all four Codex subagent calls simultaneously — do not wait for one before starting the next.
+Before generating the final verdict, spawn all four directors as **parallel subagents** via Task using the parallel gate protocol from `.claude/docs/director-gates.md`. Issue all four Task calls simultaneously — do not wait for one before starting the next.
 
 **Spawn in parallel:**
 
-1. **`creative-director`** — gate **CD-PHASE-GATE** (`../../docs/director-gates.md`)
-2. **`technical-director`** — gate **TD-PHASE-GATE** (`../../docs/director-gates.md`)
-3. **`producer`** — gate **PR-PHASE-GATE** (`../../docs/director-gates.md`)
-4. **`art-director`** — gate **AD-PHASE-GATE** (`../../docs/director-gates.md`)
+1. **`creative-director`** — gate **CD-PHASE-GATE** (`.claude/docs/director-gates.md`)
+2. **`technical-director`** — gate **TD-PHASE-GATE** (`.claude/docs/director-gates.md`)
+3. **`producer`** — gate **PR-PHASE-GATE** (`.claude/docs/director-gates.md`)
+4. **`art-director`** — gate **AD-PHASE-GATE** (`.claude/docs/director-gates.md`)
 
 Pass to each: target phase name, list of artifacts present, and the context fields listed in that gate's definition.
 
@@ -490,7 +494,7 @@ Art Director:       [READY / CONCERNS / NOT READY]
 - [?] Core loop playtested — MANUAL CHECK NEEDED
 
 ### Blockers
-1. **No Architecture Decision Records** — Run `$architecture-decision` to create one
+1. **No Architecture Decision Records** — Run `/architecture-decision` to create one
    covering core system architecture before entering production.
 2. **3 test failures** — Fix failing tests in tests/unit/ before advancing.
 
@@ -564,25 +568,25 @@ echo -n "Production" > production/stage.txt
 
 ## 7. Closing Next-Step Widget
 
-After the verdict is presented and any stage.txt update is complete, close with a structured next-step prompt by asking the user directly.
+After the verdict is presented and any stage.txt update is complete, close with a structured next-step prompt using `AskUserQuestion`.
 
 **Tailor the options to the gate that just ran:**
 
 For **systems-design PASS**:
 ```
 Gate passed. What would you like to do next?
-[A] Run $create-architecture — produce your master architecture blueprint and ADR work plan (recommended next step)
+[A] Run /create-architecture — produce your master architecture blueprint and ADR work plan (recommended next step)
 [B] Design more GDDs first — return here when all MVP systems are complete
 [C] Stop here for this session
 ```
 
-> **Note for systems-design PASS**: `$create-architecture` is the required next step before writing any ADRs. It produces the master architecture document and a prioritized list of ADRs to write. Running `$architecture-decision` without this step means writing ADRs without a blueprint — skip it at your own risk.
+> **Note for systems-design PASS**: `/create-architecture` is the required next step before writing any ADRs. It produces the master architecture document and a prioritized list of ADRs to write. Running `/architecture-decision` without this step means writing ADRs without a blueprint — skip it at your own risk.
 
 For **technical-setup PASS**:
 ```
 Gate passed. What would you like to do next?
 [A] Start Pre-Production — begin prototyping the Vertical Slice
-[B] Write more ADRs first — run $architecture-decision [next-system]
+[B] Write more ADRs first — run /architecture-decision [next-system]
 [C] Stop here for this session
 ```
 
@@ -593,59 +597,59 @@ For all other gates, offer the two most logical next steps for that phase plus "
 ## 8. Follow-Up Actions
 
 Based on the verdict, suggest specific next steps. **Suggest only from the
-resolved track's list** — offering `$art-bible` to a SaaS project is how a gate
+resolved track's list** — offering `/art-bible` to a SaaS project is how a gate
 loses the user's trust.
 
 **Product track:**
 
-- **No product concept?** → `$product-concept` to author it (`$create-prd` fails without it)
-- **Concept exists but no feature PRDs?** → `$create-prd <feature>`, one per MVP-tier feature
-- **PRDs not reviewed?** → `$design-review product/prd/prd-<feature>.md` (the catalog's `prd-review` step)
-- **Stack not pinned?** → populate `.codex/studio/technical-preferences.md` (product-track equivalent of `$setup-engine`)
-- **No architecture doc or ADRs?** → `$create-architecture`, then `$architecture-decision (×N)`
-- **Paid API with no cost ceiling?** → `$api-cost-gate`
+- **No product concept?** → `/product-concept` to author it (`/create-prd` fails without it)
+- **Concept exists but no feature PRDs?** → `/create-prd <feature>`, one per MVP-tier feature
+- **PRDs not reviewed?** → `/design-review product/prd/prd-<feature>.md` (the catalog's `prd-review` step)
+- **Stack not pinned?** → populate `.claude/docs/technical-preferences.md` (product-track equivalent of `/setup-engine`)
+- **No architecture doc or ADRs?** → `/create-architecture`, then `/architecture-decision (×N)`
+- **Paid API with no cost ceiling?** → `/api-cost-gate`
 - **No analytics for the stated success metrics?** → instrument before Hardening; a metric with no event cannot be reported
 - **Shipped features nobody has re-examined?** → `feature-viability` in the growth phase — keep / expand / patch / retire
 
 **Game track:**
 
-- **No art bible?** → `$art-bible` to create the visual identity specification
-- **Art bible exists but no asset specs?** → `$asset-spec system:[name]` to generate per-asset visual specs and generation prompts from approved GDDs
-- **No game concept?** → `$brainstorm` to create one
-- **No systems index?** → `$map-systems` to decompose the concept into systems
-- **Missing design docs?** → `$reverse-document` or delegate to `game-designer`
-- **Small design change needed?** → `$quick-design` for changes under ~4 hours (bypasses full GDD pipeline)
-- **No UX specs?** → `$ux-design [screen name]` to author specs, or `$team-ui [feature]` for full pipeline
-- **UX specs not reviewed?** → `$ux-review [file]` or `$ux-review all` to validate
-- **No accessibility requirements doc?** → Ask the user directly to offer to create it now:
+- **No art bible?** → `/art-bible` to create the visual identity specification
+- **Art bible exists but no asset specs?** → `/asset-spec system:[name]` to generate per-asset visual specs and generation prompts from approved GDDs
+- **No game concept?** → `/brainstorm` to create one
+- **No systems index?** → `/map-systems` to decompose the concept into systems
+- **Missing design docs?** → `/reverse-document` or delegate to `game-designer`
+- **Small design change needed?** → `/quick-design` for changes under ~4 hours (bypasses full GDD pipeline)
+- **No UX specs?** → `/ux-design [screen name]` to author specs, or `/team-ui [feature]` for full pipeline
+- **UX specs not reviewed?** → `/ux-review [file]` or `/ux-review all` to validate
+- **No accessibility requirements doc?** → Use `AskUserQuestion` to offer to create it now:
   - Prompt: "The gate requires `design/accessibility-requirements.md`. Shall I create it from the template?"
   - Options: `Create it now — I'll choose an accessibility tier`, `I'll create it myself`, `Skip for now`
-  - If "Create it now": use a second a direct user question to ask for the tier:
+  - If "Create it now": use a second `AskUserQuestion` to ask for the tier:
     - Prompt: "Which accessibility tier fits this project?"
     - Options: `Basic — remapping + subtitles only (lowest effort)`, `Standard — Basic + colorblind modes + scalable UI`, `Comprehensive — Standard + motor accessibility + full settings menu`, `Exemplary — Comprehensive + external audit + full customization`
-  - Then write `design/accessibility-requirements.md` using the template at `../../docs/templates/accessibility-requirements.md`, filling in the chosen tier. Confirm: "May I write `design/accessibility-requirements.md`?"
-- **No interaction pattern library?** → `$ux-design patterns` to initialize it
-- **GDDs not cross-reviewed?** → `$review-all-gdds` (run after all MVP GDDs are individually approved)
-- **Cross-GDD consistency issues?** → fix flagged GDDs, then re-run `$review-all-gdds`
-- **No test framework?** → `$test-setup` to scaffold the framework for your engine
-- **No QA plan for current sprint?** → `$qa-plan sprint` to generate one before implementation begins
-- **Missing ADRs?** → `$architecture-decision` for individual decisions
-- **No master architecture doc?** → `$create-architecture` for the full blueprint
-- **ADRs missing engine compatibility sections?** → Re-run `$architecture-decision`
+  - Then write `design/accessibility-requirements.md` using the template at `.claude/docs/templates/accessibility-requirements.md`, filling in the chosen tier. Confirm: "May I write `design/accessibility-requirements.md`?"
+- **No interaction pattern library?** → `/ux-design patterns` to initialize it
+- **GDDs not cross-reviewed?** → `/review-all-gdds` (run after all MVP GDDs are individually approved)
+- **Cross-GDD consistency issues?** → fix flagged GDDs, then re-run `/review-all-gdds`
+- **No test framework?** → `/test-setup` to scaffold the framework for your engine
+- **No QA plan for current sprint?** → `/qa-plan sprint` to generate one before implementation begins
+- **Missing ADRs?** → `/architecture-decision` for individual decisions
+- **No master architecture doc?** → `/create-architecture` for the full blueprint
+- **ADRs missing engine compatibility sections?** → Re-run `/architecture-decision`
   or manually add Engine Compatibility sections to existing ADRs
-- **Missing control manifest?** → `$create-control-manifest` (requires Accepted ADRs)
-- **Missing epics?** → `$create-epics layer: foundation` then `$create-epics layer: core` (requires control manifest)
-- **Missing stories for an epic?** → `$create-stories [epic-slug]` (run after each epic is created)
-- **Stories not implementation-ready?** → `$story-readiness` to validate stories before developers pick them up
+- **Missing control manifest?** → `/create-control-manifest` (requires Accepted ADRs)
+- **Missing epics?** → `/create-epics layer: foundation` then `/create-epics layer: core` (requires control manifest)
+- **Missing stories for an epic?** → `/create-stories [epic-slug]` (run after each epic is created)
+- **Stories not implementation-ready?** → `/story-readiness` to validate stories before developers pick them up
 - **Tests failing?** → delegate to `lead-programmer` or `qa-tester`
-- **No playtest data?** → `$playtest-report`
-- **Less than 3 playtest sessions?** → Run more playtests before advancing. Use `$playtest-report` to structure findings.
+- **No playtest data?** → `/playtest-report`
+- **Less than 3 playtest sessions?** → Run more playtests before advancing. Use `/playtest-report` to structure findings.
 - **No Difficulty Curve doc?** → Consider creating one at `design/difficulty-curve.md` before polish
 - **No player journey document?** → create `design/player-journey.md` using the player journey template
-- **Need a quick sprint check?** → `$sprint-status` for current sprint progress snapshot
-- **Performance unknown?** → `$perf-profile`
-- **Not localized?** → `$localize`
-- **Ready for release?** → `$launch-checklist`
+- **Need a quick sprint check?** → `/sprint-status` for current sprint progress snapshot
+- **Performance unknown?** → `/perf-profile`
+- **Not localized?** → `/localize`
+- **Ready for release?** → `/launch-checklist`
 
 ---
 

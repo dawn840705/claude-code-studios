@@ -1,15 +1,18 @@
 ---
 name: asset-spec
 description: "Generate per-asset visual specifications and AI generation prompts from GDDs, level docs, or character profiles. Produces structured spec files and updates the master asset manifest. Run after art bible and GDD/level design are approved, before production begins."
+argument-hint: "[system:<name> | level:<name> | character:<name>] [--review full|lean|solo]"
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Write, Edit, Task, AskUserQuestion
 ---
 
 If no argument is provided, check whether `design/assets/asset-manifest.md` exists:
-- If it exists: read it, find the first context (system/level/character) with any asset at status "Needed" but no spec file written yet, and ask the user directly:
+- If it exists: read it, find the first context (system/level/character) with any asset at status "Needed" but no spec file written yet, and use `AskUserQuestion`:
   - Prompt: "The next unspecced context is **[target]**. Generate asset specs for it?"
   - Options: `[A] Yes — spec [target]` / `[B] Pick a different target` / `[C] Stop here`
 - If no manifest: fail with:
-  > "Usage: `$asset-spec system:<name>` — e.g., `$asset-spec system:tower-defense`
-  > Or: `$asset-spec level:iron-gate-fortress` / `$asset-spec character:frost-warden`
+  > "Usage: `/asset-spec system:<name>` — e.g., `/asset-spec system:tower-defense`
+  > Or: `/asset-spec level:iron-gate-fortress` / `/asset-spec character:frost-warden`
   > Run after your art bible and GDDs are approved."
 
 ---
@@ -34,15 +37,15 @@ Read all source material **before** asking the user anything.
 
 ### Required reads:
 - **Art bible**: Read `design/art/art-bible.md` — fail if missing:
-  > "No art bible found. Run `$art-bible` first — asset specs are anchored to the art bible's visual rules and asset standards."
+  > "No art bible found. Run `/art-bible` first — asset specs are anchored to the art bible's visual rules and asset standards."
   Extract: Visual Identity Statement, Color System (semantic colors), Shape Language, Asset Standards (Section 8 — dimensions, formats, polycount budgets, texture resolution tiers).
 
-- **Technical preferences**: Read `.codex/studio/technical-preferences.md` — extract performance budgets and naming conventions.
+- **Technical preferences**: Read `.claude/docs/technical-preferences.md` — extract performance budgets and naming conventions.
 
 ### Source doc reads (by target type):
 - **system**: Read `design/gdd/[target-name].md`. Extract the **Visual/Audio Requirements** section. If it doesn't exist or reads `[To be designed]`:
-  > "The Visual/Audio section of `design/gdd/[target-name].md` is empty. Either run `$design-system [target-name]` to complete the GDD, or describe the visual needs manually."
-  Ask the user directly: `[A] Describe needs manually` / `[B] Stop — complete the GDD first`
+  > "The Visual/Audio section of `design/gdd/[target-name].md` is empty. Either run `/design-system [target-name]` to complete the GDD, or describe the visual needs manually."
+  Use `AskUserQuestion`: `[A] Describe needs manually` / `[B] Stop — complete the GDD first`
 - **level**: Read `design/levels/[target-name].md`. Extract art requirements, asset list, VFX needs, and the art-director's production concept specs from Step 4.
 - **character**: Read `design/narrative/characters/[target-name].md` or search `design/narrative/` for the character profile. Extract visual description, role, and any specified distinguishing features.
 
@@ -77,7 +80,7 @@ Group assets into categories:
 - **Audio** — SFX, music tracks, ambient loops *(note: audio specs are descriptions only — no generation prompts)*
 - **3D Assets** — meshes, materials (if applicable per engine)
 
-Present the full identified list to the user. Ask the user directly:
+Present the full identified list to the user. Use `AskUserQuestion`:
 - Prompt: "I identified [N] assets across [N] categories for **[target]**. Review before speccing:"
 - Show the grouped list in conversation text first
 - Options: `[A] Proceed — spec all of these` / `[B] Remove some assets` / `[C] Add assets I didn't catch` / `[D] Adjust categories`
@@ -88,15 +91,15 @@ Do NOT proceed to Phase 3 without user confirmation of the asset list.
 
 ## Phase 3: Spec Generation
 
-Spawn specialist agents based on review mode. **Issue all Codex subagent calls simultaneously — do not wait for one before starting the next.**
+Spawn specialist agents based on review mode. **Issue all Task calls simultaneously — do not wait for one before starting the next.**
 
 ### Full mode — spawn in parallel:
 
-**`art-director`** as a Codex subagent:
+**`art-director`** via Task:
 - Provide: full asset list from Phase 2, art bible Visual Identity Statement, Color System, Shape Language, the source doc's visual requirements, and any reference games/art mentioned in the art bible Section 9
 - Ask: "For each asset in this list, produce: (1) a 2–3 sentence visual description anchored to the art bible's shape language and color system — be specific enough that two different artists would produce consistent results; (2) a generation prompt ready for use with AI image tools (Midjourney/Stable Diffusion style — include style keywords, composition, color palette anchors, negative prompts); (3) which art bible rules directly govern this asset (cite by section). For audio assets, describe the sonic character instead of a generation prompt."
 
-**`technical-artist`** as a Codex subagent:
+**`technical-artist`** via Task:
 - Provide: full asset list, art bible Asset Standards (Section 8), technical-preferences.md performance budgets, engine name and version
 - Ask: "For each asset in this list, specify: (1) exact dimensions or polycount (match the art bible Asset Standards tiers — do not invent new sizes); (2) file format and export settings; (3) naming convention (from technical-preferences.md); (4) any engine-specific constraints this asset type must respect; (5) LOD requirements if applicable. Flag any asset type where the art bible's preferred standard conflicts with the engine's constraints."
 
@@ -137,7 +140,7 @@ Combine the agent outputs into a draft spec per asset. Present all specs in conv
 **Status:** Needed
 ```
 
-After presenting all specs, ask the user directly:
+After presenting all specs, use `AskUserQuestion`:
 - Prompt: "Asset specs for **[target]** — [N] assets. Review complete?"
 - Options: `[A] Approve all — write to file` / `[B] Revise a specific asset` / `[C] Regenerate with different direction`
 
@@ -193,13 +196,13 @@ Ask: "May I update `design/assets/asset-manifest.md`?"
 
 ## Phase 6: Close
 
-Ask the user directly:
+Use `AskUserQuestion`:
 - Prompt: "Asset specs complete for **[target]**. What's next?"
 - Options:
-  - `[A] Spec another system — $asset-spec system:[next-system]`
-  - `[B] Spec a level — $asset-spec level:[level-name]`
-  - `[C] Spec a character — $asset-spec character:[character-name]`
-  - `[D] Run $asset-audit — validate delivered assets against specs`
+  - `[A] Spec another system — /asset-spec system:[next-system]`
+  - `[B] Spec a level — /asset-spec level:[level-name]`
+  - `[C] Spec a character — /asset-spec character:[character-name]`
+  - `[D] Run /asset-audit — validate delivered assets against specs`
   - `[E] Stop here`
 
 ---
@@ -257,5 +260,5 @@ Every phase follows: **Identify → Confirm → Generate → Review → Approve 
 
 ## Recommended Next Steps
 
-- Run `$asset-spec [next-context]` to continue speccing remaining systems, levels, or characters
-- Run `$asset-audit` to validate delivered assets against the written specs and identify gaps or mismatches
+- Run `/asset-spec [next-context]` to continue speccing remaining systems, levels, or characters
+- Run `/asset-audit` to validate delivered assets against the written specs and identify gaps or mismatches

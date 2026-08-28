@@ -1,6 +1,6 @@
 # Token Efficiency Rules
 
-Six lightweight rules to keep Codex agent collaboration efficient over long-running projects. Adopt as-is or fork.
+Six lightweight rules to keep agent collaboration efficient over long-running game projects. Adopt as-is or fork — they assume Claude Code-style workflows but generalise to any agent harness.
 
 ---
 
@@ -75,13 +75,13 @@ Don't:
 
 This rule pairs with **R3** — many bulk operations begin with a single "OK" and just need to start running.
 
-For paid API calls and other gated actions, this rule is **constrained by the gate** (e.g. `$api-cost-gate`) — the user's "OK" still needs to satisfy whatever pre-flight disclosure the gate requires.
+For paid API calls and other gated actions, this rule is **constrained by the gate** (e.g. `/api-cost-gate`) — the user's "OK" still needs to satisfy whatever pre-flight disclosure the gate requires.
 
 ---
 
 ## Adoption notes
 
-- Adopt these rules in the project `AGENTS.md` so every Codex task inherits them.
+- Adopt these rules as a project-level memory or in your `CLAUDE.md` — pin them so every agent session inherits them.
 - Customize the line counts (R1, R2) to your team's preference. The principle (lean over verbose) matters more than the exact thresholds.
 - These rules are **pull-based** — they only fire when an agent is making a decision about how much to write / report. They don't replace standard linting, testing, or review.
 

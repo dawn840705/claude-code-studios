@@ -104,6 +104,6 @@ Principles cited above, with links. **Do not paste source text into this report*
 ## Next steps
 
 - [ ] [Highest-severity finding] → [owner / skill]
-- [ ] Rework via `$self-loop` using the findings above as defect tickets
+- [ ] Rework via `/self-loop` using the findings above as defect tickets
 - [ ] Update `Layout` in the level document
 - [ ] Re-audit after rework

@@ -1,6 +1,9 @@
 ---
 name: product-concept
-description: "Guided authoring of the product-level concept document for an app/web/service project — problem statement, target users, value proposition, differentiation, and scope tiers — written to product/prd/product-concept.md. This is the document every feature PRD is derived from, so run it before $create-prd. Use when starting a product-track project, when $create-prd or $gate-check reports the product concept is missing, or when the user says 'define the product', 'what are we building', 'write the product concept'. Do NOT use for a game concept (that is $brainstorm → design/gdd/game-concept.md), and do NOT use for a single feature's requirements (that is $create-prd)."
+description: "Guided authoring of the product-level concept document for an app/web/service project — problem statement, target users, value proposition, differentiation, and scope tiers — written to product/prd/product-concept.md. This is the document every feature PRD is derived from, so run it before /create-prd. Use when starting a product-track project, when /create-prd or /gate-check reports the product concept is missing, or when the user says 'define the product', 'what are we building', 'write the product concept'. Do NOT use for a game concept (that is /brainstorm → design/gdd/game-concept.md), and do NOT use for a single feature's requirements (that is /create-prd)."
+argument-hint: "[product name or one-line idea] [--review full|lean|solo]"
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Write, WebSearch, Task, AskUserQuestion
 ---
 
 When this skill is invoked:
@@ -14,7 +17,7 @@ Resolve the review mode (once, store for all gate spawns this run):
 3. Else → default to `lean`
 
 **Confirm the track before writing anything.** This skill produces a *product*
-concept. If `PROJECT_TYPE` is `game`, stop and route to `$brainstorm` instead —
+concept. If `PROJECT_TYPE` is `game`, stop and route to `/brainstorm` instead —
 the two documents are not interchangeable and `design/gdd/game-concept.md` is
 what the game track's gates look for. If `PROJECT_TYPE` is `unknown`, ask which
 one the project is before proceeding.
@@ -29,14 +32,14 @@ Never touch section content that is already written.
 
 Read before asking the user anything:
 
-- **Stack pin**: `.codex/studio/technical-preferences.md` — platform and framework
+- **Stack pin**: `.claude/docs/technical-preferences.md` — platform and framework
   constrain what the product can be. If missing, note it; the concept can be
   written first, but say so rather than assuming a stack.
 - **Existing PRDs**: Glob `product/prd/prd-*.md`. On a project that grew feature
   PRDs before anyone wrote the concept, those PRDs are the evidence of what the
   product actually became. Read them and reconcile — do not invent a concept that
   contradicts shipped features.
-- **Prior exploration**: any `$brainstorm` output or discovery notes the user
+- **Prior exploration**: any `/brainstorm` output or discovery notes the user
   points at.
 
 ---
@@ -48,7 +51,7 @@ from what you read, ask for corrections, then move on. Do not generate the whole
 document silently — this is the one document where a wrong assumption propagates
 into every downstream PRD.
 
-Ask the user directly for constrained choices (target segment, scope tier
+Use `AskUserQuestion` for constrained choices (target segment, scope tier
 boundaries, monetization posture). Ask open questions as plain text so the user
 can answer freely.
 
@@ -68,16 +71,16 @@ can answer freely.
 6. **Scope tiers** — MVP / next / later. The MVP tier is what you would ship if
    you had to ship in a third of the planned time.
 7. **Success metrics** — how you will know it worked, and the threshold that
-   would make you stop. Apply `../../rules/claim-confidence.md` § 3.1: at launch
+   would make you stop. Apply `rules/claim-confidence.md` § 3.1: at launch
    sample sizes, name raw counts, not ratios.
 8. **Risks & assumptions** — the assumptions that, if wrong, invalidate the
    concept. Mark each as verified, estimated, or unverified per
-   `../../rules/claim-confidence.md`.
+   `rules/claim-confidence.md`.
 9. **Out of scope** — what this product is deliberately not. A concept with no
    out-of-scope section has not made any decisions yet.
 
 Any market size, competitor fact, pricing, or regulatory claim follows
-`../../rules/claim-confidence.md`: cite the source, or mark `(추정)` with the
+`rules/claim-confidence.md`: cite the source, or mark `(추정)` with the
 arithmetic, or `[확인 필요]`. Do not write these from memory. If the user can
 answer it faster than a search, ask the user.
 
@@ -85,9 +88,9 @@ answer it faster than a search, ask the user.
 
 ## 4. Director Gate
 
-See `../../docs/director-gates.md` for the full check pattern.
+See `.claude/docs/director-gates.md` for the full check pattern.
 
-- `full` → spawn `product-manager` as a Codex subagent to review the concept for internal
+- `full` → spawn `product-manager` via Task to review the concept for internal
   consistency (does the core loop serve the stated problem, do the scope tiers
   hold the value proposition) before writing.
 - `lean` / `solo` → skip. Note the skip in the output.
@@ -96,12 +99,12 @@ See `../../docs/director-gates.md` for the full check pattern.
 
 ## 5. Write Approval
 
-Ask the user directly:
+Use `AskUserQuestion`:
 
 - Prompt: "Product concept is ready. May I write it to `product/prd/product-concept.md`?"
 - Options: `[A] Yes — write it` / `[B] Not yet — revise a section first`
 
-If [B]: ask which section by asking the user directly with the section names from
+If [B]: ask which section using `AskUserQuestion` with the section names from
 § 3. Show the revised section as a clear before/after, then ask again. Repeat
 until the user selects [A].
 
@@ -112,18 +115,18 @@ needed.
 
 ## 6. Report the Verdict
 
-After writing, state one of these — the downstream skills and `$gate-check
+After writing, state one of these — the downstream skills and `/gate-check
 architecture` depend on knowing which:
 
 - **COMPLETE** — all nine sections written, every claim either sourced or marked,
-  no `[확인 필요]` blocking an MVP-tier decision. `$create-prd` can start.
+  no `[확인 필요]` blocking an MVP-tier decision. `/create-prd` can start.
 - **CONCERNS** — written and usable, but list each `[확인 필요]` that a feature PRD
   will inherit. These are the assumptions that will propagate; name them here or
   they will surface as facts in three PRDs' time.
 - **BLOCKED** — a decision only the user can make is missing (target segment,
   monetization posture, a regulatory question). Do not guess it to finish the
   document. Record it in `production/human-actions.md` per
-  `../../rules/work-records.md` § 2 and stop.
+  `rules/work-records.md` § 2 and stop.
 
 ---
 
@@ -131,10 +134,10 @@ architecture` depend on knowing which:
 
 List these in order:
 
-1. "Pin the stack in `.codex/studio/technical-preferences.md` if it is not pinned yet — the product-track equivalent of `$setup-engine`"
-2. "Write the first feature PRD with `$create-prd <feature>` — one per MVP-tier feature"
-3. "Design the screens with `$ux-design` once the MVP features have PRDs"
-4. "Validate readiness to advance with `$gate-check architecture`"
+1. "Pin the stack in `.claude/docs/technical-preferences.md` if it is not pinned yet — the product-track equivalent of `/setup-engine`"
+2. "Write the first feature PRD with `/create-prd <feature>` — one per MVP-tier feature"
+3. "Design the screens with `/ux-design` once the MVP features have PRDs"
+4. "Validate readiness to advance with `/gate-check architecture`"
 
 ---
 
@@ -142,10 +145,10 @@ List these in order:
 
 | Skill | Layer | Artifact |
 |---|---|---|
-| `$brainstorm` | exploration, **game** framing | `design/gdd/game-concept.md` |
-| **`$product-concept`** | **product level** | `product/prd/product-concept.md` |
-| `$create-prd` | **feature level** | `product/prd/prd-<feature>.md` |
+| `/brainstorm` | exploration, **game** framing | `design/gdd/game-concept.md` |
+| **`/product-concept`** | **product level** | `product/prd/product-concept.md` |
+| `/create-prd` | **feature level** | `product/prd/prd-<feature>.md` |
 
-`$create-prd` reads this document and fails without it. That was the gap this
+`/create-prd` reads this document and fails without it. That was the gap this
 skill closes: the product track required the artifact and named no skill that
 wrote it.

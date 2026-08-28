@@ -210,7 +210,7 @@ that is the check that will disagree with you.
 - Don't spawn agents just because they exist. If the task is simple, handle it directly.
 - Don't bypass hooks (`--no-verify`) unless the user explicitly asks.
 - Don't fabricate workflow steps. If unsure, check `docs/workflow-catalog.yaml` or ask the user.
-- Don't assume an engine or stack. Read `.codex/studio/technical-preferences.md` or ask. (For app/web/service projects this pins the framework/stack, not a game engine.)
+- Don't assume an engine or stack. Read `.claude/docs/technical-preferences.md` or ask. (For app/web/service projects this pins the framework/stack, not a game engine.)
 - Don't mix packs. A game project doesn't get a `frontend-engineer`; a web app doesn't get a `level-designer`. Check `PROJECT_TYPE` and `docs/agent-packs.yaml`.
 - Don't mark work done on the completion axis alone. `verify_policy.py` judges whether it was done the way we said; a completion PASS beside a policy FAIL is BLOCKED.
 

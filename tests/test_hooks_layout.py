@@ -91,23 +91,6 @@ def write_event(file_path):
     return json.dumps({"tool_name": "Write", "tool_input": {"file_path": file_path}})
 
 
-def patch_event(*paths):
-    command = "*** Begin Patch\n" + "\n".join(
-        f"*** Update File: {path}" for path in paths
-    ) + "\n*** End Patch"
-    return json.dumps({"tool_name": "apply_patch", "tool_input": {"command": command}})
-
-
-def hook_text(result):
-    """Return model-visible hook context for advisory or blocking outcomes."""
-    if result.stdout.strip():
-        payload = json.loads(result.stdout)
-        if "systemMessage" in payload:
-            return payload["systemMessage"]
-        return payload.get("hookSpecificOutput", {}).get("additionalContext", "")
-    return result.stderr
-
-
 def git_init(root):
     subprocess.run(["git", "init", "-q"], cwd=str(root), check=True,
                    capture_output=True, encoding="utf-8", errors="replace")
@@ -284,17 +267,11 @@ def test_env_override_of_design_roots_is_colon_separated(unity):
     assert out.stdout.split() == ["Docs", "Documents"]
 
 
-def test_codex_config_file_overrides_detection(unity):
-    write(unity, ".codex/studio-layout.json",
+def test_dedicated_config_file_overrides_detection(unity):
+    write(unity, ".claude/studio-layout.json",
           json.dumps({"assetNaming": "any", "designRoots": ["Documents"]}))
     out = probe(unity, 'echo "$STUDIO_ASSET_NAMING|$STUDIO_LAYOUT_SOURCE"')
     assert out.stdout.strip().startswith("any|")
-
-
-def test_codex_config_wins_over_legacy_config(unity):
-    write(unity, ".codex/studio-layout.json", '{"assetNaming": "any"}')
-    write(unity, ".claude/studio-layout.json", '{"assetNaming": "snake"}')
-    assert probe(unity, 'echo "$STUDIO_ASSET_NAMING"').stdout.strip() == "any"
 
 
 @pytest.mark.skipif(shutil.which("jq") is None, reason="array config needs jq")
@@ -522,9 +499,9 @@ def test_commit_hook_fires_on_unity_sources(unity):
 
     result = run_hook(VALIDATE_COMMIT, unity, stdin=COMMIT_EVENT)
     assert result.returncode == 0
-    assert "hardcoded gameplay values" in hook_text(result)
-    assert "TODO/FIXME without owner tag" in hook_text(result)
-    assert "PlayerController.cs" in hook_text(result)
+    assert "hardcoded gameplay values" in result.stderr
+    assert "TODO/FIXME without owner tag" in result.stderr
+    assert "PlayerController.cs" in result.stderr
 
 
 def test_commit_hook_still_fires_on_web_sources(web):
@@ -532,9 +509,9 @@ def test_commit_hook_still_fires_on_web_sources(web):
     write(web, "src/gameplay/combat.ts", "// FIXME broken\nexport const damage = 12;\n")
     git_add_all(web)
 
-    result = run_hook(VALIDATE_COMMIT, web, stdin=COMMIT_EVENT)
-    assert "hardcoded gameplay values" in hook_text(result)
-    assert "src/gameplay/combat.ts" in hook_text(result)
+    stderr = run_hook(VALIDATE_COMMIT, web, stdin=COMMIT_EVENT).stderr
+    assert "hardcoded gameplay values" in stderr
+    assert "src/gameplay/combat.ts" in stderr
 
 
 def test_commit_hook_matches_owned_todos_as_clean(unity):
@@ -565,8 +542,8 @@ def test_commit_hook_blocks_invalid_json_in_web_layout(web):
 def test_commit_hook_enforces_gdd_sections_in_canonical_path(web):
     git_init(web)
     git_add_all(web)
-    result = run_hook(VALIDATE_COMMIT, web, stdin=COMMIT_EVENT)
-    assert "missing required section: Player Fantasy" in hook_text(result)
+    stderr = run_hook(VALIDATE_COMMIT, web, stdin=COMMIT_EVENT).stderr
+    assert "missing required section: Player Fantasy" in stderr
 
 
 def test_commit_hook_ignores_ordinary_docs_outside_the_gdd_path(unity):
@@ -584,8 +561,8 @@ def test_commit_hook_enforces_sections_on_gdd_shaped_docs_anywhere(unity):
     write(unity, "Documents/Specs/CombatSpec.md",
           "# Combat\n\n## Overview\nx\n\n## Dependencies\ny\n\n## Formulas\nz\n")
     git_add_all(unity)
-    result = run_hook(VALIDATE_COMMIT, unity, stdin=COMMIT_EVENT)
-    assert "missing required section: Player Fantasy" in hook_text(result)
+    stderr = run_hook(VALIDATE_COMMIT, unity, stdin=COMMIT_EVENT).stderr
+    assert "missing required section: Player Fantasy" in stderr
 
 
 def test_commit_hook_ignores_non_commit_commands(unity):
@@ -598,13 +575,12 @@ def test_commit_hook_ignores_non_commit_commands(unity):
     assert result.stderr == ""
 
 
-def test_commit_hook_produces_valid_codex_json(unity):
+def test_commit_hook_produces_no_stdout(unity):
+    """grep findings used to leak into stdout instead of the stderr report."""
     git_init(unity)
     write(unity, "Assets/02.Scripts/Noisy.cs", "// TODO: x\nint damage = 5;\n")
     git_add_all(unity)
-    result = run_hook(VALIDATE_COMMIT, unity, stdin=COMMIT_EVENT)
-    payload = json.loads(result.stdout)
-    assert "hardcoded gameplay values" in payload["systemMessage"]
+    assert run_hook(VALIDATE_COMMIT, unity, stdin=COMMIT_EVENT).stdout == ""
 
 
 # --------------------------------------------------------------------------
@@ -630,12 +606,12 @@ def test_unity_pascal_names_are_accepted(unity, name):
 def test_unity_still_rejects_spaces_and_hyphens(unity, name, reason):
     result = run_hook(VALIDATE_ASSETS, unity, stdin=write_event(name))
     assert result.returncode == 0
-    assert reason in hook_text(result)
+    assert reason in result.stderr
 
 
 def test_web_naming_rule_unchanged(web):
     result = run_hook(VALIDATE_ASSETS, web, stdin=write_event("assets/Sprites/Hero.png"))
-    assert "must be lowercase with underscores" in hook_text(result)
+    assert "must be lowercase with underscores" in result.stderr
     assert run_hook(VALIDATE_ASSETS, web,
                     stdin=write_event("assets/sprites/hero.png")).stderr == ""
 
@@ -666,15 +642,16 @@ def test_blocking_exit_is_2_not_1(web):
     """Regression guard for the v0.6.3 fix.
 
     Until v0.6.3 this hook exited 1 on invalid JSON while printing
-    "ERRORS (Blocking)". The Codex migration preserves exit 2 as the blocking
-    path and returns model-visible JSON context for advisory results. Because
-    this is a PostToolUse hook the write has already landed, a blocking result
-    must make the failed tool result explicit.
+    "ERRORS (Blocking)". In a Claude Code hook only exit 2 feeds stderr back to
+    Claude; exit 1 surfaces to the user and is otherwise ignored. Because this
+    is a PostToolUse hook the write has already landed, so exit 2 is the only
+    path by which Claude learns it must fix the file it just wrote — exit 1
+    meant the "blocking" branch rendered no verdict at all.
     """
     write(web, "assets/data/broken.json", "{ not json")
     result = run_hook(VALIDATE_ASSETS, web, stdin=write_event("assets/data/broken.json"))
     assert result.returncode == 2, (
-        "invalid JSON must exit 2 so Codex treats the tool result as blocked"
+        "invalid JSON must exit 2; exit 1 is not delivered to Claude"
     )
     assert "1" != str(result.returncode)
 
@@ -683,7 +660,7 @@ def test_naming_violations_never_block(web):
     """The other half of the contract: style opinions stay advisory (exit 0)."""
     result = run_hook(VALIDATE_ASSETS, web, stdin=write_event("assets/Sprites/Hero.png"))
     assert result.returncode == 0
-    assert "must be lowercase with underscores" in hook_text(result)
+    assert "must be lowercase with underscores" in result.stderr
 
 
 def test_valid_json_passes(web):
@@ -699,7 +676,7 @@ def test_empty_file_path_is_skipped(unity):
 
 
 def test_assets_hook_survives_a_missing_helper(tmp_path):
-    """An incomplete installation must not fail the tool call."""
+    """Without the helper it must still enforce the legacy web rules."""
     staged = tmp_path / "hooks_copy"
     os.makedirs(staged)
     shutil.copy(VALIDATE_ASSETS, staged / "validate-assets.sh")
@@ -709,7 +686,7 @@ def test_assets_hook_survives_a_missing_helper(tmp_path):
     result = run_hook(str(staged / "validate-assets.sh"), project,
                       stdin=write_event("assets/Sprites/Hero.png"))
     assert result.returncode == 0
-    assert result.stdout == ""
+    assert "must be lowercase with underscores" in result.stderr
 
 
 # --------------------------------------------------------------------------
@@ -721,7 +698,7 @@ def test_unity_meta_check_still_flags_missing_meta(unity):
     result = run_hook(os.path.join(HOOKS, "unity-meta-check.sh"), unity,
                       stdin=write_event("Assets/02.Scripts/New.cs"))
     assert result.returncode == 0
-    assert "Missing Unity sidecar" in hook_text(result)
+    assert "Missing .meta" in result.stderr
 
 
 def test_unity_meta_check_still_skips_non_unity_projects(web):
@@ -737,7 +714,7 @@ def test_animator_lint_still_flags_string_access(unity):
     result = run_hook(os.path.join(HOOKS, "unity-animator-string-lint.sh"), unity,
                       stdin=write_event("Assets/02.Scripts/Anim.cs"))
     assert result.returncode == 0
-    assert "Unity Animator string access" in hook_text(result)
+    assert "Animator string-access detected" in result.stderr
 
 
 # 이 훅이 강제하는 규칙은 「Animator 파라미터는 해시로 접근」이다. 그런데 패턴이
@@ -762,7 +739,7 @@ def test_animator_lint_catches_every_receiver_name(unity, name, call):
     result = run_hook(os.path.join(HOOKS, "unity-animator-string-lint.sh"), unity,
                       stdin=write_event("Assets/02.Scripts/Anim.cs"))
     assert result.returncode == 0
-    assert "Unity Animator string access" in hook_text(result), (
+    assert "Animator string-access detected" in result.stderr, (
         "수신자 이름이 %s 이면 린트가 놓친다. 이름을 `animator` 로 못박은 회귀." % name
     )
 
@@ -789,7 +766,7 @@ def test_animator_lint_does_not_flag_non_animator_calls(unity, name, call):
     result = run_hook(os.path.join(HOOKS, "unity-animator-string-lint.sh"), unity,
                       stdin=write_event("Assets/02.Scripts/Other.cs"))
     assert result.returncode == 0
-    assert "Unity Animator string access" not in hook_text(result), (
+    assert "Animator string-access detected" not in result.stderr, (
         "%s 는 Animator 호출이 아닌데 잡혔다 — 넓히면서 오탐이 늘었다." % name
     )
 
@@ -798,22 +775,12 @@ def test_animator_lint_does_not_flag_non_animator_calls(unity, name, call):
 # plugin manifest
 # --------------------------------------------------------------------------
 
-def test_post_tool_use_matcher_includes_codex_apply_patch():
-    hook_config = os.path.join(REPO, "hooks", "hooks.json")
-    with open(hook_config, encoding="utf-8") as fh:
+def test_post_tool_use_matcher_includes_multiedit():
+    manifest = os.path.join(REPO, ".claude-plugin", "plugin.json")
+    with open(manifest, encoding="utf-8") as fh:
         data = json.load(fh)
     matchers = [entry["matcher"] for entry in data["hooks"]["PostToolUse"]]
-    assert all("apply_patch" in m for m in matchers), matchers
-
-
-def test_apply_patch_paths_are_validated(web):
-    result = run_hook(
-        VALIDATE_ASSETS,
-        web,
-        stdin=patch_event("src/clean.ts", "assets/Sprites/Hero.png"),
-    )
-    assert result.returncode == 0
-    assert "must be lowercase with underscores" in hook_text(result)
+    assert all("MultiEdit" in m for m in matchers), matchers
 
 
 def test_every_layout_aware_hook_sources_the_helper():

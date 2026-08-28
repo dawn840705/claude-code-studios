@@ -35,7 +35,7 @@ described behaviour, is not vendoring and carries no such risk.
 1. **The per-effect AI prompt.** Every card ships CSS, React, *and* a natural-language
    prompt written as a spec with prohibitions included — "animate only the height with
    `cubic-bezier(0.34, 1.56, 0.64, 1)` over ~0.5s… no JS height measurement, no
-   max-height hacks". That is a briefing format worth imitating in `$ux-design` output,
+   max-height hacks". That is a briefing format worth imitating in `/ux-design` output,
    independent of whether the effect itself is ever used.
 2. **A duration-versus-spring argument, stated well.** A fixed duration has no idea
    where an interruption left it, so it snaps or stutters; a spring keeps integrating
@@ -43,7 +43,7 @@ described behaviour, is not vendoring and carries no such risk.
 3. **AI-app state vocabulary.** Its Feedback & State category includes Token Stream,
    Agent Handoff, Optimistic Rollback, Rate Limit Cooldown and Vector Recall — visual
    treatments for states an LLM-backed product has and a conventional app does not.
-   `$web-ai-patterns` covers those states in code and says nothing about how they look.
+   `/web-ai-patterns` covers those states in code and says nothing about how they look.
 
 **Two cautions, both measured:**
 
@@ -55,6 +55,6 @@ described behaviour, is not vendoring and carries no such risk.
   35, distinct named cards number 143 (Pulse Badge appears twice) and the search index
   holds 142 keys. Treat any figure from this source as `추정` unless counted directly.
 
-**Not a dependency.** Nothing here gets installed, added to Codex configuration, or
-vendored into this repository. It is a reading source for `$ux-design` and
+**Not a dependency.** Nothing here gets installed, added to `.claude/settings.json`, or
+vendored into this repository. It is a reading source for `/ux-design` and
 `frontend-engineer` on product-track work.

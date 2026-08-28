@@ -1,9 +1,9 @@
-# Specialist Role Roster
+# Agent Roster
 
-45 role guides live in `skills/studio-orchestrator/references/roles/`. They are
-not independently installed agents. `$studio-orchestrator` selects the smallest
-useful set, reads those guides, and passes the relevant guidance to Codex
-subagents using self-contained prompts.
+45 agents, each with a dedicated definition file in `agents/`. Use the agent
+best suited to the task at hand. When a task spans multiple domains, the
+coordinating agent (usually `producer`, `product-manager`, or the domain lead)
+delegates to specialists.
 
 Agents are organized into four domain packs (source of truth:
 `docs/agent-packs.yaml`). The `detect-project-type.sh` hook picks the active
@@ -15,8 +15,8 @@ packs at session start:
 - **writing** — Korean-text rewriting, active on EVERY type (patch notes and GDDs
   need it as much as release notes and landing copy).
 
-There are no engine-specific installed agents. Engine guidance is handled by
-`$setup-engine` and version-aware reference docs, not dedicated agents.
+There are no engine-specific agents. Engine guidance is handled by
+`/setup-engine` and version-aware reference docs, not dedicated agents.
 
 ## Core pack (always active)
 

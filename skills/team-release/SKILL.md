@@ -1,15 +1,18 @@
 ---
 name: team-release
 description: "Orchestrate the release team: coordinates release-manager, qa-lead, devops-engineer, and producer to execute a release from candidate to deployment."
+argument-hint: "[version number or 'next']"
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Write, Edit, Bash, Task, AskUserQuestion, TodoWrite
 ---
 **Argument check:** If no version number is provided:
 1. Read `production/session-state/active.md` and the most recent file in `production/milestones/` (if they exist) to infer the target version.
-2. If a version is found: report "No version argument provided — inferred [version] from milestone data. Proceeding." Then confirm with a direct user question: "Releasing [version]. Is this correct?"
-3. If no version is discoverable: ask the user directly to ask "What version number should be released? (e.g., v1.0.0)" and wait for user input before proceeding. Do NOT default to a hardcoded version string.
+2. If a version is found: report "No version argument provided — inferred [version] from milestone data. Proceeding." Then confirm with `AskUserQuestion`: "Releasing [version]. Is this correct?"
+3. If no version is discoverable: use `AskUserQuestion` to ask "What version number should be released? (e.g., v1.0.0)" and wait for user input before proceeding. Do NOT default to a hardcoded version string.
 
 When this skill is invoked, orchestrate the release team through a structured pipeline.
 
-**Decision Points:** At each phase transition, ask the user directly to present
+**Decision Points:** At each phase transition, use `AskUserQuestion` to present
 the user with the subagent's proposals as selectable options. Write the agent's
 full analysis in conversation, then capture the decision with concise labels.
 The user must approve before moving to the next phase.
@@ -25,7 +28,7 @@ The user must approve before moving to the next phase.
 
 ## How to Delegate
 
-Use the Codex subagent mechanism to spawn each team member as a subagent:
+Use the Task tool to spawn each team member as a subagent:
 - `subagent_type: release-manager` — Release branch, versioning, changelog, deployment
 - `subagent_type: qa-lead` — Test sign-off, regression suite, release quality gate
 - `subagent_type: devops-engineer` — Build pipeline, artifacts, deployment automation
@@ -50,7 +53,7 @@ Delegate to **producer**:
 Delegate to **release-manager**:
 - Cut release branch from the agreed commit
 - Bump version numbers in all relevant files
-- Generate the release checklist using `$release-checklist`
+- Generate the release checklist using `/release-checklist`
 - Freeze the branch — no feature changes, bug fixes only
 - Output: release branch name and checklist
 
@@ -77,7 +80,7 @@ Delegate to **producer**:
 
 **If producer declares NO-GO:**
 - Surface the decision immediately: "PRODUCER: NO-GO — [rationale, e.g., S1 bug found in Phase 3]."
-- Ask the user directly with options:
+- Use `AskUserQuestion` with options:
   - Fix the blocker and re-run the affected phase
   - Defer the release to a later date
   - Override NO-GO with documented rationale (user must provide written justification)
@@ -88,13 +91,13 @@ Delegate to **producer**:
 ### Phase 6: Deployment (if GO)
 Delegate to **release-manager** + **devops-engineer**:
 - Tag the release in version control
-- Generate changelog using `$changelog`
+- Generate changelog using `/changelog`
 - Deploy to staging for final smoke test
 - Deploy to production
 - Monitor for 48 hours post-release
 
 Delegate to **community-manager** (in parallel with deployment):
-- Finalize patch notes using `$patch-notes [version]`
+- Finalize patch notes using `/patch-notes [version]`
 - Prepare launch announcement (store page updates, social media, community post)
 - Draft known issues post if any S3+ issues shipped
 - Output: all player-facing release communication, ready to publish on deploy confirmation
@@ -109,11 +112,11 @@ Delegate to **community-manager** (in parallel with deployment):
 
 ## Error Recovery Protocol
 
-If any spawned agent (as a Codex subagent) returns BLOCKED, errors, or cannot complete:
+If any spawned agent (via Task) returns BLOCKED, errors, or cannot complete:
 
 1. **Surface immediately**: Report "[AgentName]: BLOCKED — [reason]" to the user before continuing to dependent phases
 2. **Assess dependencies**: Check whether the blocked agent's output is required by subsequent phases. If yes, do not proceed past that dependency point without user input.
-3. **Offer options** via direct user question with choices:
+3. **Offer options** via AskUserQuestion with choices:
    - Skip this agent and note the gap in the final report
    - Retry with narrower scope
    - Stop here and resolve the blocker first
@@ -121,8 +124,8 @@ If any spawned agent (as a Codex subagent) returns BLOCKED, errors, or cannot co
 
 Common blockers:
 - Input file missing (story not found, GDD absent) → redirect to the skill that creates it
-- ADR status is Proposed → do not implement; run `$architecture-decision` first
-- Scope too large → split into two stories via `$create-stories`
+- ADR status is Proposed → do not implement; run `/architecture-decision` first
+- Scope too large → split into two stories via `/create-stories`
 - Conflicting instructions between ADR and story → surface the conflict, do not guess
 
 ## File Write Protocol
@@ -141,5 +144,5 @@ Verdict: **BLOCKED** — release halted; go/no-go was NO or a hard blocker is un
 ## Next Steps
 
 - Monitor post-release dashboards for 48 hours.
-- Run `$retrospective` if significant issues occurred during the release.
+- Run `/retrospective` if significant issues occurred during the release.
 - Update `production/stage.txt` to `Live` after successful deployment.

@@ -1,6 +1,10 @@
 ---
 name: web-ai-patterns
 description: "Field-proven reusable patterns for web+AI (SaaS) development — LLM orchestration, i18n-safe output parsing, no-loss cost/usage gating, stored-token recurring billing, webhook idempotency, and document-store data modeling. Source: SpecForge (Next.js + Firebase + Claude API + PortOne). Use when building an AI-backed web/service product and you want battle-tested reference patterns instead of reinventing them."
+argument-hint: "[ai | monetization | data]"
+user-invocable: true
+allowed-tools: Read, Grep, Glob
+agent: backend-engineer
 ---
 
 # Web + AI Reusable Patterns
@@ -15,7 +19,7 @@ Every pattern follows: **Problem → Approach → Core snippet → When to apply
 
 ## Phase 1: Scope from the argument
 
-`the invocation arguments` selects a focus area. Branch:
+`$ARGUMENTS` selects a focus area. Branch:
 
 - **`ai`** → load `reference/ai-orchestration.md` only. Focus: LLM orchestration, streaming, i18n-safe parsing, model selection, deterministic post-processing.
 - **`monetization`** (aliases: `money`, `billing`, `payment`, `cost`) → load `reference/monetization.md` only. Focus: cost/usage gating, recurring billing, webhook idempotency, referral abuse, admin CS.

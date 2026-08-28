@@ -1,6 +1,9 @@
 ---
 name: setup-engine
-description: "Configure the project's game engine and version. Pins the engine in AGENTS.md, detects knowledge gaps, and populates engine reference docs via WebSearch when the version is beyond the LLM's training data."
+description: "Configure the project's game engine and version. Pins the engine in CLAUDE.md, detects knowledge gaps, and populates engine reference docs via WebSearch when the version is beyond the LLM's training data."
+argument-hint: "[engine] | [engine version] | refresh | upgrade [old-version] [new-version] | no args for guided selection"
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Write, Edit, WebSearch, WebFetch, Task, AskUserQuestion
 ---
 
 When this skill is invoked:
@@ -9,11 +12,11 @@ When this skill is invoked:
 
 Four modes:
 
-- **Full spec**: `$setup-engine godot 4.6` — engine and version provided
-- **Engine only**: `$setup-engine unity` — engine provided, version will be looked up
-- **No args**: `$setup-engine` — fully guided mode (engine recommendation + version)
-- **Refresh**: `$setup-engine refresh` — update reference docs (see Section 10)
-- **Upgrade**: `$setup-engine upgrade [old-version] [new-version]` — migrate to a new engine version (see Section 11)
+- **Full spec**: `/setup-engine godot 4.6` — engine and version provided
+- **Engine only**: `/setup-engine unity` — engine provided, version will be looked up
+- **No args**: `/setup-engine` — fully guided mode (engine recommendation + version)
+- **Refresh**: `/setup-engine refresh` — update reference docs (see Section 10)
+- **Upgrade**: `/setup-engine upgrade [old-version] [new-version]` — migrate to a new engine version (see Section 11)
 
 ---
 
@@ -23,15 +26,15 @@ If no engine is specified, run an interactive engine selection process:
 
 ### Check for existing game concept
 - Read `design/gdd/game-concept.md` if it exists — extract genre, scope, platform
-  targets, art style, team size, and any engine recommendation from `$brainstorm`
+  targets, art style, team size, and any engine recommendation from `/brainstorm`
 - If no concept exists, inform the user:
-  > "No game concept found. Consider running `$brainstorm` first to discover what
+  > "No game concept found. Consider running `/brainstorm` first to discover what
   > you want to build — it will also recommend an engine. Or tell me about your
   > game and I can help you pick."
 
 ### If the user wants to pick without a concept, ask in this order:
 
-**Question 1 — Prior experience** (ask this first, always, by asking the user directly):
+**Question 1 — Prior experience** (ask this first, always, via `AskUserQuestion`):
 - Prompt: "Have you worked in any of these engines before?"
 - Options: `Godot` / `Unity` / `Unreal Engine 5` / `Multiple — I'll explain` / `None of them`
 - If they pick a specific engine → recommend that engine. Prior experience outweighs all other factors. Confirm with them and skip the matrix.
@@ -39,7 +42,7 @@ If no engine is specified, run an interactive engine selection process:
 
 **Questions 2-6 — Decision matrix inputs** (only if no prior engine experience):
 
-**Question 2 — Target platform** (ask this second, always, by asking the user directly — platform eliminates or heavily weights engines before any other factor):
+**Question 2 — Target platform** (ask this second, always, via `AskUserQuestion` — platform eliminates or heavily weights engines before any other factor):
 - Prompt: "What platforms are you targeting for this game?"
 - Options: `PC (Steam / Epic)` / `Mobile (iOS / Android)` / `Console` / `Web / Browser` / `Multiple platforms`
 - Platform rules that feed directly into the recommendation:
@@ -96,11 +99,11 @@ Do NOT use a simple scoring matrix that eliminates engines. Instead, reason thro
 2. Give a primary recommendation with honest reasoning
 3. Name the best alternative and when to choose it instead
 4. Explicitly state: "This is a starting point, not a verdict — you can always migrate engines, and many developers switch between projects."
-5. Ask the user directly to confirm: "Does this recommendation feel right, or would you like to explore a different engine?"
+5. Use `AskUserQuestion` to confirm: "Does this recommendation feel right, or would you like to explore a different engine?"
    - Options: `[Primary engine] (Recommended)` / `[Alternative engine]` / `[Third engine]` / `Explore further` / `Type something`
 
 **If the user picks "Explore further":**
-Ask the user directly with concept-specific deep-dive topics. Always generate these options from the user's actual concept — do not use generic options. Always include at minimum:
+Use `AskUserQuestion` with concept-specific deep-dive topics. Always generate these options from the user's actual concept — do not use generic options. Always include at minimum:
 - The primary engine's specific limitations for this concept (e.g., "How far can Godot 3D actually go for [genre]?")
 - The alternative engine's specific tradeoffs for this concept
 - Language choice impact on this concept's technical challenges
@@ -121,7 +124,7 @@ Once the engine is chosen:
 
 ---
 
-## 4. Update AGENTS.md Technology Stack
+## 4. Update CLAUDE.md Technology Stack
 
 ### Language Selection (Godot only)
 
@@ -135,13 +138,12 @@ If Godot was chosen, ask the user which language to use **before** showing the p
 >
 > Which will this project primarily use?"
 
-Record the choice. It determines the AGENTS.md template, naming conventions, specialist routing, and which agent is spawned for code files throughout the project.
+Record the choice. It determines the CLAUDE.md template, naming conventions, specialist routing, and which agent is spawned for code files throughout the project.
 
 ---
 
-Read `AGENTS.md`. If it does not exist, use `../../docs/AGENTS-template.md` as the
-starting structure. Show the user the proposed Technology Stack changes.
-Ask: "May I write these engine settings to `AGENTS.md`?"
+Read `CLAUDE.md` and show the user the proposed Technology Stack changes.
+Ask: "May I write these engine settings to `CLAUDE.md`?"
 
 Wait for confirmation before making any edits.
 
@@ -169,9 +171,8 @@ Update the Technology Stack section, replacing the `[CHOOSE]` placeholders with 
 
 ## 5. Populate Technical Preferences
 
-After updating AGENTS.md, create or update `.codex/studio/technical-preferences.md` with
-engine-appropriate defaults. If the project file does not exist, start from the
-bundled template at `../../docs/technical-preferences.md`, then fill in:
+After updating CLAUDE.md, create or update `.claude/docs/technical-preferences.md` with
+engine-appropriate defaults. Read the existing template first, then fill in:
 
 ### Engine & Language Section
 - Fill from the engine choice made in step 4
@@ -229,7 +230,7 @@ Example filled section:
 ```
 
 ### Remaining Sections
-- **Performance Budgets**: Ask the user directly:
+- **Performance Budgets**: Use `AskUserQuestion`:
   - Prompt: "Should I set default performance budgets now, or leave them for later?"
   - Options: `[A] Set defaults now (60fps, 16.6ms frame budget, engine-appropriate draw call limit)` / `[B] Leave as [TO BE CONFIGURED] — I'll set these when I know my target hardware`
   - If [A]: populate with the suggested defaults. If [B]: leave as placeholder.
@@ -341,7 +342,7 @@ Create a minimal `docs/engine-reference/<engine>/VERSION.md`:
 This engine version is within the LLM's training data. Engine reference
 docs are optional but can be added later if agents suggest incorrect APIs.
 
-Run `$setup-engine refresh` to populate full reference docs at any time.
+Run `/setup-engine refresh` to populate full reference docs at any time.
 ```
 
 Do NOT create breaking-changes.md, deprecated-apis.md, etc. — they would
@@ -385,9 +386,9 @@ Wait for confirmation before writing any files.
 
 ---
 
-## 8. Update AGENTS.md Import
+## 8. Update CLAUDE.md Import
 
-Ask: "May I update the `@` import in `AGENTS.md` to point to the new engine reference?"
+Ask: "May I update the `@` import in `CLAUDE.md` to point to the new engine reference?"
 
 Wait for confirmation, then update the `@` import under "Engine Version Reference" to point to the
 correct engine:
@@ -421,7 +422,7 @@ The section should instruct the agent to:
 
 ## 10. Refresh Subcommand
 
-If invoked as `$setup-engine refresh`:
+If invoked as `/setup-engine refresh`:
 
 1. Read the existing `docs/engine-reference/<engine>/VERSION.md` to get
    the current engine and version
@@ -437,7 +438,7 @@ If invoked as `$setup-engine refresh`:
 
 ## 11. Upgrade Subcommand
 
-If invoked as `$setup-engine upgrade [old-version] [new-version]`:
+If invoked as `/setup-engine upgrade [old-version] [new-version]`:
 
 ### Step 1 — Read Current Version State
 
@@ -530,11 +531,11 @@ VERSION.md updated: [engine] [old-version] → [new-version]
 
 Next steps:
 1. Migrate deprecated API usages in the [N] files listed above
-2. Run $setup-engine refresh after upgrading the actual engine binary to
+2. Run /setup-engine refresh after upgrading the actual engine binary to
    verify no new deprecations were missed
-3. Run $architecture-review — the engine upgrade may invalidate ADRs that
+3. Run /architecture-review — the engine upgrade may invalidate ADRs that
    reference specific APIs or engine capabilities
-4. If any ADRs are invalidated, run $propagate-design-change to update
+4. If any ADRs are invalidated, run /propagate-design-change to update
    downstream stories
 ```
 
@@ -551,17 +552,17 @@ Engine:          [name] [version]
 Language:        [GDScript | C# | GDScript + C# | C# | C++ + Blueprint]
 Knowledge Risk:  [LOW/MEDIUM/HIGH]
 Reference Docs:  [created/skipped]
-AGENTS.md:       [updated]
+CLAUDE.md:       [updated]
 Tech Prefs:      [created/updated]
 Agent Config:    [verified]
 
 Next Steps:
 1. Review docs/engine-reference/<engine>/VERSION.md
-2. [If from $brainstorm] Run $map-systems to decompose your concept into individual systems
-3. [If from $brainstorm] Run $design-system to author per-system GDDs (guided, section-by-section)
-4. [If from $brainstorm] Run $prototype [core-mechanic] to test the core loop
-5. [If fresh start] Run $brainstorm to discover your game concept
-6. Create your first milestone: $sprint-plan new
+2. [If from /brainstorm] Run /map-systems to decompose your concept into individual systems
+3. [If from /brainstorm] Run /design-system to author per-system GDDs (guided, section-by-section)
+4. [If from /brainstorm] Run /prototype [core-mechanic] to test the core loop
+5. [If fresh start] Run /brainstorm to discover your game concept
+6. Create your first milestone: /sprint-plan new
 ```
 
 ---
@@ -573,9 +574,9 @@ Verdict: **COMPLETE** — engine configured and reference docs populated.
 - NEVER guess an engine version — always verify via WebSearch or user confirmation
 - NEVER overwrite existing reference docs without asking — append or update
 - If reference docs already exist for a different engine, ask before replacing
-- Always show the user what you're about to change before making AGENTS.md edits
+- Always show the user what you're about to change before making CLAUDE.md edits
 - If WebSearch returns ambiguous results, show the user and let them decide
-- When the user chose **GDScript**: copy the GDScript AGENTS.md template from Appendix A1 exactly. NEVER add "C++ via GDExtension" to the Language field. GDScript projects may use GDExtension, but it is not a primary project language. The `godot-gdextension-specialist` in the routing table is available for when native extensions are needed — it does not make C++ a project language.
+- When the user chose **GDScript**: copy the GDScript CLAUDE.md template from Appendix A1 exactly. NEVER add "C++ via GDExtension" to the Language field. GDScript projects may use GDExtension, but it is not a primary project language. The `godot-gdextension-specialist` in the routing table is available for when native extensions are needed — it does not make C++ a project language.
 
 ---
 
@@ -585,7 +586,7 @@ All Godot-specific variants for language-dependent configuration. Referenced fro
 
 ---
 
-### A1. AGENTS.md Technology Stack Templates
+### A1. CLAUDE.md Technology Stack Templates
 
 **GDScript:**
 ```markdown

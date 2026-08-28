@@ -8,10 +8,10 @@ routing at all — it runs at whatever weight the skill happens to hardcode.
 
 That produces two failures at once, in opposite directions:
 
-- A typo fix in a comment pulls the full `$team-qa` fan-out, because that is what
+- A typo fix in a comment pulls the full `/team-qa` fan-out, because that is what
   the sprint loop says to run.
 - An irreversible change — a data migration, a published release, a deleted
-  system — passes on a single `$smoke-check`, because nothing said to do more.
+  system — passes on a single `/smoke-check`, because nothing said to do more.
 
 The bottleneck in an agent workflow is not generation. It is checking. So the
 expensive checks have to be spent where the risk is, and that requires the same
@@ -28,8 +28,8 @@ take to undo?*
 | Risk | Test — "if this is wrong…" | Verifier | Automatic? |
 |---|---|---|---|
 | **R1 low** | one edit undoes it, nobody saw it | the deterministic gate that already covers the file | ✅ |
-| **R2 medium** | a revert undoes it, contained to this repo | gates + `$code-review` or `$smoke-check` | ✅ |
-| **R3 high** | undoing needs coordination, migration, or a re-release | gates + a **separate** reviewing subagent + `$gate-check` | ✅ but report before proceeding |
+| **R2 medium** | a revert undoes it, contained to this repo | gates + `/code-review` or `/smoke-check` | ✅ |
+| **R3 high** | undoing needs coordination, migration, or a re-release | gates + a **separate** reviewing subagent + `/gate-check` | ✅ but report before proceeding |
 | **R4 critical** | cannot be undone, or undoing costs users something | everything in R3 **and a human decision** | ❌ **never runs unattended** |
 
 **R4 examples**: schema migrations against real data, deletions of a system or
@@ -102,7 +102,7 @@ One line, in the output, whatever the level:
 
 ```
 verify: R2 (revert undoes it, contained to this repo)
-  → pytest tests/ exit 0 · verify_policy.py exit 0 · $code-review PASS
+  → pytest tests/ exit 0 · verify_policy.py exit 0 · /code-review PASS
 ```
 
 The route is a decision the user is entitled to see and disagree with. An
@@ -114,8 +114,8 @@ the level down.
 
 ## § 6 — Anti-patterns
 
-- ❌ **`$team-qa` on a one-line fix** — that is R1; the file's own gate covers it
-- ❌ **`$smoke-check` alone on a migration** — R4 needs a human, not a smoke test
+- ❌ **`/team-qa` on a one-line fix** — that is R1; the file's own gate covers it
+- ❌ **`/smoke-check` alone on a migration** — R4 needs a human, not a smoke test
 - ❌ **Escalating because the task sounds important** — use reversibility (§ 1)
 - ❌ **De-escalating silently** — record the reason or stay at the higher level
 - ❌ **The author agent grading its own work at R3+** — § 4

@@ -1,9 +1,12 @@
 ---
 name: retrospective
 description: "Generates a sprint or milestone retrospective by analyzing completed work, velocity, blockers, and patterns. Produces actionable insights for the next iteration."
+argument-hint: "[sprint-N|milestone-name]"
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Write
+context: |
+  !git log --oneline --since="2 weeks ago" 2>/dev/null
 ---
-
-Before Phase 1, inspect commits from the last two weeks.
 
 ## Phase 1: Parse Arguments
 
@@ -42,10 +45,10 @@ Read the sprint or milestone plan from the appropriate location:
 
 **If the file does not exist or is empty**, output:
 
-> "No sprint data found for [sprint/milestone]. Run `$sprint-status` to generate
+> "No sprint data found for [sprint/milestone]. Run `/sprint-status` to generate
 > sprint data first, or provide the sprint details manually."
 
-Then ask the user directly to present two options:
+Then use `AskUserQuestion` to present two options:
 
 - **[A] Provide data manually** — ask the user to paste or describe the sprint
   tasks, dates, and outcomes; use that as the source of truth for the retrospective.
@@ -194,8 +197,8 @@ If no, stop here. Verdict: **BLOCKED** — user declined write.
 
 ## Phase 6: Next Steps
 
-- Run `$sprint-plan` to incorporate the action items and velocity data into the next sprint.
-- If this was a milestone retrospective, run `$gate-check` to formally assess readiness for the next phase.
+- Run `/sprint-plan` to incorporate the action items and velocity data into the next sprint.
+- If this was a milestone retrospective, run `/gate-check` to formally assess readiness for the next phase.
 
 ### Guidelines
 

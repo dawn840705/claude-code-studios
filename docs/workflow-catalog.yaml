@@ -1,5 +1,5 @@
 # Workflow Catalog (v2 — dual-track)
-# Used by $help, $project-stage-detect, and scripts/check_phase.py to determine
+# Used by /help, /project-stage-detect, and scripts/check_phase.py to determine
 # where a project is and what comes next.
 #
 # Schema v2 changes:
@@ -46,22 +46,22 @@ tracks:
         steps:
           - id: brainstorm
             name: "Brainstorm"
-            command: $brainstorm
+            command: /brainstorm
             required: false
             description: "Explore the game concept using MDA, verb-first, and player psychology frameworks"
 
           - id: engine-setup
             name: "Engine Setup"
-            command: $setup-engine
+            command: /setup-engine
             required: true
             artifact:
-              glob: ".codex/studio/technical-preferences.md"
+              glob: ".claude/docs/technical-preferences.md"
               pattern: "Engine: [^[]"
             description: "Configure engine, pin version, set naming conventions and performance budgets"
 
           - id: game-concept
             name: "Game Concept Document"
-            command: $brainstorm
+            command: /brainstorm
             required: true
             artifact:
               glob: "design/gdd/game-concept.md"
@@ -69,14 +69,14 @@ tracks:
 
           - id: design-review-concept
             name: "Concept Review"
-            command: $design-review
+            command: /design-review
             required: false
             depends_on: [game-concept]
             description: "Validate the game concept (recommended before proceeding)"
 
           - id: art-bible
             name: "Art Bible"
-            command: $art-bible
+            command: /art-bible
             required: true
             depends_on: [game-concept]
             artifact:
@@ -85,7 +85,7 @@ tracks:
 
           - id: map-systems
             name: "Systems Map"
-            command: $map-systems
+            command: /map-systems
             required: true
             depends_on: [game-concept]
             artifact:
@@ -99,7 +99,7 @@ tracks:
         steps:
           - id: design-system
             name: "System GDDs"
-            command: $design-system
+            command: /design-system
             required: true
             repeatable: true
             depends_on: [map-systems]
@@ -109,7 +109,7 @@ tracks:
 
           - id: design-review
             name: "Per-System Design Review"
-            command: $design-review
+            command: /design-review
             required: true
             repeatable: true
             depends_on: [design-system]
@@ -117,7 +117,7 @@ tracks:
 
           - id: review-all-gdds
             name: "Cross-GDD Review"
-            command: $review-all-gdds
+            command: /review-all-gdds
             required: true
             depends_on: [design-system]
             artifact:
@@ -126,7 +126,7 @@ tracks:
 
           - id: consistency-check
             name: "Consistency Check"
-            command: $consistency-check
+            command: /consistency-check
             required: false
             repeatable: true
             depends_on: [review-all-gdds]
@@ -139,7 +139,7 @@ tracks:
         steps:
           - id: create-architecture
             name: "Architecture Document"
-            command: $create-architecture
+            command: /create-architecture
             required: true
             depends_on: [review-all-gdds]
             artifact:
@@ -148,7 +148,7 @@ tracks:
 
           - id: architecture-decision
             name: "Architecture Decisions (ADRs)"
-            command: $architecture-decision
+            command: /architecture-decision
             required: true
             repeatable: true
             depends_on: [create-architecture]
@@ -159,7 +159,7 @@ tracks:
 
           - id: architecture-review
             name: "Architecture Review"
-            command: $architecture-review
+            command: /architecture-review
             required: true
             depends_on: [architecture-decision]
             artifact:
@@ -168,7 +168,7 @@ tracks:
 
           - id: control-manifest
             name: "Control Manifest"
-            command: $create-control-manifest
+            command: /create-control-manifest
             required: true
             depends_on: [architecture-decision]
             artifact:
@@ -189,7 +189,7 @@ tracks:
         steps:
           - id: asset-spec
             name: "Asset Specs"
-            command: $asset-spec
+            command: /asset-spec
             required: false
             repeatable: true
             depends_on: [art-bible]
@@ -199,7 +199,7 @@ tracks:
 
           - id: ux-design
             name: "UX Specs (key screens)"
-            command: $ux-design
+            command: /ux-design
             required: true
             repeatable: true
             depends_on: [accessibility-doc]
@@ -210,14 +210,14 @@ tracks:
 
           - id: ux-review
             name: "UX Review"
-            command: $ux-review
+            command: /ux-review
             required: true
             depends_on: [ux-design]
             description: "Validate all key screen UX specs for GDD alignment and accessibility tier compliance. Run before creating epics."
 
           - id: prototype
             name: "Prototype"
-            command: $prototype
+            command: /prototype
             required: true
             artifact:
               glob: "prototypes/*/README.md"
@@ -226,7 +226,7 @@ tracks:
 
           - id: create-epics
             name: "Create Epics"
-            command: $create-epics
+            command: /create-epics
             required: true
             repeatable: true
             depends_on: [control-manifest]
@@ -237,7 +237,7 @@ tracks:
 
           - id: create-stories
             name: "Create Stories"
-            command: $create-stories
+            command: /create-stories
             required: true
             repeatable: true
             depends_on: [create-epics]
@@ -248,7 +248,7 @@ tracks:
 
           - id: test-setup
             name: "Test Framework Setup"
-            command: $test-setup
+            command: /test-setup
             required: false
             artifact:
               note: "Check tests/ directory for engine-specific test framework scaffold"
@@ -256,7 +256,7 @@ tracks:
 
           - id: sprint-plan
             name: "First Sprint Plan"
-            command: $sprint-plan
+            command: /sprint-plan
             required: true
             depends_on: [create-stories]
             artifact:
@@ -266,7 +266,7 @@ tracks:
 
           - id: vertical-slice
             name: "Vertical Slice (playtested)"
-            command: $playtest-report
+            command: /playtest-report
             required: true
             depends_on: [prototype]
             artifact:
@@ -281,7 +281,7 @@ tracks:
         steps:
           - id: sprint-plan
             name: "Sprint Plan"
-            command: $sprint-plan
+            command: /sprint-plan
             required: true
             repeatable: true
             depends_on: ["pre-production:create-stories"]
@@ -291,13 +291,13 @@ tracks:
 
           - id: story-readiness
             name: "Story Readiness Check"
-            command: $story-readiness
+            command: /story-readiness
             required: false
             description: "Validate a story is implementation-ready before a developer picks it up"
 
           - id: implement
             name: "Implement Stories"
-            command: $dev-story
+            command: /dev-story
             required: true
             repeatable: true
             depends_on: ["production:sprint-plan"]
@@ -307,7 +307,7 @@ tracks:
 
           - id: code-review
             name: "Code Review"
-            command: $code-review
+            command: /code-review
             required: false
             repeatable: true
             depends_on: [implement]
@@ -315,7 +315,7 @@ tracks:
 
           - id: story-done
             name: "Story Done Review"
-            command: $story-done
+            command: /story-done
             required: true
             repeatable: true
             depends_on: [implement]
@@ -323,21 +323,21 @@ tracks:
 
           - id: qa-plan
             name: "QA Plan"
-            command: $qa-plan
+            command: /qa-plan
             required: false
             repeatable: true
             description: "Generate a QA test plan per epic or sprint. Run /qa-plan [epic-slug]. Produces test cases for /smoke-check, /regression-suite, and /test-evidence-review."
 
           - id: bug-report
             name: "Bug Report / Triage"
-            command: $bug-report
+            command: /bug-report
             required: false
             repeatable: true
             description: "Log and prioritize bugs found during implementation. /bug-report creates a structured report; /bug-triage prioritizes the open backlog."
 
           - id: retrospective
             name: "Sprint Retrospective"
-            command: $retrospective
+            command: /retrospective
             required: false
             repeatable: true
             description: "Post-sprint review to capture what worked and what to change. Run at the end of each sprint, before planning the next."
@@ -350,7 +350,7 @@ tracks:
 
           - id: scope-check
             name: "Scope Check"
-            command: $scope-check
+            command: /scope-check
             required: false
             repeatable: true
             artifact:
@@ -360,7 +360,7 @@ tracks:
 
           - id: sprint-status
             name: "Sprint Status"
-            command: $sprint-status
+            command: /sprint-status
             required: false
             description: "Quick 30-line snapshot of sprint progress without a full report"
 
@@ -371,25 +371,25 @@ tracks:
         steps:
           - id: perf-profile
             name: "Performance Profile"
-            command: $perf-profile
+            command: /perf-profile
             required: false
             description: "Profile and optimize CPU/GPU/memory bottlenecks"
 
           - id: balance-check
             name: "Balance Check"
-            command: $balance-check
+            command: /balance-check
             required: false
             description: "Analyze game balance formulas and data for outliers and broken progressions"
 
           - id: asset-audit
             name: "Asset Audit"
-            command: $asset-audit
+            command: /asset-audit
             required: false
             description: "Verify naming conventions, file format standards, and size budgets"
 
           - id: playtest-polish
             name: "Playtest Sessions (×3)"
-            command: $playtest-report
+            command: /playtest-report
             required: true
             depends_on: [vertical-slice]
             artifact:
@@ -399,7 +399,7 @@ tracks:
 
           - id: team-polish
             name: "Polish Team Pass"
-            command: $team-polish
+            command: /team-polish
             required: true
             description: "Coordinated polish pass across performance, audio, visual, and UX"
 
@@ -410,25 +410,25 @@ tracks:
         steps:
           - id: release-checklist
             name: "Release Checklist"
-            command: $release-checklist
+            command: /release-checklist
             required: true
             description: "Pre-release validation across all departments: code, content, store, legal"
 
           - id: patch-notes
             name: "Patch Notes"
-            command: $patch-notes
+            command: /patch-notes
             required: false
             description: "Generate player-facing patch notes from git history and sprint data"
 
           - id: changelog
             name: "Changelog"
-            command: $changelog
+            command: /changelog
             required: false
             description: "Auto-generate internal changelog from commits, sprints, and design docs"
 
           - id: video-brief
             name: "Store Video Brief"
-            command: $video-brief
+            command: /video-brief
             required: false
             artifact:
               glob: "production/marketing/video-brief-*.md"
@@ -436,7 +436,7 @@ tracks:
 
           - id: launch-checklist
             name: "Launch Checklist"
-            command: $launch-checklist
+            command: /launch-checklist
             required: true
             depends_on: [release-checklist]
             description: "Final launch readiness — last gate before shipping to players"
@@ -459,7 +459,7 @@ tracks:
 
           - id: product-concept
             name: "Product Concept Document"
-            command: $product-concept
+            command: /product-concept
             required: true
             artifact:
               glob: "product/prd/product-concept.md"
@@ -469,23 +469,23 @@ tracks:
             name: "Stack Pin"
             required: true
             artifact:
-              glob: ".codex/studio/technical-preferences.md"
-            description: "Pin the framework/stack (and versions) in .codex/studio/technical-preferences.md — the product-track equivalent of $setup-engine"
+              glob: ".claude/docs/technical-preferences.md"
+            description: "Pin the framework/stack (and versions) in .claude/docs/technical-preferences.md — the product-track equivalent of /setup-engine"
 
           - id: create-prd
             name: "Feature PRDs"
-            command: $create-prd
+            command: /create-prd
             required: true
             repeatable: true
             depends_on: [product-concept]
             artifact:
               glob: "product/prd/prd-*.md"
               min_count: 1
-            description: "Author a PRD per feature (guided, section-by-section). Run once per feature: $create-prd [feature-name]"
+            description: "Author a PRD per feature (guided, section-by-section). Run once per feature: /create-prd [feature-name]"
 
           - id: prd-review
             name: "PRD Review"
-            command: $design-review
+            command: /design-review
             required: false
             repeatable: true
             depends_on: [create-prd]
@@ -493,7 +493,7 @@ tracks:
 
           - id: ux-design
             name: "UX Specs (key screens)"
-            command: $ux-design
+            command: /ux-design
             required: true
             repeatable: true
             depends_on: [create-prd]
@@ -504,7 +504,7 @@ tracks:
 
           - id: ux-review
             name: "UX Review"
-            command: $ux-review
+            command: /ux-review
             required: true
             depends_on: [ux-design]
             description: "Validate UX specs for PRD alignment and accessibility tier compliance. Run before creating epics."
@@ -516,7 +516,7 @@ tracks:
         steps:
           - id: create-architecture
             name: "Architecture Document"
-            command: $create-architecture
+            command: /create-architecture
             required: true
             depends_on: [create-prd]
             artifact:
@@ -525,7 +525,7 @@ tracks:
 
           - id: architecture-decision
             name: "Architecture Decisions (ADRs)"
-            command: $architecture-decision
+            command: /architecture-decision
             required: true
             repeatable: true
             depends_on: [create-architecture]
@@ -536,7 +536,7 @@ tracks:
 
           - id: architecture-review
             name: "Architecture Review"
-            command: $architecture-review
+            command: /architecture-review
             required: true
             depends_on: [architecture-decision]
             artifact:
@@ -545,7 +545,7 @@ tracks:
 
           - id: control-manifest
             name: "Control Manifest"
-            command: $create-control-manifest
+            command: /create-control-manifest
             required: true
             depends_on: [architecture-decision]
             artifact:
@@ -566,7 +566,7 @@ tracks:
         steps:
           - id: test-setup
             name: "Test Framework Setup"
-            command: $test-setup
+            command: /test-setup
             required: false
             artifact:
               note: "Check tests/ directory for a stack-specific test framework scaffold"
@@ -574,7 +574,7 @@ tracks:
 
           - id: create-epics
             name: "Create Epics"
-            command: $create-epics
+            command: /create-epics
             required: true
             repeatable: true
             depends_on: [control-manifest]
@@ -585,7 +585,7 @@ tracks:
 
           - id: create-stories
             name: "Create Stories"
-            command: $create-stories
+            command: /create-stories
             required: true
             repeatable: true
             depends_on: [create-epics]
@@ -596,7 +596,7 @@ tracks:
 
           - id: sprint-plan
             name: "Sprint Plan"
-            command: $sprint-plan
+            command: /sprint-plan
             required: true
             repeatable: true
             depends_on: [create-stories]
@@ -607,13 +607,13 @@ tracks:
 
           - id: story-readiness
             name: "Story Readiness Check"
-            command: $story-readiness
+            command: /story-readiness
             required: false
             description: "Validate a story is implementation-ready before a developer picks it up"
 
           - id: implement
             name: "Implement Stories"
-            command: $dev-story
+            command: /dev-story
             required: true
             repeatable: true
             depends_on: [sprint-plan]
@@ -623,7 +623,7 @@ tracks:
 
           - id: code-review
             name: "Code Review"
-            command: $code-review
+            command: /code-review
             required: false
             repeatable: true
             depends_on: [implement]
@@ -631,7 +631,7 @@ tracks:
 
           - id: story-done
             name: "Story Done Review"
-            command: $story-done
+            command: /story-done
             required: true
             repeatable: true
             depends_on: [implement]
@@ -639,20 +639,20 @@ tracks:
 
           - id: scope-check
             name: "Scope Check"
-            command: $scope-check
+            command: /scope-check
             required: false
             repeatable: true
             description: "Detect scope creep by comparing current sprint scope to original epic scope"
 
           - id: sprint-status
             name: "Sprint Status"
-            command: $sprint-status
+            command: /sprint-status
             required: false
             description: "Quick 30-line snapshot of sprint progress without a full report"
 
           - id: retrospective
             name: "Sprint Retrospective"
-            command: $retrospective
+            command: /retrospective
             required: false
             repeatable: true
             description: "Post-sprint review to capture what worked and what to change"
@@ -664,21 +664,21 @@ tracks:
         steps:
           - id: qa-plan
             name: "QA Plan"
-            command: $qa-plan
+            command: /qa-plan
             required: false
             repeatable: true
             description: "Generate a QA test plan per epic. Produces test cases for /smoke-check, /regression-suite, and /test-evidence-review."
 
           - id: smoke-check
             name: "Smoke Check"
-            command: $smoke-check
+            command: /smoke-check
             required: false
             repeatable: true
             description: "Fast build-and-critical-path verification. Verdict comes from the runner's exit code."
 
           - id: regression-suite
             name: "Regression Suite"
-            command: $regression-suite
+            command: /regression-suite
             required: true
             depends_on: [story-done]
             artifact:
@@ -687,7 +687,7 @@ tracks:
 
           - id: security-audit
             name: "Security Audit"
-            command: $security-audit
+            command: /security-audit
             required: true
             artifact:
               note: "Check for a security audit report (auth, data protection, injection surfaces, secrets handling)"
@@ -695,20 +695,20 @@ tracks:
 
           - id: perf-profile
             name: "Performance Profile"
-            command: $perf-profile
+            command: /perf-profile
             required: false
             description: "Profile and optimize server response times, bundle size, Core Web Vitals"
 
           - id: bug-triage
             name: "Bug Triage"
-            command: $bug-triage
+            command: /bug-triage
             required: false
             repeatable: true
             description: "Prioritize the open bug backlog before ship"
 
           - id: test-evidence-review
             name: "Test Evidence Review"
-            command: $test-evidence-review
+            command: /test-evidence-review
             required: false
             description: "Verify test evidence actually supports the claimed coverage"
 
@@ -719,25 +719,25 @@ tracks:
         steps:
           - id: release-checklist
             name: "Release Checklist"
-            command: $release-checklist
+            command: /release-checklist
             required: true
             description: "Pre-release validation across all departments: code, content, store/deploy, legal"
 
           - id: changelog
             name: "Changelog"
-            command: $changelog
+            command: /changelog
             required: false
             description: "Auto-generate internal changelog from commits, sprints, and PRDs"
 
           - id: patch-notes
             name: "Release Notes"
-            command: $patch-notes
+            command: /patch-notes
             required: false
             description: "Generate user-facing release notes from git history and sprint data"
 
           - id: video-brief
             name: "Demo Video Brief"
-            command: $video-brief
+            command: /video-brief
             required: false
             artifact:
               glob: "production/marketing/video-brief-*.md"
@@ -745,7 +745,7 @@ tracks:
 
           - id: launch-checklist
             name: "Launch Checklist"
-            command: $launch-checklist
+            command: /launch-checklist
             required: true
             depends_on: [release-checklist]
             description: "Final launch readiness — last gate before shipping to users"
@@ -757,14 +757,14 @@ tracks:
         steps:
           - id: milestone-review
             name: "Milestone Review"
-            command: $milestone-review
+            command: /milestone-review
             required: false
             repeatable: true
             description: "Assess progress against roadmap milestones; adjust priorities"
 
           - id: growth-notes
             name: "Release Communication"
-            command: $patch-notes
+            command: /patch-notes
             required: false
             repeatable: true
             description: "Ongoing release notes per deploy (marketing-lead framing)"

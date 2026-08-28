@@ -1,8 +1,8 @@
 #!/bin/bash
-# Codex SubagentStop hook: log subagent completion for the audit trail
+# Claude Code SubagentStop hook: Log agent completion for audit trail
 # Tracks when agents finish and their outcome
 #
-# Input schema (SubagentStop):
+# Input schema (SubagentStop) — per Claude Code hooks reference:
 # { "session_id": "...", "agent_id": "agent-abc123", "agent_type": "Explore",
 #   "agent_transcript_path": "...", "last_assistant_message": "...", ... }
 #
@@ -27,5 +27,4 @@ mkdir -p "$SESSION_LOG_DIR" 2>/dev/null
 
 echo "$TIMESTAMP | Agent completed: $AGENT_NAME" >> "$SESSION_LOG_DIR/agent-audit.log" 2>/dev/null
 
-printf '{}\n'
 exit 0

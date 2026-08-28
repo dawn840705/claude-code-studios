@@ -3,11 +3,11 @@
 ## The problem this solves
 
 Every quality gate in this plugin used to end the same way: an LLM looked at
-something and declared PASS or FAIL. `$gate-check` globs for files and writes a
-verdict in prose. `$smoke-check` runs a test suite and then *reads its own
-output* to decide. `$self-loop` grades each criterion 1-10 — by scoring itself.
+something and declared PASS or FAIL. `/gate-check` globs for files and writes a
+verdict in prose. `/smoke-check` runs a test suite and then *reads its own
+output* to decide. `/self-loop` grades each criterion 1-10 — by scoring itself.
 
-`$self-loop` already knows this is dangerous and defends against it: 8+ requires
+`/self-loop` already knows this is dangerous and defends against it: 8+ requires
 quoted evidence, all-9s on round one means the criteria were too loose, five
 iterations max, stop after two stalled rounds. Those are good defenses. They are
 also all the same kind of defense — **asking the model to doubt itself.**
@@ -47,7 +47,7 @@ contract to workflow-phase completion.** The catalog
 `depends_on` per step; the script evaluates them and exits `0` (phase complete)
 / `1` (in progress) / `2` (dependency violation — a completed step's required
 dependency is missing) / `3` (cannot judge: catalog unreadable or track
-ambiguous). `$help` runs it in its context block and `$project-stage-detect`
+ambiguous). `/help` runs it in its context block and `/project-stage-detect`
 runs it as its first step — both carry its verdicts forward instead of
 re-globbing. Model-side artifact checks remain only as the documented fallback
 for exit 3, and must be labeled as such. CI validates the catalog schema with
@@ -58,7 +58,7 @@ for exit 3, and must be labeled as such. CI validates the catalog schema with
 external API.** It exits `0` (all images processed) / `1` (partial failure, or
 everything skipped) / `2` (all failed, `402` insufficient credits, `403` auth
 failure, or the `--max-calls` ceiling tripped) / `3` (no API key, bad input
-path — nothing was called and nothing was charged). `$remove-bg` reads the exit
+path — nothing was called and nothing was charged). `/remove-bg` reads the exit
 code and never re-derives success from stdout. Two properties matter for a
 billable gate: the pre-flight (`estimate`) makes **zero** billable calls, so the
 cost disclosure costs nothing; and `2` is reserved for states where continuing
@@ -69,7 +69,7 @@ failing image-by-image.
 Every gate above judges *completion*. This one judges *compliance* — whether the
 work was done the way we said — and exits `0` (compliant) / `1` (warning: track
 mixing, off-convention paths) / `2` (abort: a story is Complete with missing
-evidence, or the diff adds a test-skip marker) / `3` (not a git repo). `$story-done`
+evidence, or the diff adds a test-skip marker) / `3` (not a git repo). `/story-done`
 runs it in Phase 5b and reports both axes side by side.
 
 The two must not be collapsed. Work that finished *by breaking a rule* records
@@ -119,17 +119,16 @@ alongside `gate` and `exit_code`.
 
 `status` is a **pure function of `exit_code`** and cannot be set independently,
 so a gate can no longer print ABORT while exiting 0. That is not hypothetical:
-`validate-assets.sh` once printed "ERRORS (Blocking)" without returning a
-machine-readable blocking result to the model. Deriving `status` from the exit
-code makes that mismatch unrepresentable.
+`validate-assets.sh` shipped printing "ERRORS (Blocking)" and exiting 1, a code
+Claude never receives. Deriving one from the other makes that unrepresentable.
 
 The envelope was added **alongside** the existing `--json` output of
-`verify_gates.py` and `check_phase.py`, not in place of it — `$project-stage-detect`
+`verify_gates.py` and `check_phase.py`, not in place of it — `/project-stage-detect`
 already consumes those keys.
 
 **A gate that cannot run is not a gate that passed.** Distinguish these three
 states explicitly and never collapse them: PASS (ran, exit 0) · FAIL (ran,
-non-zero) · NOT RUN (did not run). `$smoke-check` treats NOT RUN as PASS WITH
+non-zero) · NOT RUN (did not run). `/smoke-check` treats NOT RUN as PASS WITH
 WARNINGS by design — that is a deliberate, documented policy for environments
 without an engine binary, not license to guess.
 
@@ -141,12 +140,12 @@ traceable source is indistinguishable from an opinion.
 
 Not everything can be a script, and pretending otherwise is its own failure.
 
-- **`$gate-check` is intentionally excluded.** It judges whether an artifact
+- **`/gate-check` is intentionally excluded.** It judges whether an artifact
   exists *and says something meaningful*, which is irreducibly qualitative. Its
   verdict is documented as advisory — the user decides. Forcing code judgment
   in would break the design.
 - **Readability, tone, and "does this argument hold"** stay with the model.
-- Within `$self-loop`, criteria split into two kinds. Ask of each: *can this be
+- Within `/self-loop`, criteria split into two kinds. Ask of each: *can this be
   judged by a script?* If yes, write the script and let its exit code set the
   score. If no, score it 1-10 with cited evidence as before.
 

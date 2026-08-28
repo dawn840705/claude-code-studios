@@ -1,6 +1,9 @@
 ---
 name: video-brief
-description: "Plan a video before anyone captures footage — purpose, structure, shot list, rights, and the target platform's live requirements. Use when the user says 'we need a trailer', 'make a store video', 'a demo video for the landing page', 'a short for TikTok', or before a store submission that needs a preview video. Produces a brief and a shot list; it does NOT edit video and does NOT write copy for a finished cut. Do not use to cut existing footage — that is the external video-use tool (../../docs/video-production-sources.md), and do not use for still store assets."
+description: "Plan a video before anyone captures footage — purpose, structure, shot list, rights, and the target platform's live requirements. Use when the user says 'we need a trailer', 'make a store video', 'a demo video for the landing page', 'a short for TikTok', or before a store submission that needs a preview video. Produces a brief and a shot list; it does NOT edit video and does NOT write copy for a finished cut. Do not use to cut existing footage — that is the external video-use tool (docs/video-production-sources.md), and do not use for still store assets."
+argument-hint: "<video name> [--kind trailer|demo|short|longform] [--platform steam|appstore|play|youtube|tiktok] [--review full|lean|solo]"
+user-invocable: true
+allowed-tools: Read, Glob, Grep, Write, WebFetch, Task, AskUserQuestion
 ---
 
 # Video Brief — decide before you capture
@@ -29,7 +32,7 @@ forces the alternative.
 1. **Project type** — the session hook prints `PROJECT_TYPE`. `game` routes to
    trailer/short defaults and game agents; `web`/`mobile`/`service` routes to
    demo/short and product agents. On `unknown`, ask before spawning anything
-   (`AGENTS.md` § Agent usage rules).
+   (`CLAUDE.md` § Agent usage rules).
 2. **Read what the product already claims about itself** — `design/gdd/game-concept.md`
    and `design/gdd/game-pillars.md` on a game track, `product/prd/` and the
    product concept on a product track. A video that contradicts the pillars is a
@@ -45,7 +48,7 @@ forces the alternative.
 
 ## 2. Fix the job of the video
 
-Ask the user directly for the four fields in the template's § 1 that the project
+Use `AskUserQuestion` for the four fields in the template's § 1 that the project
 docs cannot answer: the specific viewer, where they meet it, the one belief they
 should leave with, and the next action.
 
@@ -68,7 +71,7 @@ a subtitles task at the end.
 ## 3. Re-read the platform spec — every run, no exceptions
 
 **Fetch the vendor page for each target platform and record the date.**
-`../../docs/video-production-sources.md` holds the links and the last known figures;
+`docs/video-production-sources.md` holds the links and the last known figures;
 it does not excuse you from re-reading them.
 
 The reason is recorded in that file: while it was being written, two figures
@@ -79,10 +82,10 @@ an acceptable source for a platform requirement.**
 | Situation | What to record | Verdict |
 | ---- | ---- | ---- |
 | Vendor page fetched and read | The figures, the URL, and today's date in the brief's header | unaffected |
-| Fetch failed or the page moved | The last known figures from `../../docs/video-production-sources.md`, tagged `추정 — 벤더 페이지 확인 실패` per `../../rules/claim-confidence.md` | **BLOCKED** |
+| Fetch failed or the page moved | The last known figures from `docs/video-production-sources.md`, tagged `추정 — 벤더 페이지 확인 실패` per `rules/claim-confidence.md` | **BLOCKED** |
 
 The second row is BLOCKED, not CONCERNS, and the reason is the `exit 3` rule in
-`../../docs/deterministic-gates.md`: **a check that could not run has produced no
+`docs/deterministic-gates.md`: **a check that could not run has produced no
 verdict, and no verdict is not a pass.** An unverified spec is an unknown spec,
 and § 6 already says capturing against an unknown spec is how footage gets thrown
 away. Writing the brief is still useful — write it, mark the platform section
@@ -94,13 +97,13 @@ Never present an unverified figure as a requirement.
 
 ## 4. Draft the structure, then the shot list
 
-Work from `../../docs/templates/video-brief.md`. Two passes, and the order matters —
+Work from `docs/templates/video-brief.md`. Two passes, and the order matters —
 the structure decides what footage is needed, not the reverse.
 
 ### 4.1 Structure
 
 Fill the table for the resolved kind and delete the other three. The defaults
-have named origins (`../../docs/video-production-sources.md`); **deviating is allowed,
+have named origins (`docs/video-production-sources.md`); **deviating is allowed,
 deviating silently is not** — write the reason in the notes column.
 
 For a game trailer, the two rules worth defending against pressure from inside
@@ -116,7 +119,7 @@ the team:
 For a demo, the equivalent is: **lead with the problem, and place the moment it
 clicks early.** This one is weaker evidence than the trailer rules — it is
 aggregated practitioner advice, not a vendor rule or a named primary source
-(`../../docs/video-production-sources.md` flags the caveat). Present it as the default
+(`docs/video-production-sources.md` flags the caveat). Present it as the default
 structure, not as a measured finding, and do not quote the retention percentages
 those posts carry.
 
@@ -140,9 +143,9 @@ repaired.
 
 ### 4.3 Who to spawn
 
-Route by `../../rules/route-hint.md`. **Route on this skill's artifact, not on the
+Route by `rules/route-hint.md`. **Route on this skill's artifact, not on the
 video's stakes** — the artifact is a markdown brief, which is R1/R2 under
-`../../rules/verify-route.md`, and production route and verification route are
+`rules/verify-route.md`, and production route and verification route are
 independent axes that must not be inferred from each other. A store trailer being
 a public first impression argues for checking the brief harder, not for building
 it with more agents.
@@ -158,7 +161,7 @@ Tied between two routes? Take the lighter one.
 **Narrow tools at spawn: `tools: Read, Glob, Grep`.** `community-manager` and
 `art-director` have `Write` by default, and this skill's premise is that the
 orchestrator is the sole writer. Read-only is guaranteed by permission, not by
-asking nicely (`../../rules/subagent-collaboration.md` § 3.1).
+asking nicely (`rules/subagent-collaboration.md` § 3.1).
 
 Write ownership, settled before spawning as § 2.1 requires:
 
@@ -175,9 +178,9 @@ Give each spawn full context; it cannot see this conversation.
 ## 5. Rights and content rules
 
 Walk the template's § 4 and § 5 tables to the end, using only what
-`../../docs/video-production-sources.md` actually records for the target platform plus
+`docs/video-production-sources.md` actually records for the target platform plus
 what you re-read in § 3. **Do not state a store policy from memory** —
-`../../rules/claim-confidence.md` § 2 puts regulatory and policy clauses in the
+`rules/claim-confidence.md` § 2 puts regulatory and policy clauses in the
 verify-before-writing category, and platform policy is exactly that.
 
 What is recorded, and therefore safe to assert: Apple requires previews to show
@@ -211,7 +214,7 @@ been made, not that the result will be good.
 conversation and confirm the path with the user before creating the file.
 
 On approval, write to `production/marketing/video-brief-<name>.md` using
-`../../docs/templates/video-brief.md`. That path is the convention `verify_policy.py`
+`docs/templates/video-brief.md`. That path is the convention `verify_policy.py`
 P4 expects; do not invent a new one.
 
 ---
@@ -219,16 +222,16 @@ P4 expects; do not invent a new one.
 ## Next steps
 
 - `READY` → capture against the shot list, then hand off to editing. The external
-  tool this repo delegates to is named in `../../docs/video-production-sources.md` §
+  tool this repo delegates to is named in `docs/video-production-sources.md` §
   "Execution tooling" — it makes a **paid** transcription call per source file,
-  so run `$api-cost-gate` before the first invocation.
-- `BLOCKED` on a shot dependency → the shot is a story. `$create-stories`, then
+  so run `/api-cost-gate` before the first invocation.
+- `BLOCKED` on a shot dependency → the shot is a story. `/create-stories`, then
   revisit this brief when it lands.
-- Store submission → `$release-checklist` and `$launch-checklist` own the
+- Store submission → `/release-checklist` and `/launch-checklist` own the
   submission itself; this brief is an input to them, not a substitute.
 - A cut that deviates from the approved structure → back here for re-approval,
   not ratified after the fact.
-- The same defect appearing in a second video → `$lesson-log`.
+- The same defect appearing in a second video → `/lesson-log`.
 
 ## Error Recovery Protocol
 
@@ -238,7 +241,7 @@ If a spawned agent returns BLOCKED or errors:
    continuing to any dependent step.
 2. **Assess the dependency.** The shot list depends on the structure; do not
    build one on a missing other.
-3. **Offer options** by asking the user directly: skip and record the gap, retry
+3. **Offer options** via `AskUserQuestion`: skip and record the gap, retry
    narrower, or stop and resolve the blocker.
 4. **Always produce a partial brief.** Never discard completed sections because
    one step blocked.

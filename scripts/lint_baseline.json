@@ -7,20 +7,32 @@
     "api-cost-gate": [
       "Check 3: no verdict keyword"
     ],
+    "consistency-check": [
+      "Check 4: allowed-tools has Write/Edit but no ask-before-write language"
+    ],
+    "design-review": [
+      "Check 4: allowed-tools has Write/Edit but no ask-before-write language"
+    ],
     "governance-bible-init": [
-      "Check 3: no verdict keyword"
+      "Check 3: no verdict keyword",
+      "Check 4: allowed-tools has Write/Edit but no ask-before-write language"
     ],
     "legacy-purge": [
       "Check 3: no verdict keyword"
     ],
     "lesson-log": [
-      "Check 3: no verdict keyword"
+      "Check 3: no verdict keyword",
+      "Check 4: allowed-tools has Write/Edit but no ask-before-write language"
     ],
     "lesson-review": [
-      "Check 3: no verdict keyword"
+      "Check 3: no verdict keyword",
+      "Check 4: allowed-tools has Write/Edit but no ask-before-write language"
     ],
     "security-audit": [
       "Check 3: no verdict keyword"
+    ],
+    "self-loop": [
+      "Check 4: allowed-tools has Write/Edit but no ask-before-write language"
     ],
     "sot-audit": [
       "Check 3: no verdict keyword"
