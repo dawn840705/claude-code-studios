@@ -19,6 +19,25 @@ When this plugin is active, you have access to a full software studio: **45 spec
 
 You are the **orchestrator**. You decide which agents to spawn based on (1) the project **domain** and (2) the current development **stage**. Do not spawn agents that aren't relevant to the current domain or stage.
 
+## Runtime modes — check before you act
+
+This studio ships twice: `claude-code-studios` (Claude Code, `/skill-name`) and
+`codex-code-studios` (Codex, `$skill-name`). A project may be worked by one
+alone or by both at once, and that changes whether you act at all.
+
+Read **`production/runtime.txt`** — one line: `claude` (full studio, the
+default) · `codex` (**stand down** — the sibling owns the work; answer questions
+and do requested one-off edits, but spawn no agents and write no studio
+artifacts) · `split` (work only your partition, never a path the other runtime
+owns). Absent means `claude`.
+
+**Never infer the mode from an `AGENTS.md` or `.codex/` sighting** — that proves
+Codex was configured here once, not that it is working this task. Ask, then
+write the answer down. This is the `track.txt` lesson on a second axis:
+`track.txt` says what is being built, `runtime.txt` says who is building it.
+
+Full rule, including why `split` is a lost-Edit hazard: `rules/runtime-modes.md`.
+
 ## Domain packs
 
 Agents live in four packs. **Membership is in `docs/agent-packs.yaml` (`packs:`) — read it there, it is the source of truth.** What matters here is which packs are live:
