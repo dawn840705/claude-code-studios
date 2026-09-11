@@ -13,6 +13,7 @@ for a manual install) and fire automatically:
 | `session-start.sh` | SessionStart | Session begins | Loads sprint context, milestone, git activity; detects and previews active session state file for recovery |
 | `detect-gaps.sh` | SessionStart | Session begins | Detects fresh projects (suggests /start) and missing documentation when code/prototypes exist, suggests /reverse-document or /project-stage-detect |
 | `detect-project-type.sh` | SessionStart | Session begins | Prints `PROJECT_TYPE=<game\|web\|mobile\|service\|unknown>` so the orchestrator activates the right agent pack |
+| `detect-runtime-mode.sh` | SessionStart | Session begins | Prints `RUNTIME_MODE=<claude\|codex\|split\|invalid>` from `production/runtime.txt` so the orchestrator knows whether to run the full studio, **stand down** for `codex-code-studios`, or work a declared path partition. Unrecognised content reports `invalid` rather than defaulting to the acting mode |
 | `pre-compact.sh` | PreCompact | Context compression | Dumps session state (active.md, modified files, WIP design docs) into conversation before compaction so it survives summarization |
 | `post-compact.sh` | PostCompact | After compaction | Reminds Claude to restore session state from `active.md` checkpoint |
 | `notify.sh` | Notification | Notification event | Shows Windows toast notification via PowerShell |
@@ -41,7 +42,7 @@ states for gates. Read this table before treating a silent hook as a green light
 | `detect-gaps.sh` | 0 | No — advisory only |
 | `session-start.sh` · `session-stop.sh` · `pre-compact.sh` | 0 | No — context injection, not judgment |
 | `post-compact.sh` · `notify.sh` | no explicit exit | No — context injection, not judgment |
-| `log-agent.sh` · `log-agent-stop.sh` · `detect-project-type.sh` | 0 | No — audit trail / detection output |
+| `log-agent.sh` · `log-agent-stop.sh` · `detect-project-type.sh` · `detect-runtime-mode.sh` | 0 | No — audit trail / detection output |
 
 Only three hooks in this plugin render a verdict. Everything else informs.
 

@@ -25,11 +25,17 @@ This studio ships twice: `claude-code-studios` (Claude Code, `/skill-name`) and
 `codex-code-studios` (Codex, `$skill-name`). A project may be worked by one
 alone or by both at once, and that changes whether you act at all.
 
-Read **`production/runtime.txt`** — one line: `claude` (full studio, the
+**At session start, the `detect-runtime-mode.sh` hook prints
+`RUNTIME_MODE=<claude|codex|split|invalid>`.** `claude` (full studio, the
 default) · `codex` (**stand down** — the sibling owns the work; answer questions
 and do requested one-off edits, but spawn no agents and write no studio
 artifacts) · `split` (work only your partition, never a path the other runtime
-owns). Absent means `claude`.
+owns) · `invalid` (the file says something unrecognised — **ask, do not assume
+full studio**).
+
+The mode is locked in **`production/runtime.txt`**, line 1; absent means
+`claude`. In `split` mode the lines after it declare the path partition, and the
+hook echoes them.
 
 **Never infer the mode from an `AGENTS.md` or `.codex/` sighting** — that proves
 Codex was configured here once, not that it is working this task. Ask, then

@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+### Added — 런타임 모드를 실제로 읽는 훅: 아무도 읽지 않는 규칙은 규칙이 아니다
+
+앞선 변경은 `rules/runtime-modes.md` 에 세 모드를 적었지만 **그걸 읽는 코드가
+없었다.** `track.txt` 는 훅과 `check_phase.py` 가 읽는데 `runtime.txt` 는 문서상의
+약속뿐이었고, 세션은 여전히 모르는 채로 시작했다.
+
+- `hooks/detect-runtime-mode.sh` (SessionStart) 가
+  `RUNTIME_MODE=<claude|codex|split|invalid>` 를 찍는다. `PROJECT_TYPE` 과 같은
+  방식 — 오케스트레이터는 파일을 직접 globbing 하지 않고 이 줄을 읽는다.
+- **`invalid` 는 기본값이 아니라 정지다.** 알아볼 수 없는 내용은 `claude` 로
+  떨어지지 않는다. 두 오류 방향이 대칭이 아니기 때문이다 — `codex` 를 `claude` 로
+  잘못 읽으면 남이 소유한 프로젝트에 이 런타임이 손을 대고 그 덮어쓰기는 양쪽 모두에게
+  보이지 않는다. 반대로 읽으면 놀고 있을 뿐이다.
+- 대소문자·앞뒤 공백·CRLF·BOM 은 용서한다. Windows 에서 편집한 파일이 오타로 읽혀
+  세션을 멈추게 하지 않기 위해서다.
+- `split` 모드에서는 2번째 줄부터의 경로 분할 선언을 그대로 echo 하고, 선언이 없으면
+  **NO PARTITION DECLARED** 로 크게 알린다 — 분할 없는 분업이 조용한 쪽이 아니라
+  위험한 쪽이다.
+- 테스트 21건 (`tests/test_runtime_mode_hook.py`). 매니페스트 등록 여부까지 검사한다 —
+  등록 안 된 훅은 영영 돌지 않고, 그러면 규칙은 다시 문서로만 남는다.
+
 ### Added — 스튜디오가 두 런타임으로 갈라졌는데 어느 쪽이 일하는지 적을 자리가 없었다
 
 `codex-code-studios` 분리 이후 이 플러그인은 세 가지 상황에 놓인다 — Claude 단독,

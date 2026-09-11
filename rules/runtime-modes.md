@@ -23,8 +23,21 @@ do**, and it is not inferable from the code in front of you.
 
 ## How a session knows which mode it is in
 
-Read **`production/runtime.txt`** — one line, exactly one of `claude`, `codex`,
-`split`. Absent means `claude`.
+**At session start, `hooks/detect-runtime-mode.sh` prints
+`RUNTIME_MODE=<claude|codex|split|invalid>`** — read that line rather than
+globbing for the file yourself, the same way `PROJECT_TYPE` is read rather than
+re-derived.
+
+Its source is **`production/runtime.txt`**: line 1 is the mode, exactly one of
+`claude`, `codex`, `split` (case and surrounding whitespace are forgiven; a CRLF
+or a BOM does not break it). Absent or empty means `claude`.
+
+**`invalid` is not a default — it is a stop.** Unrecognised content never falls
+back to `claude`, because the two error directions are not symmetric: reading
+`codex` as `claude` makes this runtime act on a project another runtime owns,
+and that overwrite is invisible to both sides. Reading it the other way only
+makes this runtime idle. On `invalid`, ask the user and fix the file before
+touching anything.
 
 **Do not infer the mode from ambient signals.** An `AGENTS.md` or a `.codex/`
 directory in the project proves only that Codex was configured here at some
