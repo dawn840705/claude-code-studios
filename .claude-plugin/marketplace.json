@@ -7,8 +7,8 @@
     {
       "name": "claude-code-studios",
       "source": "./",
-      "description": "Full software studio for Claude Code: 45 specialist agents across game AND app/web/service development, 90 workflow skills, and production hooks covering pre-production through live-ops. v0.6.4 makes the deterministic-gate contract survive the console it runs in: the gates print Korean reports, a cp949 console could not encode them, so a gate died mid-report and exited 1 — and callers, obeying the rule that the exit code is the verdict, read a PASS as FAIL. Entry points now pin UTF-8, and a new test layer runs every CLI under hostile console encodings and asserts the exit code does not move (the old tests imported the scripts, and an import has no console encoding, so they never saw it). Also: the Unity animator lint stopped missing four of five receiver names, detect-gaps Check 5 honours a productionRoots override, and /socratic teaches instead of recording. (v0.6.3 closed four holes in the gate contract and added /remove-bg; v0.6.2 made the hooks layout-aware.)",
-      "version": "0.6.4",
+      "description": "Full software studio for Claude Code: 45 specialist agents across game AND app/web/service development, 90 workflow skills, and production hooks covering pre-production through live-ops. v0.6.5 gives the runtime-split world an actual reader: `hooks/detect-runtime-mode.sh` prints `RUNTIME_MODE=<claude|codex|split|invalid>` at SessionStart so the orchestrator no longer has to guess whether Codex owns the project — `invalid` halts instead of silently defaulting to `claude`, and `split` echoes the declared path partition (21 tests). CLAUDE.md's 작업 원칙 also gained a one-line model-recommendation step before every task, covering both the session model and any subagent's `model` param — advisory only, deferring to Route hint's \"savings come from fewer calls, not a cheaper model\" rule rather than overriding it. (v0.6.4 made the deterministic-gate contract survive the console it runs in; v0.6.3 closed four holes in the gate contract and added /remove-bg.)",
+      "version": "0.6.5",
       "author": {
         "name": "Cannon Kingdom Dev"
       },
