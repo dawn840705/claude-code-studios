@@ -4,7 +4,11 @@ Claude Code 플러그인 형태로 패키징된 *완전한* 소프트웨어 스�
 
 **전문 에이전트 45종** · **워크플로우 skill 90종** · **production hooks** · **거버넌스/워크플로우 자산 (v0.2.0+)** · **도메인 팩 + 프로젝트 타입 자동 감지 (v0.4.0+)** — 프리프로덕션 → 프로덕션 → QA → 릴리스 → 라이브 옵스 전 단계 커버.
 
-> **v0.6.5 신규:** 런타임이 갈라진 세계에 실제로 읽는 쪽이 생겼습니다. `codex-code-studios` 분리 이후 이 플러그인은 Claude 단독·Codex 단독·분업 셋 중 하나로 일하는데, 그걸 판단할 방법이 문서(`rules/runtime-modes.md`)에만 있고 **읽는 코드가 없었습니다.** `hooks/detect-runtime-mode.sh` (SessionStart) 가 이제 `RUNTIME_MODE=<claude|codex|split|invalid>` 를 찍습니다 — `invalid` 는 `claude` 로 조용히 떨어지지 않고 **정지**합니다(두 오류 방향이 비대칭이기 때문: `codex` 를 `claude` 로 잘못 읽으면 남의 프로젝트를 덮어쓰고 그 덮어쓰기가 양쪽 모두에게 안 보입니다). `split` 모드는 선언된 경로 분할을 그대로 echo 하고, 선언이 없으면 크게 경고합니다. 테스트 21건, 매니페스트 등록 여부까지 검사합니다.
+> **v0.6.6 신규:** 게이트가 전부 초록인데 플러그인이 통째로 없었습니다. 9-19 에 한 세션이 캐시에 `0.6.5` 를 온전히 갖고(에이전트 45 · 스킬 90), 프로젝트 설정에 `enabledPlugins` 가 `true` 이고, `verify_trajectory.py` 가 `exit 0` 을 내면서 **훅도 에이전트도 스킬도 하나도 안 올렸습니다.** 호스트의 `installed_plugins.json` 에서 등재가 유실돼 「이걸 켜라」가 아무것도 안 가리키고 있었습니다. 아무도 에러를 내지 않은 이유는 단순합니다 — **기존 게이트는 전부 디스크의 사본을 볼 뿐, 그 사본이 실제로 연결돼 있는지는 아무도 묻지 않았습니다.** `scripts/verify_install.py` 가 그 질문을 합니다: 등재가 있는가, 그 등재가 실재하는 경로를 가리키는가 (`0` 정상 · `1` 낡음 · `2` 로드 불가 · `3` 레지스트리를 못 읽음, 테스트 16건). 훅으로 만들지 않았습니다 — 이 사고의 증상이 바로 「훅이 안 도는 것」이라 훅 기반 검사는 정작 필요한 순간에 침묵합니다.
+>
+> 그리고 이 저장소는 그동안 **Windows 에서 스위트를 돌릴 수 없는 상태**였습니다. 훅 테스트 90건이 Git Bash 가 아니라 System32 의 **WSL 런처**를 태우고 있었습니다 — `CreateProcess` 의 탐색 순서가 PATH 보다 System32 를 먼저 보기 때문입니다. 실패 메시지는 훅 버그처럼 읽혔지만 훅은 멀쩡했고 실행된 적이 없었습니다. `tests/posix_bash.py` 가 후보를 이름으로 믿지 않고 `echo ok` 를 태워 보고 고릅니다. `test_hooks_layout` 70 failed → **87 passed** · `test_runtime_mode_hook` 20 failed → **21 passed**.
+>
+> **v0.6.5:** 런타임이 갈라진 세계에 실제로 읽는 쪽이 생겼습니다. `codex-code-studios` 분리 이후 이 플러그인은 Claude 단독·Codex 단독·분업 셋 중 하나로 일하는데, 그걸 판단할 방법이 문서(`rules/runtime-modes.md`)에만 있고 **읽는 코드가 없었습니다.** `hooks/detect-runtime-mode.sh` (SessionStart) 가 이제 `RUNTIME_MODE=<claude|codex|split|invalid>` 를 찍습니다 — `invalid` 는 `claude` 로 조용히 떨어지지 않고 **정지**합니다(두 오류 방향이 비대칭이기 때문: `codex` 를 `claude` 로 잘못 읽으면 남의 프로젝트를 덮어쓰고 그 덮어쓰기가 양쪽 모두에게 안 보입니다). `split` 모드는 선언된 경로 분할을 그대로 echo 하고, 선언이 없으면 크게 경고합니다. 테스트 21건, 매니페스트 등록 여부까지 검사합니다.
 >
 > 그리고 `CLAUDE.md § 작업 원칙`에 한 줄 — 작업을 시작하기 전에 세션 모델(Haiku/Sonnet/Opus)과, 에이전트를 스폰한다면 그 서브에이전트의 모델까지 효율성 기준으로 추천합니다. 자동 전환은 아닙니다 — 기존 [Route hint](CLAUDE.md#route-hint--pick-a-route-before-spawning)의 "비용 절감은 호출 수를 줄이는 데서 온다" 원칙을 그대로 지킵니다.
 >
