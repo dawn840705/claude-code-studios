@@ -157,6 +157,21 @@ def _sc_reassemble(tmp):
     return ["--run-dir", run], tmp
 
 
+def _sc_verify_install(tmp):
+    # 2026-09-19 상태 재현 — 디스크엔 사본이 있는데 레지스트리에 등재가 없다.
+    # ABORT 요약줄에 em-dash 가 찍히는 그 경로다. 호스트 레지스트리를 건드리지
+    # 않도록 --registry 로 격리한다.
+    root = os.path.join(tmp, "0.6.5")
+    os.makedirs(os.path.join(root, ".claude-plugin"), exist_ok=True)
+    with open(os.path.join(root, ".claude-plugin", "plugin.json"), "w",
+              encoding="utf-8") as f:
+        json.dump({"name": "claude-code-studios", "version": "0.6.5"}, f)
+    registry = os.path.join(tmp, "installed_plugins.json")
+    with open(registry, "w", encoding="utf-8") as f:
+        json.dump({"version": 2, "plugins": {}}, f)
+    return ["--registry", registry, "--plugin-root", root], tmp
+
+
 def _sc_repo(*args):
     """저장소 자신을 대상으로 도는 게이트 — cwd 가 저장소여야 한다."""
     def build(tmp):
@@ -179,6 +194,7 @@ SCENARIOS = {
     "removebg.py": [("estimate-dry-run", _sc_removebg)],
     "verify_change_rate.py": [("real-pair", _sc_verify_change_rate)],
     "verify_gates.py": [("real-pair", _sc_verify_gates)],
+    "verify_install.py": [("unregistered", _sc_verify_install)],
     "verify_policy.py": [("self-test", _sc_repo("--self-test"))],
     "verify_trajectory.py": [("golden-compare", _sc_repo())],
 }

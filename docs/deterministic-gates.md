@@ -99,6 +99,31 @@ an invisible drift into an explicit diff a reviewer can read. Labels and prose a
 excluded on purpose: a noisy gate gets `--update`d unread, which is the same as
 having no gate.
 
+**[`scripts/verify_install.py`](../scripts/verify_install.py) asks the question
+every gate above assumes.** All of them read the copy on disk. None of them ask
+whether that copy is *wired in*. On 2026-09-19 a session had the cache
+directory present at 0.6.5, `enabledPlugins` true in the project, and
+`verify_trajectory.py` exiting 0 — while loading **zero** hooks, agents and
+skills, because the host's `installed_plugins.json` had lost its entry. Every
+gate was green and the plugin was absent. The gate exits `0` (registered, the
+path exists, the manifest agrees) / `1` (stale: the entry's version disagrees
+with the `plugin.json` it points at — something still loads, just not what the
+registry claims) / `2` (no entry, or every entry points at a vanished path) /
+`3` (the registry could not be read).
+
+`3` is narrow on purpose: it means *the registry could not be read*, never *the
+plugin is missing from it*. Collapsing those two would hide the exact bug the
+gate exists to catch.
+
+**It cannot be a hook, and it is not in `test.yml`.** Hooks are precisely what
+does not run when this fails, so a hook-based check would be silent in its only
+interesting case. And on a CI runner there is no host registry, so the gate
+correctly exits `3` — a step that always cannot-judge is noise, not coverage.
+Its CI presence is `tests/test_verify_install.py`, which asserts both
+directions: that it catches the 2026-09-19 state, and that it does not
+false-alarm when the gate is run from a git checkout while the host loads the
+cached copy.
+
 ## Rules for callers
 
 **The exit code overrides the model.** If the script says FAIL, it is FAIL, no
