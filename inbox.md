@@ -34,3 +34,18 @@
 ---
 
 <!-- 여기부터 항목. 오래된 것이 위, 새 것이 아래. -->
+
+## 2026-09-19 · 출처: StarDiver (`C:\StarDiver` · Unity 6 게임 · game 팩)
+- **무슨 일**: 기본 설치 상태에서 **스킬 26개가 이름만 남고 설명이 잘린다.** 잘린 스킬은 자동 발동이 안 되고 슬래시로만 돈다. 호스트가 스킬 이름+설명 목록에 주는 예산이 컨텍스트의 **1%** 인데 v0.6.4 시점 플러그인 설명 합계가 24,923자였다 (프로젝트 스킬 2,361자 별도). 알파벳순 `smoke-check` 이후가 통째로 날아가 `team-*` 10종 전부 · `start` · `sprint-*` · `story-*` · `sot-audit` · `spatial-audit` 가 포함됐다. **팀 오케스트레이터 10종이 한 달 넘게 자동 발동 불가였고 아무 경고도 없었다** — 잘렸다는 표시가 어디에도 안 뜬다. 프로젝트 `.claude/settings.json` 에 `"skillListingBudgetFraction": 0.05` 를 넣어 해소했고 v0.6.6(스킬 90)에서도 5% 안에 들어간다.
+- **제안**: 설치 시점에 이 함정을 알려야 한다. ① `session-start.sh` 가 설명 합계를 재서 **기본 1% 예산을 넘으면 한 줄 경고** (`verify_install.py` 가 레지스트리를 읽는 것과 같은 성격 — 「있는데 안 올라온다」를 잡는 게이트) ② 또는 README 설치 절에 `skillListingBudgetFraction` 를 필수 설정으로 명기. 스킬이 90개인 플러그인은 기본 예산으로는 온전히 안 올라온다는 것이 구조적 사실이다.
+- **상태**: 대기
+
+## 2026-09-19 · 출처: StarDiver (`C:\StarDiver`)
+- **무슨 일**: `rules/` 의 전역 규칙 중 **다섯이 세션에 안 실린다.** 이 세션 SessionStart 실측 — 실린 것 = `self-loop`("=== Self-Loop Rule (always active) ===") · `route-hint`("=== Route Hint ===") · `runtime-modes`(v0.6.5 리더). **안 실린 것 = `verify-route` · `decision-lifecycle` · `claim-confidence` · `subagent-collaboration` · `work-records`.** `lesson-capture` 는 규칙이 아니라 건수 한 줄("Lesson Ledger: 88 lessons recorded")로만 실렸다. 규칙 파일은 저장소에 있으나 모델이 그 존재를 모르므로, «always active» 로 쓰인 규칙과 안 실린 규칙이 겉으로 구분되지 않는다.
+- **제안**: `session-start.sh` 가 그 다섯도 **각 3~5줄 요약**으로 stdout 에 찍는다 (원문 전량이 아니라 «언제 무엇을» 만 — 매 세션 토큰이 든다). 요약을 규칙 파일 frontmatter 나 첫 절에서 뽑으면 본문과 어긋나지 않는다. 반대로 실을 계획이 없는 규칙은 파일 머리에 «주입 안 됨 — 참조 문서» 로 적어 구분한다.
+- **상태**: 대기
+
+## 2026-09-19 · 출처: StarDiver (`C:\StarDiver`)
+- **무슨 일**: **PostToolUse 훅 6종의 출력이 자율 실행 중인 모델에 안 닿는다.** exit 0 + 평문 stdout 이라 사용자 터미널에만 보인다. 사람이 보고 있는 세션에서는 작동하는 것처럼 보이지만, 사람이 안 보는 사이 돌 때는 훅이 지적을 해도 모델이 모른 채 다음 편집으로 넘어간다 — `unity-meta-check.sh` · `unity-animator-string-lint.sh` · `validate-assets.sh` 처럼 «고칠 것을 알려주는» 훅이 특히 그렇다.
+- **제안**: 6종을 같은 헬퍼(`hooks/lib/`)를 거치게 하고 `{"hookSpecificOutput": {"additionalContext": "<한 줄>"}}` JSON 으로 내보낸다. 한 줄 요약만 — 전문을 실으면 매 편집마다 토큰이 든다.
+- **상태**: 대기
