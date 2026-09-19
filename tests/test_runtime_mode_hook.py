@@ -14,8 +14,14 @@ file must NOT fall back to the acting mode; it reports `invalid` and stops.
 
 import os
 import subprocess
+import sys
 
 import pytest
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from posix_bash import BASH, requires_bash  # noqa: E402
+
+pytestmark = requires_bash
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOOK = os.path.join(REPO, "hooks", "detect-runtime-mode.sh")
@@ -23,7 +29,7 @@ HOOK = os.path.join(REPO, "hooks", "detect-runtime-mode.sh")
 
 def run(cwd):
     proc = subprocess.run(
-        ["bash", HOOK],
+        [BASH, HOOK],
         cwd=str(cwd),
         capture_output=True,
         text=True,

@@ -31,6 +31,28 @@ v0.6.4 회고와 같은 병이 한 층 위에서 재발한 것이다 — 그때�
   `tests/test_verify_install.py` (16건) 가 대신한다 — 9-19 상태를 **잡는지**와
   체크아웃에서 돌렸을 때 **오탐하지 않는지**를 양방향으로 건다.
 
+### Fixed — Windows 에서 훅 테스트 90건이 통째로 죽어 있었다 (훅은 멀쩡했다)
+
+`test_hooks_layout` 70 · `test_runtime_mode_hook` 20 이 Windows 에서 전멸하고
+있었다. 실패 메시지는 훅 버그처럼 읽혔지만 (`hook must never fail the session:
+rc=1`) **훅은 한 번도 실행된 적이 없었다.**
+
+`subprocess.run(["bash", ...])` 가 이름만 넘긴 것이 뿌리다. `CreateProcess` 의
+탐색 순서는 **System32 가 PATH 보다 먼저**고, 거기 있는 `bash.exe` 는 Git Bash 가
+아니라 **WSL 런처**다. 배포판이 없으면 «Install \<Distro\>» 안내문을 UTF-16 으로
+찍고 `exit 1` 한다. CI 가 ubuntu 전용이라 4개월간 아무도 못 봤다.
+
+- **`tests/posix_bash.py`** — `$BASH` → PATH → 잘 알려진 Git Bash 경로 순으로
+  찾되 **이름을 믿지 않고 `echo ok` 를 태워 본다.** `shutil.which` 도 PATH 순서에
+  따라 같은 WSL 스텁을 집으므로 「bash 라 불리는 걸 찾았다」는 근거가 못 된다.
+- 못 찾으면 `pytest.skip` — 「돌렸는데 통과」와 「돌린 적 없음」을 섞지 않는다.
+  게이트 계약의 `0` 과 `3` 을 가르는 것과 같은 이유다.
+- 결과: `test_runtime_mode_hook` 20 failed → **21 passed** ·
+  `test_hooks_layout` 70 failed → **87 passed / 1 skipped**.
+
+이 저장소는 그동안 **Windows 에서 스위트를 돌릴 수 없는 상태**였다. 개발기가
+Windows 면 로컬 검증 자체가 불가능했다는 뜻이다.
+
 ## v0.6.5 — 2026-09-17
 
 ### Added — 모델 추천 단계: 작업 전에 세션·서브에이전트 모델을 한 줄로 제안

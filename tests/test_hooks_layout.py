@@ -16,8 +16,14 @@ import json
 import os
 import shutil
 import subprocess
+import sys
 
 import pytest
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from posix_bash import BASH, requires_bash  # noqa: E402
+
+pytestmark = requires_bash
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOOKS = os.path.join(REPO, "hooks")
@@ -49,7 +55,7 @@ def run_hook(script, cwd, stdin="", env=None):
     if env:
         full_env.update(env)
     return subprocess.run(
-        ["bash", script],
+        [BASH, script],
         cwd=str(cwd),
         input=stdin,
         capture_output=True,
@@ -69,7 +75,7 @@ def probe(cwd, snippet, env=None, prelude=""):
     if env:
         full_env.update(env)
     return subprocess.run(
-        ["bash", "-c", f'{prelude}\n. "{LIB}"\n{snippet}'],
+        [BASH, "-c", f'{prelude}\n. "{LIB}"\n{snippet}'],
         cwd=str(cwd),
         capture_output=True,
         text=True,
