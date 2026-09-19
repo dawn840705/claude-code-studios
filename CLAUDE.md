@@ -244,6 +244,7 @@ that is the check that will disagree with you.
 
 - **Per-project overrides**: put `.claude/agents/<name>.md` or `.claude/skills/<name>/SKILL.md` in the user's project root. Project files override plugin files.
 - **Project-local rules**: add files to `.claude/rules/` in the user project. Plugin rules in `rules/` are the default baseline.
+- **Field reports from projects that use this plugin**: they land in `inbox.md` at the repo root. Read the `상태: 대기` entries before planning plugin changes, and update each entry's status as you resolve it — a fix with no commit hash beside it did not happen.
 
 Everything else is in `docs/` — list that directory rather than carrying its index
 here. The two you will want by name: **`docs/skills-reference.md`** (all 90 skills;
