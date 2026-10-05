@@ -38,45 +38,45 @@
 ## 2026-09-19 · 출처: StarDiver (`C:\StarDiver` · Unity 6 게임 · game 팩)
 - **무슨 일**: 기본 설치 상태에서 **스킬 26개가 이름만 남고 설명이 잘린다.** 잘린 스킬은 자동 발동이 안 되고 슬래시로만 돈다. 호스트가 스킬 이름+설명 목록에 주는 예산이 컨텍스트의 **1%** 인데 v0.6.4 시점 플러그인 설명 합계가 24,923자였다 (프로젝트 스킬 2,361자 별도). 알파벳순 `smoke-check` 이후가 통째로 날아가 `team-*` 10종 전부 · `start` · `sprint-*` · `story-*` · `sot-audit` · `spatial-audit` 가 포함됐다. **팀 오케스트레이터 10종이 한 달 넘게 자동 발동 불가였고 아무 경고도 없었다** — 잘렸다는 표시가 어디에도 안 뜬다. 프로젝트 `.claude/settings.json` 에 `"skillListingBudgetFraction": 0.05` 를 넣어 해소했고 v0.6.6(스킬 90)에서도 5% 안에 들어간다.
 - **제안**: 설치 시점에 이 함정을 알려야 한다. ① `session-start.sh` 가 설명 합계를 재서 **기본 1% 예산을 넘으면 한 줄 경고** (`verify_install.py` 가 레지스트리를 읽는 것과 같은 성격 — 「있는데 안 올라온다」를 잡는 게이트) ② 또는 README 설치 절에 `skillListingBudgetFraction` 를 필수 설정으로 명기. 스킬이 90개인 플러그인은 기본 예산으로는 온전히 안 올라온다는 것이 구조적 사실이다.
-- **상태**: 대기
+- **상태**: 반영됨 (12b0f57) — `session-start.sh` 가 설정 부재 시 설명 총량과 함께 경고 + README 설치 절에 필수 설정. 단 `skillListingBudgetFraction` 키와 1% 기본값은 2026-10-05 기준 호스트 공식 문서에 없다 — 근거는 이 항목의 실측뿐이라 README 에도 그렇게 적었다
 
 ## 2026-09-19 · 출처: StarDiver (`C:\StarDiver`)
 - **무슨 일**: `rules/` 의 전역 규칙 중 **다섯이 세션에 안 실린다.** 이 세션 SessionStart 실측 — 실린 것 = `self-loop`("=== Self-Loop Rule (always active) ===") · `route-hint`("=== Route Hint ===") · `runtime-modes`(v0.6.5 리더). **안 실린 것 = `verify-route` · `decision-lifecycle` · `claim-confidence` · `subagent-collaboration` · `work-records`.** `lesson-capture` 는 규칙이 아니라 건수 한 줄("Lesson Ledger: 88 lessons recorded")로만 실렸다. 규칙 파일은 저장소에 있으나 모델이 그 존재를 모르므로, «always active» 로 쓰인 규칙과 안 실린 규칙이 겉으로 구분되지 않는다.
 - **제안**: `session-start.sh` 가 그 다섯도 **각 3~5줄 요약**으로 stdout 에 찍는다 (원문 전량이 아니라 «언제 무엇을» 만 — 매 세션 토큰이 든다). 요약을 규칙 파일 frontmatter 나 첫 절에서 뽑으면 본문과 어긋나지 않는다. 반대로 실을 계획이 없는 규칙은 파일 머리에 «주입 안 됨 — 참조 문서» 로 적어 구분한다.
-- **상태**: 대기
+- **상태**: 반영됨 (12b0f57) — 다섯 규칙을 «언제 무엇을» 한 줄씩 `session-start.sh` 에 실었다. 요약은 self-loop·route-hint 와 같은 방식(훅 안에 직접)이고 frontmatter 추출은 안 했다 — 규칙 다섯 줄에 파서를 붙이는 건 과하다. `work-records.md` §3 에 «새 전역 규칙은 요약 한 줄도 추가해야 실린다» 를 적어 다음 누락을 막는다
 
 ## 2026-09-19 · 출처: StarDiver (`C:\StarDiver`)
 - **무슨 일**: **PostToolUse 훅 6종의 출력이 자율 실행 중인 모델에 안 닿는다.** exit 0 + 평문 stdout 이라 사용자 터미널에만 보인다. 사람이 보고 있는 세션에서는 작동하는 것처럼 보이지만, 사람이 안 보는 사이 돌 때는 훅이 지적을 해도 모델이 모른 채 다음 편집으로 넘어간다 — `unity-meta-check.sh` · `unity-animator-string-lint.sh` · `validate-assets.sh` 처럼 «고칠 것을 알려주는» 훅이 특히 그렇다.
 - **제안**: 6종을 같은 헬퍼(`hooks/lib/`)를 거치게 하고 `{"hookSpecificOutput": {"additionalContext": "<한 줄>"}}` JSON 으로 내보낸다. 한 줄 요약만 — 전문을 실으면 매 편집마다 토큰이 든다.
-- **상태**: 대기
+- **상태**: 반영됨 (12b0f57) — `hooks/lib/emit-context.sh` 로 `additionalContext` 한 줄. Claude 쪽 PostToolUse 훅은 6종이 아니라 4종(`validate-assets` 이름 경고 · `validate-skill-change` · `unity-meta-check` · `unity-animator-string-lint`)이고 넷 다 옮겼다. exit 2 경로(잘못된 JSON)는 원래 닿으므로 그대로
 
 ## 2026-10-01 · 출처: StarDiver (Unity 6 게임 · Claude+Codex 두 손 운영)
 - **무슨 일**: 자동 메모리(`~/.claude/projects/*/memory/`)에 사장님 지침·결정 171개가 쌓여 있었는데, 같은 저장소를 쓰는 Codex 는 그걸 **볼 수 없었다**. 프로젝트 CLAUDE.md 도 메모리 이름을 근거로 7곳 인용하고 있어 Codex 에게는 없는 근거였다. 사장님 지시로 메모리를 폐지했다 — `autoMemoryEnabled:false` · `autoDreamEnabled:false` · Codex `[features] memories=false`, 171개는 내용별로 계약서(CLAUDE.md↔AGENTS.md 짝)·결정 아카이브·Inbox·상태 문서·`Documents/Shared-Knowledge/` 색인으로 이관.
 - **제안**: 여러 에이전트가 한 저장소를 쓰는 프로젝트를 위한 규칙 — «기억 = 저장소 파일». 내용 종류별 자리 표(상시 규칙 → 계약서 짝 · 판정 → 결정 기록 · 요청 → 수신함 · 상태 → 상태 문서 · 그 밖 사실 → 공유 색인)를 템플릿으로 제공하고, `/start` 나 설치 점검이 두 에이전트 운영을 감지하면 자동 메모리 끄기를 안내한다. 상대 에이전트에게 일을 넘길 때 관련 파일 **링크**를 지시문에 넣는 것도 같이 (자동으로 읽히는 건 계약서뿐).
-- **상태**: 대기
+- **상태**: 반영됨 (12b0f57) — `rules/runtime-modes.md` § Memory(종류별 자리 표 · 자동 메모리 끄기 제안 · 넘길 때 파일 링크) + split 모드에서 `detect-runtime-mode.sh` 가 한 줄 상기. `/start` 감지와 별도 템플릿 파일은 안 만들었다 — split 은 `runtime.txt` 로 이미 판정되고 그 훅이 매 세션 찍는다
 
 ## 2026-10-01 · 출처: StarDiver
 - **무슨 일**: 사장님이 *«내 생각은 의견이고 너는 그 의견을 기반으로 더 좋은 생각이 있는지, 잘못된 생각인지, 보완해서 제3의 결정을 할 근거를 찾아 진행해. 내가 결정을 다 해주면 너무 비효율적이야»* 라고 기조를 바꿨다. 그 전까지 에이전트는 사장님 발화를 명령으로 받아 그대로 실행하거나, 근거가 이미 문서에 있는 판정까지 되물었다 (같은 날 실례: 설정 문서가 답을 갖고 있던 사망 화면 표기를 사장님께 물음).
 - **제안**: 오케스트레이터·디렉터 계열 에이전트와 계약서 템플릿에 «사용자 발화 = 입력 · 채택/보완/반대/제3안을 근거로 정하고 이유를 결정 기록에 남긴다 · 사용자 게이트는 돈·최종 시각 채택·체감 판정 등 계약에 적힌 것만» 절을 둔다. 하위 실행 에이전트 쪽은 «지시 = 의도 + 출발점 · 더 나은 수단이면 그 길로 가고 회신에 역제안».
-- **상태**: 대기
+- **상태**: 보류 (기본값을 뒤집는 결정이라 사용자 판단 필요) — 에이전트 30종의 Collaboration Protocol 이 «최종 결정은 사용자» 를 기본으로 박고 있다. 플러그인 기본값을 바꿀지, 프로젝트가 켜는 옵트인(예: 프로젝트 CLAUDE.md 의 결정 권한 절)으로 둘지 정해야 한다
 
 ## 2026-10-01 · 출처: StarDiver
 - **무슨 일**: 로비 카메라가 걸을 때 미세하게 위아래로 출렁였다. 원인은 카메라 추적 높이를 **매 프레임 캐릭터 렌더러 bounds 중심**으로 다시 계산한 코드 (애니메이션·천 시뮬레이션으로 bounds 가 매 프레임 변함 + 매 프레임 `GetComponentsInChildren`). 이어 전수 감사(476 파일 · 16.5만 줄)에서 같은 류가 총구 위치에 한 곳 더, 대상이 없는 씬에서 매 프레임 `GameObject.Find` 를 헛도는 UI 5개, 물리 쿼리 할당 3곳, 참조 0 파일 42개(9,358줄 · 일회성 Editor 빌더 다수), 7,532줄 단일 컨트롤러가 나왔다. 같은 날 조작 버그도 «두 시스템이 같은 값(조준 yaw)을 덮어쓰는 되먹임» 이었다.
 - **제안**: 코드 리뷰 스킬·Unity 훅의 점검 축에 넣는다 — ① Update/LateUpdate/FixedUpdate 안의 `GetComponent*`·`Find*`·LINQ·`RaycastAll`/`OverlapSphere` ② 애니메이션·물리 값(bounds 등)을 카메라·판정 기준점으로 매 프레임 재계산 ③ 같은 상태를 두 컴포넌트가 쓰는 곳 ④ 일회성 Editor 도구·실험 코드는 그 작업이 끝날 때 삭제 (git 이력이 보관소). 죽은 코드 판정 시 «참조 0 ≠ 죽음» 경고 (자기 부팅 `RuntimeInitializeOnLoadMethod`·리플렉션·메뉴 전용).
-- **상태**: 대기
+- **상태**: 반영됨 (12b0f57) — `/code-review` Phase 6 에 ①②③ (프레임마다 찾기·할당 · 움직이는 값에서 기준점 재계산 · 한 상태 두 작성자), `/tech-debt` 스캔에 ④ 삭제 후보 + «참조 0 ≠ 죽음» 확인 목록. Unity 훅으로는 안 넣었다 — Update 본문 안인지 bash 정규식으로 판정하면 오탐이 더 많다
 
 ## 2026-10-01 · 출처: StarDiver
 - **무슨 일**: 실기 피드백을 «녹화 + 말하면서 플레이 + 걸리는 순간 키 한 번(마커)» 으로 받고, 영상 음성을 로컬 faster-whisper 로 전사해 발언 시각마다 프레임·게임 상태 로그를 붙이는 분석 도구를 만들었다. 15분 실기에서 **기본 VAD 필터(small)가 게임 소리에 묻힌 목소리를 놓쳐 뒤 10분 발언을 통째로 잃었다** — `vad_filter=False` + medium 으로 다시 돌려 87줄을 회수했다. 영상 시작 UTC 는 ffprobe `creation_time` 으로 게임 로그와 맞았다.
 - **제안**: 플레이테스트 관련 스킬(체크리스트·실기 분석)에 «음성 피드백 + 마커 + 상태 JSONL → 전사·프레임 묶음» 절차를 선택지로 추가. 게임 소리가 깔린 녹화는 VAD 끄기·medium 이상을 기본값으로. 마커 키가 실제 빌드에서 동작하는지(파일이 생기는지) 를 빌드 전달 게이트에 넣을 것 — 이번에 마커가 안 찍힌 빌드가 전달됐다.
-- **상태**: 대기
+- **상태**: 반영됨 (12b0f57) — `/playtest-report` Analyze 모드에 선택 입력으로 녹화+발화+마커+상태 JSONL 절차, VAD 끄기·medium 이상 기본, ffprobe 시각 맞춤, 빌드 전달 전 마커 파일 생성 확인
 
 ## 2026-10-01 · 출처: StarDiver (game 팩)
 - **무슨 일**: 사장님이 *«몬스터가 나를 조준하는 건 이상하지 않아? 로봇 팩션도 아니고»* · *«발사체는 몬스터의 발사 부위에서 생성돼야 해»* 라고 짚었다. 실측 — 벌레 몬스터가 레이저형 조준선·히트스캔·화염 폭발을 쓰고, 원거리 발사체 전부가 «몸 중심 + 고정 오프셋» 에서 생성(발사 소켓 0). 설정 감사 3갈래(몬스터·시스템·공간)에서 P0 14건.
 - **제안**: game 팩의 몬스터·VFX·레벨 리뷰 스킬에 «설정 정합» 축 — 공격 예고·연출이 그 팩션 문법(생체/기계/마법)과 맞나 · 공정성은 예고를 없애지 말고 수단을 바꿔 지킨다 · **발사체·이펙트는 실제 부위 소켓에서 생성** (Rig 계약에 소켓 필수). 품질 게이트 템플릿에 «설정상 말이 되나 · 어디서 나오나» 문항.
-- **상태**: 대기
+- **상태**: 반영됨 (12b0f57) — `/team-combat` Phase 1(팩션별 공격 문법 · 발사 부위 명시) · Phase 3(리그 소켓에서 생성, 오프셋 금지) · Phase 5(설정 정합 확인), `/asset-spec` 캐릭터 스펙에 발사 소켓 목록
 
 ## 2026-10-05 · 출처: StarDiver
 
 - **무슨 일**: Codex 쪽 짝 플러그인(codex-code-studios 0.7.4)의 PostToolUse 훅이 Windows 에서 고아 프로세스를 남겨 20분 만에 bash 280·python 110 개가 쌓였다(CPU 고갈, 사장님이 작업관리자에서 발견). 원인 = `hooks/run-bash.py` 가 `subprocess.run` 으로 bash 를 띄우고, 호스트가 timeout 으로 python 래퍼만 죽이면 bash 손자가 남는다 + `validate-assets.sh` 의 `INPUT=$(cat)` 가 stdin 을 무기한 기다린다 + Unity 프로젝트에 소문자 에셋 규칙이 맞지 않는다. Claude 쪽 플러그인 훅(`run-bash` 계열)도 같은 래퍼 구조면 같은 위험이 있다 — 이 세션에서도 `validate-commit.sh` bash 가 남아 있는 것을 봤다.
 - **제안**: 공통 훅 래퍼를 «타임아웃 + 프로세스 트리 종료 + stdin 명시 전달/닫기 + 대상 파일 없으면 bash 미기동» 으로 통일하고, 두 플러그인(Claude·Codex) 이 같은 래퍼를 쓰게 한다. Unity 레이아웃 감지 시 소문자 에셋 규칙 끄기. 훅마다 동시 실행 상한. 짝 기록 = `C:\codex-code-studios\inbox.md` 같은 날짜 항목.
-- **상태**: 대기
+- **상태**: 반영됨 (12b0f57, Claude 쪽 해당분만) — 이 플러그인은 `plugin.json` 에서 `bash` 를 직접 띄워 `run-bash.py` 같은 Python 래퍼가 없다. 한 일: 모든 Bash 호출마다 도는 `validate-commit.sh` 와 `validate-assets.sh` 가 대상이 아니면 레이아웃 감지 전에 나간다. 소문자 에셋 규칙은 v0.6.2 부터 Unity 에서 PascalCase 로 바뀌어 있다. 안 한 것: 프로세스 트리 종료·동시 실행 상한 — 호스트가 타임아웃 때 자식까지 죽이는지는 공식 문서에 없고, bash 훅 안에서 `kill 0` 류로 처리하면 Windows 에서 호스트까지 맞을 수 있다. 래퍼 통일은 `codex-code-studios` 쪽 작업
