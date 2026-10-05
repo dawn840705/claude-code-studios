@@ -168,6 +168,16 @@ ln -s /path/to/claude-code-studios/docs   .claude/docs
 
 (주의: 옵션 3 은 플러그인 시스템을 우회 — hook 이 자동 등록되지 않습니다. `.claude-plugin/plugin.json` 의 `hooks` 블록을 프로젝트의 `.claude/settings.json` 에 직접 복사해야 합니다.)
 
+### 설치 후 꼭 할 것 — 스킬 목록 예산
+
+어느 옵션으로 설치했든 프로젝트 `.claude/settings.json` 에 이 한 줄을 넣으세요.
+
+```json
+{ "skillListingBudgetFraction": 0.05 }
+```
+
+호스트는 스킬 이름과 설명을 정해진 예산 안에서만 모델에 보여 줍니다. 기본값은 컨텍스트의 1% 로 알려져 있는데(StarDiver 실측, 2026-09-19 · 호스트 공식 문서에는 아직 없음), 이 플러그인 스킬 90개의 설명은 합쳐서 약 2만 5천 자라 그 안에 다 안 들어갑니다. 넘친 스킬은 이름만 남고 자동 발동이 안 됩니다. 알파벳 뒤쪽인 `team-*` 10종, `start`, `sprint-*`, `story-*` 가 여기 걸렸고, 잘렸다는 표시는 어디에도 안 뜹니다. 설정이 없으면 SessionStart 훅이 매 세션 경고를 한 번 띄웁니다.
+
 ---
 
 ## 빠른 시작

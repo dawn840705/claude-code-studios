@@ -16,6 +16,24 @@
 INPUT=$(cat)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Bail out before anything else. This hook runs on EVERY Bash call and almost
+# none of them are commits; sourcing the layout helper first meant paying for
+# engine detection on each `ls`. Fewer subprocesses per call is also fewer to
+# leave behind when the host times a hook out (inbox 2026-10-05: the Codex
+# sibling's hook wrapper piled up 280 bash processes on Windows).
+
+# Parse command -- use jq if available, fall back to grep
+if command -v jq >/dev/null 2>&1; then
+    COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // empty')
+else
+    COMMAND=$(echo "$INPUT" | grep -oE '"command"[[:space:]]*:[[:space:]]*"[^"]*"' | sed 's/"command"[[:space:]]*:[[:space:]]*"//;s/"$//')
+fi
+
+# Only process git commit commands
+if ! echo "$COMMAND" | grep -qE '^git[[:space:]]+commit'; then
+    exit 0
+fi
+
 if [ -f "$SCRIPT_DIR/lib/detect-layout.sh" ]; then
     # shellcheck source=lib/detect-layout.sh
     . "$SCRIPT_DIR/lib/detect-layout.sh"
@@ -29,18 +47,6 @@ else
         return 1
     }
     studio_asset_root_regex() { printf '(^|/)(assets)/'; }
-fi
-
-# Parse command -- use jq if available, fall back to grep
-if command -v jq >/dev/null 2>&1; then
-    COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // empty')
-else
-    COMMAND=$(echo "$INPUT" | grep -oE '"command"[[:space:]]*:[[:space:]]*"[^"]*"' | sed 's/"command"[[:space:]]*:[[:space:]]*"//;s/"$//')
-fi
-
-# Only process git commit commands
-if ! echo "$COMMAND" | grep -qE '^git[[:space:]]+commit'; then
-    exit 0
 fi
 
 # Get staged files. --no-optional-locks: this hook runs *before* the commit, so

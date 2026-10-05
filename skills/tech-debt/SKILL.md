@@ -30,6 +30,16 @@ Search the codebase for debt indicators:
 - Duplicated code blocks (similar patterns in multiple files)
 - Files over 500 lines (potential god objects)
 - Functions over 50 lines (potential complexity)
+- Files nothing references — candidates for deletion, especially one-off editor/build tools and experiment code whose task is finished (git history is the archive; leaving them is not)
+
+**Zero references is not proof of death.** Before listing a file as dead, check
+for entry points a text search does not see: self-booting attributes
+(`[RuntimeInitializeOnLoadMethod]`, `[InitializeOnLoad]`, `[MenuItem]`,
+`[ContextMenu]`), reflection or string-based lookups (`Type.GetType`,
+`AddComponent("...")`, `Resources.Load`), serialized references from scenes and
+prefabs (search `.unity`/`.prefab` files for the script's GUID in its `.meta`),
+and the equivalents in other engines (Godot autoloads, Unreal `UCLASS` blueprints).
+Report these as "unreferenced in code — verify" rather than "dead".
 
 Categorize each finding:
 

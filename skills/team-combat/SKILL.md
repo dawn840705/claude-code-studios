@@ -43,6 +43,8 @@ Always provide full context in each agent's prompt (design doc path, relevant co
 ### Phase 1: Design
 Delegate to **game-designer**:
 - Create or update the design document in `design/gdd/` covering: mechanic overview, player fantasy, detailed rules, formulas with variable definitions, edge cases, dependencies, tuning knobs with safe ranges, and acceptance criteria
+- **Attack grammar per faction**: for every enemy type the feature touches, state the faction's grammar (biological / mechanical / magical …) and make each attack's telegraph, delivery and impact speak it. A bug does not paint you with a laser sight; a turret might. Fairness is kept by changing the *means* of the warning (a wind-up, a sound, a ground mark), never by removing the warning
+- **Origin of every projectile and effect**: name the body part it comes from (mouth, claw, barrel). This becomes a socket requirement in Phase 3
 - Output: completed design document
 
 ### Phase 2: Architecture
@@ -62,7 +64,7 @@ Then spawn the **primary engine specialist** to validate the proposed architectu
 Delegate in parallel:
 - **gameplay-programmer**: Implement core combat mechanic code
 - **ai-programmer**: Implement AI behaviors (if the feature involves NPC reactions)
-- **technical-artist**: Create VFX and shader effects
+- **technical-artist**: Create VFX and shader effects. Projectiles and effects spawn from **rig sockets** named in the design (Phase 1), never from body center plus a fixed offset; a rig missing a needed socket is a blocker to report, not something to fake with an offset
 - **sound-designer**: Define audio event list and mixing notes
 
 ### Phase 4: Integration
@@ -75,6 +77,7 @@ Delegate to **qa-tester**:
 - Write test cases from the acceptance criteria
 - Test all edge cases documented in the design
 - Verify performance impact is within budget
+- Setting coherence, checked in play: does each attack's warning and effect fit the attacker's faction? Does every projectile visibly leave the body part the design names?
 - File bug reports for any issues found
 
 ### Phase 6: Sign-off

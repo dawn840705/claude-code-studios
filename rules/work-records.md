@@ -68,5 +68,10 @@
 
 훅 출력에 의존하는 범위를 정확히 알아 둘 것: **SessionStart 훅의 stdout 은 exit 0
 일 때 모델 컨텍스트에 들어간다**(대화형·비대화형 동일). 반면 **PostToolUse 훅의
-stderr 는 exit 0 에서 모델에 닿지 않는다** — 디버그 로그로만 간다. 작업 중 권고를
-모델에 전달하려면 훅이 아니라 규칙이나 스킬 본문에 넣어야 한다.
+stdout·stderr 는 exit 0 에서 모델에 닿지 않는다** — 디버그 로그로만 간다. 작업 중
+권고를 모델에 전달하려면 `hookSpecificOutput.additionalContext` JSON 으로 내보낸다
+(`hooks/lib/emit-context.sh`). 한 줄로 — 편집할 때마다 실린다.
+
+플러그인 `rules/` 파일은 호스트가 읽어 주지 않는다. 모델이 아는 규칙은
+`session-start.sh` 가 찍는 요약뿐이므로, 전역 규칙을 새로 만들면 그 요약도 한 줄
+추가해야 실제로 «always active» 가 된다.

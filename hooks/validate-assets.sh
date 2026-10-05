@@ -25,6 +25,22 @@
 INPUT=$(cat)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Parse first, source later: this hook fires on every Write/Edit, and most of
+# those are not asset files. Layout detection costs several subprocesses, so a
+# non-file tool call must leave before paying for it (inbox 2026-10-05: hook
+# process pile-up on Windows).
+if command -v jq >/dev/null 2>&1; then
+    FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
+else
+    FILE_PATH=$(echo "$INPUT" | grep -oE '"file_path"[[:space:]]*:[[:space:]]*"[^"]*"' | sed 's/"file_path"[[:space:]]*:[[:space:]]*"//;s/"$//')
+fi
+
+# Empty file_path = non-file tool, skip
+[ -z "$FILE_PATH" ] && exit 0
+
+# shellcheck source=lib/emit-context.sh
+[ -f "$SCRIPT_DIR/lib/emit-context.sh" ] && . "$SCRIPT_DIR/lib/emit-context.sh"
+
 if [ -f "$SCRIPT_DIR/lib/detect-layout.sh" ]; then
     # shellcheck source=lib/detect-layout.sh
     . "$SCRIPT_DIR/lib/detect-layout.sh"
@@ -41,16 +57,6 @@ else
         return 1
     }
 fi
-
-# Parse file path -- use jq if available, fall back to grep
-if command -v jq >/dev/null 2>&1; then
-    FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
-else
-    FILE_PATH=$(echo "$INPUT" | grep -oE '"file_path"[[:space:]]*:[[:space:]]*"[^"]*"' | sed 's/"file_path"[[:space:]]*:[[:space:]]*"//;s/"$//')
-fi
-
-# Empty file_path = non-file tool, skip
-[ -z "$FILE_PATH" ] && exit 0
 
 # Normalize path separators (Windows backslash to forward slash)
 FILE_PATH=$(echo "$FILE_PATH" | sed 's|\\|/|g')
@@ -104,6 +110,11 @@ fi
 # Report warnings (advisory -- non-blocking)
 if [ -n "$WARNINGS" ]; then
     echo -e "=== Asset Validation: Warnings ===$WARNINGS\n==================================\n(Warnings are advisory. Fix before final commit.)" >&2
+    # Exit 2 below already feeds stderr to the model; only a warnings-only run
+    # needs the JSON channel, or the advice never leaves the terminal.
+    if [ -z "$ERRORS" ] && command -v studio_emit_context >/dev/null 2>&1; then
+        studio_emit_context "validate-assets: $FILE_PATH — $NAMING_REASON (convention: $STUDIO_ASSET_NAMING). Rename before the final commit."
+    fi
 fi
 
 # Report errors and block if any build-breaking issues found

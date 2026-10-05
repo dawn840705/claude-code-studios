@@ -808,3 +808,81 @@ def test_no_hook_uses_perl_grep():
         for line in code:
             assert "grep -P" not in line, (path, line)
             assert "grep -qP" not in line, (path, line)
+
+
+# --------------------------------------------------------------------------
+# advisories reach the model, not just the terminal (inbox 2026-09-19)
+# --------------------------------------------------------------------------
+# On exit 0 a PostToolUse hook's stderr never reaches the model. The advisory
+# hooks used to stop there, so an unattended session never heard them. They
+# now also print one hookSpecificOutput.additionalContext object on stdout.
+
+UNITY_META_CHECK = os.path.join(HOOKS, "unity-meta-check.sh")
+ANIMATOR_LINT = os.path.join(HOOKS, "unity-animator-string-lint.sh")
+SKILL_CHANGE = os.path.join(HOOKS, "validate-skill-change.sh")
+
+
+def additional_context(result):
+    """Parse the hook's stdout as exactly one PostToolUse context object."""
+    payload = json.loads(result.stdout)
+    out = payload["hookSpecificOutput"]
+    assert out["hookEventName"] == "PostToolUse"
+    return out["additionalContext"]
+
+
+def test_naming_advice_reaches_the_model(unity):
+    result = run_hook(VALIDATE_ASSETS, unity, stdin=write_event("Assets/Art/Bad Name.png"))
+    assert result.returncode == 0
+    assert "whitespace" in additional_context(result)
+
+
+def test_clean_asset_prints_nothing_on_stdout(unity):
+    result = run_hook(VALIDATE_ASSETS, unity,
+                      stdin=write_event("Assets/Art/PlayerController.cs"))
+    assert result.stdout == ""
+
+
+def test_blocking_error_does_not_also_emit_context(web):
+    """Exit 2 already feeds stderr to the model; a JSON line would be noise."""
+    write(web, "assets/data/Bad.json", "{")
+    result = run_hook(VALIDATE_ASSETS, web, stdin=write_event("assets/data/Bad.json"))
+    assert result.returncode == 2
+    assert result.stdout == ""
+
+
+def test_missing_meta_reaches_the_model(unity):
+    write(unity, "Assets/Scripts/Foo.cs", "class Foo {}")
+    result = run_hook(UNITY_META_CHECK, unity, stdin=write_event("Assets/Scripts/Foo.cs"))
+    assert result.returncode == 0
+    assert "Foo.cs.meta" in additional_context(result)
+
+
+def test_animator_string_access_reaches_the_model(unity):
+    write(unity, "Assets/Scripts/Bar.cs",
+          'class Bar { void U() { _anim.SetBool("Run", true); } }\n')
+    result = run_hook(ANIMATOR_LINT, unity, stdin=write_event("Assets/Scripts/Bar.cs"))
+    assert result.returncode == 0
+    assert "StringToHash" in additional_context(result)
+
+
+def test_skill_edit_reaches_the_model(tmp_path):
+    result = run_hook(SKILL_CHANGE, tmp_path,
+                      stdin=write_event(".claude/skills/foo/SKILL.md"))
+    assert result.returncode == 0
+    assert "/skill-test static foo" in additional_context(result)
+
+
+def test_context_text_is_json_escaped(tmp_path):
+    lib = os.path.join(HOOKS, "lib", "emit-context.sh")
+    result = subprocess.run(
+        [BASH, "-c", f'. "{lib}"; studio_emit_context \'a "q" \\ b\''],
+        capture_output=True, text=True, encoding="utf-8", errors="replace",
+    )
+    assert additional_context(result) == 'a "q" \\ b'
+
+
+def test_commit_hook_leaves_before_layout_detection_on_other_commands():
+    """validate-commit runs on every Bash call; the non-commit exit comes first."""
+    with open(VALIDATE_COMMIT, encoding="utf-8") as fh:
+        body = fh.read()
+    assert body.index("^git[[:space:]]+commit") < body.index('. "$SCRIPT_DIR/lib/detect-layout.sh"')

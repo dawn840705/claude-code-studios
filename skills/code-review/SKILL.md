@@ -78,6 +78,11 @@ Identify the system category (engine, gameplay, AI, networking, UI, tools) and e
 - [ ] Proper null/empty state handling
 - [ ] Thread safety where required
 - [ ] Resource cleanup (no leaks)
+- [ ] Nothing searched per frame: no `GetComponent*`, `Find*`/`FindObjectOfType`, LINQ, or allocating physics queries (`RaycastAll`, `OverlapSphere` → the `NonAlloc` forms) inside `Update`/`LateUpdate`/`FixedUpdate` (or `_process`/`Tick`). Cache in `Awake`/`Start`; a per-frame `Find` that comes back empty in some scenes is the same bug, just quieter
+- [ ] Reference points are fixed, not derived: a camera follow height, a muzzle, a hit-test origin must not be recomputed each frame from values that animation or physics move (renderer `bounds`, cloth, ragdoll). Use a socket/anchor transform. Symptom: the camera bobs or a projectile origin drifts while walking
+- [ ] One writer per state: no two components write the same value in the same frame (aim yaw, velocity, camera rotation). Two writers produce a feedback loop that looks like an input bug
+
+Evidence: StarDiver (Unity 6, 2026-10-01) — a lobby camera bob traced to per-frame `bounds` recomputation plus `GetComponentsInChildren`; the audit that followed found the same pattern at a muzzle, five UIs running `GameObject.Find` every frame in scenes without a target, and an aim-yaw control bug caused by two systems overwriting each other.
 
 ---
 

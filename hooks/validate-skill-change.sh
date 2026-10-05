@@ -3,7 +3,9 @@
 # Fires when any file inside .claude/skills/ is written or edited.
 #
 # Exit behavior:
-#   exit 0 = advisory only (non-blocking)
+#   exit 0 = advisory only (non-blocking). The advice reaches the model through
+#   hookSpecificOutput.additionalContext (hooks/lib/emit-context.sh); stderr on
+#   exit 0 only reaches a person watching the terminal.
 #
 # Input schema (PostToolUse for Write|Edit):
 # { "tool_name": "Write", "tool_input": { "file_path": "...", "content": "..." } }
@@ -35,5 +37,11 @@ fi
 echo "=== Skill Modified: $SKILL_NAME ===" >&2
 echo "Run /skill-test static $SKILL_NAME to validate structural compliance." >&2
 echo "====================================" >&2
+
+if [ -f "$(dirname "${BASH_SOURCE[0]}")/lib/emit-context.sh" ]; then
+    # shellcheck source=lib/emit-context.sh
+    . "$(dirname "${BASH_SOURCE[0]}")/lib/emit-context.sh"
+    studio_emit_context "validate-skill-change: skill '$SKILL_NAME' edited — run /skill-test static $SKILL_NAME before calling it done."
+fi
 
 exit 0

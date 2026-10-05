@@ -1,5 +1,37 @@
 # Changelog
 
+## Unreleased
+
+인박스(StarDiver 2026-09-19 ~ 10-05) 처리분. 공통점은 하나다 — **있는데 모델에
+안 닿는 것들.** 규칙 파일은 있는데 세션에 안 실리고, 훅은 지적하는데 모델은 못
+듣고, 스킬은 설치됐는데 설명이 잘려 자동 발동이 안 됐다.
+
+### Fixed
+- **PostToolUse 권고가 모델에 닿는다.** exit 0 의 stdout·stderr 는 모델에 안 간다.
+  `validate-assets.sh`(이름 경고) · `validate-skill-change.sh` ·
+  `unity-meta-check.sh` · `unity-animator-string-lint.sh` 가 새 헬퍼
+  `hooks/lib/emit-context.sh` 로 `additionalContext` 한 줄을 함께 낸다. 사람용
+  stderr 보고는 그대로.
+- **전역 규칙 다섯이 세션에 실린다.** `verify-route` · `decision-lifecycle` ·
+  `claim-confidence` · `subagent-collaboration` · `work-records` 는 문서에
+  «always active» 로 적혀 있었지만 `session-start.sh` 가 찍지 않아 어느 세션도 몰랐다.
+  규칙마다 «언제 무엇을» 한 줄씩.
+- **`validate-commit.sh` · `validate-assets.sh` 가 대상이 아니면 레이아웃 감지 전에
+  나간다.** 커밋 훅은 모든 Bash 호출마다 돈다.
+
+### Added
+- **스킬 목록 예산 경고.** `skillListingBudgetFraction` 이 설정에 없으면
+  SessionStart 가 설명 총량과 함께 경고한다. README 설치 절에 필수 설정으로 명기.
+- `rules/runtime-modes.md` § Memory — split 운영에서 기억은 저장소 파일에 둔다.
+  자동 메모리는 다른 런타임이 못 읽는다.
+- `/code-review` Phase 6 — 프레임마다 찾기·할당 금지, 기준점은 소켓으로 고정,
+  한 상태에 쓰는 쪽은 하나.
+- `/tech-debt` — 참조 0 파일은 삭제 후보, 단 «참조 0 ≠ 죽음» (자기 부팅 속성·
+  리플렉션·씬 직렬화 참조 확인).
+- `/playtest-report` — 녹화 + 발화 + 마커 키 실기 분석 절차 (게임 소리 위 음성은
+  VAD 끄고 medium 이상), 빌드 전달 전 마커 동작 확인.
+- `/team-combat` · `/asset-spec` — 팩션별 공격 문법, 발사체·이펙트는 리그 소켓에서.
+
 ## v0.6.6 — 2026-09-19
 
 ### Added — 설치 등재 게이트: 모든 게이트가 초록인데 플러그인이 없었다

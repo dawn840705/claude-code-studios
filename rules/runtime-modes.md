@@ -76,6 +76,35 @@ So in `split` mode, before any work begins:
 Unpartitioned paths are unowned, and unowned means nobody writes them until the
 user assigns them.
 
+### Memory is a repository file, not a runtime feature
+
+Claude Code's auto memory (`~/.claude/projects/*/memory/`) lives outside the
+repository, so **Codex cannot read it**. In a split project anything recorded
+there is a rule only one of the two workers obeys. StarDiver found 171 owner
+instructions and decisions sitting in it, and its `CLAUDE.md` cited memory
+entries by name in seven places — evidence the Codex side had no way to open
+(inbox 2026-10-01). Codex's own memories feature has the same problem in the
+other direction.
+
+So in `split` mode, write everything worth keeping into the repository, by kind:
+
+| Kind | Home |
+|---|---|
+| Standing rule for both runtimes | the contract pair — `CLAUDE.md` ↔ `AGENTS.md`, same content in both |
+| Settled call | the pinned-decision section ([`decision-lifecycle.md`](decision-lifecycle.md)) or an ADR |
+| Request from one runtime to the other | the project's inbox file |
+| Where work stands | `production/session-state/active.md` ([`work-records.md`](work-records.md)) |
+| Any other fact | a shared index document the contract pair links to |
+
+Then turn the per-runtime memory off so nothing new lands there:
+`"autoMemoryEnabled": false` in the project's `.claude/settings.json`, and
+`memories = false` under `[features]` in the Codex config. That is the user's
+settings file — propose it, do not write it unasked.
+
+**When handing work to the other runtime, put file links in the instruction.**
+The only thing either side reads without being told is its own contract file;
+"see the decision from last week" points at nothing.
+
 ### Which strengths go to which runtime — UNDECIDED
 
 The partition above is a mechanism, not a policy. **Who is better at what has

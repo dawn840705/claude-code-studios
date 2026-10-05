@@ -94,6 +94,24 @@ Generate this template and output it to the user:
 
 Read the raw notes at the provided path. Cross-reference with existing design documents. Fill in the template above with structured findings. Flag any playtest observations that conflict with design intent.
 
+### Optional input: a recorded think-aloud session
+
+Written notes lose the moment. When the tester can instead **record the screen, talk while playing, and press one marker key whenever something catches**, the raw notes become three files, and the analysis joins them on time:
+
+| File | What it holds |
+|---|---|
+| recording (video + mic) | what was on screen and what the tester said |
+| marker file | one timestamp per key press — "this moment" |
+| state log (JSONL) | the game's own per-tick or per-event state, timestamped in UTC |
+
+Procedure:
+
+1. **Transcribe locally** (e.g. faster-whisper — local, so no `/api-cost-gate`). With game audio under the voice, **turn VAD off (`vad_filter=False`) and use `medium` or larger.** The default VAD filter with `small` dropped the last ten minutes of a fifteen-minute StarDiver session (2026-10-01) because it classed speech over game sound as non-speech; rerunning with VAD off and `medium` recovered 87 lines.
+2. **Anchor the clocks.** Take the recording's start time from `ffprobe` (`format_tags.creation_time`, UTC) and line it up with the state log. Check one marker against an event you can see on screen before trusting the rest.
+3. **Bundle per utterance and per marker**: the transcript line, the frame at that time, and the state-log entries around it. Those bundles are the raw notes this mode then analyzes.
+
+**Before the build goes to the tester, press the marker key once and confirm the marker file appears.** A StarDiver build shipped with a marker key that wrote nothing, and the session's markers were lost. This check belongs to whoever hands over the build, not to the analysis afterwards.
+
 ---
 
 ## Phase 3: Action Routing

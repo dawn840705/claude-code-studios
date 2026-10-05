@@ -103,6 +103,38 @@ echo "Pick a route BEFORE spawning: light = handle it yourself (0 agents) | stan
 echo "Savings come from FEWER CALLS, not a cheaper model. Splitting is the last resort — measured: 7 chunks 610K tok vs 134K single call, equal quality."
 echo "Tied between two routes? Take the lighter one. Full rule: rules/route-hint.md"
 
+# --- The other global rules, one line each ---
+# Plugin rules/ files are not loaded by the host; only what this hook prints
+# reaches the model. Until 2026-10 these five were listed as "always active" in
+# docs/rules-reference.md while no session ever saw them (inbox 2026-09-19).
+# Each line is "when, then what" — the file holds the why. Keep them short:
+# this output is paid for on every session.
+echo ""
+echo "=== Global Rules (always active — read the file when the trigger fires) ==="
+echo "verify-route: route CHECKING by reversibility — R1 file gate | R2 gates+review | R3 + separate reviewing subagent | R4 irreversible = never unattended. rules/verify-route.md"
+echo "decision-lifecycle: a pinned decision in CLAUDE.md is not reopened — report contrary evidence and stop; pins need evidence + revisit trigger. rules/decision-lifecycle.md"
+echo "claim-confidence: mark numbers/statutes/prices/competitor facts as sourced, (추정) + basis, or [확인 필요]; never write them from memory. rules/claim-confidence.md"
+echo "subagent-collaboration: fan out only for 4+ disciplines; assign file ownership before spawning — two agents never get the same file. rules/subagent-collaboration.md"
+echo "work-records: one fact, one home (commit / session state / minutes / lesson / ADR); things only a person can do go to production/human-actions.md. rules/work-records.md"
+
+# --- Skill listing budget ---
+# The host lists skill names + descriptions under a budget. Reported default:
+# 1% of context (StarDiver, 2026-09-19 — not in the host docs as of 2026-10).
+# At ~24K characters this plugin's 90 descriptions overflow it, and the skills
+# past the cut-off lose their description and stop auto-triggering, with no
+# warning anywhere. That cut hit every team-* orchestrator for a month.
+if ! grep -qs '"skillListingBudgetFraction"' .claude/settings.json .claude/settings.local.json \
+        "$HOME/.claude/settings.json" 2>/dev/null; then
+    PLUGIN_SKILLS="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." 2>/dev/null && pwd)/skills"
+    DESC_CHARS=$(awk '/^description:/ { n += length($0) - 13 } END { print n + 0 }' \
+                     "$PLUGIN_SKILLS"/*/SKILL.md 2>/dev/null)
+    echo ""
+    echo "=== Skill listing budget ==="
+    echo "WARNING: no skillListingBudgetFraction set; this plugin's skill descriptions total ~${DESC_CHARS} chars."
+    echo "At the default budget, skills late in the alphabet (team-*, start, sprint-*, story-*) have been seen listed by name only — they will not auto-trigger."
+    echo "Fix: add \"skillListingBudgetFraction\": 0.05 to .claude/settings.json (README § Install). Tell the user once; do not edit settings yourself."
+fi
+
 # --- Lesson Ledger (교육용 노하우 원장) ---
 LESSON_DIR="Documents/Lessons"
 if [ -d "$LESSON_DIR" ]; then

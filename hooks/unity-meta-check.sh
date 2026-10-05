@@ -10,7 +10,8 @@
 # .meta → GUID corruption on other machines.
 #
 # This hook is *advisory only* — does not auto-generate. Focus Unity Editor once
-# to trigger .meta generation.
+# to trigger .meta generation. The advice reaches the model as additionalContext
+# (hooks/lib/emit-context.sh); the stderr lines are for a person watching.
 #
 # Auto-opt-in: only runs in Unity projects (detected via Assets/ + ProjectSettings/).
 
@@ -42,6 +43,12 @@ case "$file" in
             base=$(basename "$file")
             echo "⚠️  Missing .meta: $base.meta" >&2
             echo "   → Focus Unity Editor → auto-generates. Verify 'git add ${file}.meta' before commit." >&2
+            lib="$(dirname "${BASH_SOURCE[0]}")/lib/emit-context.sh"
+            if [ -f "$lib" ]; then
+                # shellcheck source=lib/emit-context.sh
+                . "$lib"
+                studio_emit_context "unity-meta-check: $base.meta missing — do not commit $file until Unity has generated it and it is staged alongside."
+            fi
         fi
         ;;
 esac

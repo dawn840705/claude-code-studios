@@ -70,7 +70,7 @@ From the source doc, extract every asset type mentioned — explicit and implied
 
 **For levels**: look for unique environment props, atmospheric VFX, lighting setups, ambient audio, skybox/background, and any area-specific materials.
 
-**For characters**: look for sprite sheets (idle, walk, attack, death), portrait/avatar, VFX attached to abilities, UI representation (icon, health bar skin).
+**For characters**: look for sprite sheets (idle, walk, attack, death), portrait/avatar, VFX attached to abilities, UI representation (icon, health bar skin). For any character with a ranged attack or an attached effect, list the **emitter sockets** the rig must carry (mouth, hand, barrel …) as part of the spec — effects spawned from body center plus an offset read as wrong to players (StarDiver, 2026-10-01: every ranged monster had zero firing sockets).
 
 Group assets into categories:
 - **Sprite / 2D Art** — character sprites, UI icons, tile sheets

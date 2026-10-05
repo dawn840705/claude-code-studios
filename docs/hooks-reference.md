@@ -46,6 +46,19 @@ states for gates. Read this table before treating a silent hook as a green light
 
 Only three hooks in this plugin render a verdict. Everything else informs.
 
+### Who actually hears an advisory
+
+Informing is only worth something if the model is told. On exit 0 a
+PostToolUse hook's stdout and stderr both stay out of the model's context — a
+person watching the terminal sees them, an unattended run never does. So the
+advisory PostToolUse hooks (`validate-assets.sh` warnings,
+`validate-skill-change.sh`, `unity-meta-check.sh`,
+`unity-animator-string-lint.sh`) also print **one line** through
+`hooks/lib/emit-context.sh` as
+`{"hookSpecificOutput": {"hookEventName": "PostToolUse", "additionalContext": "..."}}`.
+The stderr report stays for the person. A new advisory hook uses the same helper;
+one line, once per run, because it is injected on every matching edit.
+
 ---
 
 ## Layout detection — `hooks/lib/detect-layout.sh`

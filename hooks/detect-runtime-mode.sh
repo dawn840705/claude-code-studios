@@ -48,6 +48,7 @@ case "$MODE" in
   split)
     echo "→ PARTITIONED. Work only the paths this runtime owns; never write a path the other runtime owns."
     echo "→ Re-read every file before editing — the other runtime shares no session, context or tool log, so an overwrite is invisible to both."
+    echo "→ Keep anything worth remembering in repository files — auto memory is invisible to the other runtime (rules/runtime-modes.md § Memory)."
     PARTITION="$(tail -n +2 "$FILE" 2>/dev/null | sed '/^[[:space:]]*$/d')"
     if [ -n "$PARTITION" ]; then
       echo "→ Declared partition:"

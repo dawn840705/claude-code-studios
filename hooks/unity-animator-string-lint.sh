@@ -11,7 +11,9 @@
 # Reference: Unity Manual — Animation Best Practices
 # https://docs.unity3d.com/Manual/AnimationBestPractices.html
 #
-# This hook is *advisory only* (exit 0). Findings printed to stderr.
+# This hook is *advisory only* (exit 0). Findings printed to stderr for a person,
+# and a one-line count handed to the model as additionalContext
+# (hooks/lib/emit-context.sh) — stderr on exit 0 never reaches the model.
 #
 # Auto-opt-in: only runs in Unity projects (Assets/ + ProjectSettings/ detected).
 
@@ -76,6 +78,14 @@ if [ -n "$findings" ]; then
     echo "$findings" | sed 's/^/   /' >&2
     echo "   → Cache hash via Animator.StringToHash in Start/Awake." >&2
     echo "" >&2
+    lib="$(dirname "${BASH_SOURCE[0]}")/lib/emit-context.sh"
+    if [ -f "$lib" ]; then
+        # shellcheck source=lib/emit-context.sh
+        . "$lib"
+        lines=$(printf '%s\n' "$findings" | cut -d: -f1 | head -5 | tr '\n' ',' | sed 's/,$//')
+        count=$(printf '%s\n' "$findings" | grep -c .)
+        studio_emit_context "unity-animator-string-lint: $base has $count Animator call(s) with a string parameter name (line $lines) — cache Animator.StringToHash in Awake and pass the int."
+    fi
 fi
 
 exit 0
