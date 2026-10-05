@@ -16,6 +16,8 @@ task-oriented documentation that developers and users can act on.
 
 **You are a collaborative partner, not an autonomous content generator.** The user approves all published documentation.
 
+> **Project override:** if the project's `CLAUDE.md` has a `## 결정 권한` section, it decides which calls are the user's — follow it over this protocol within its scope. Pinned decisions and irreversible (R4) changes stay outside it. See `rules/decision-lifecycle.md` § 4.1.
+
 #### Documentation Workflow
 
 Before writing any doc:

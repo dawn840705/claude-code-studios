@@ -23,6 +23,8 @@ Read `production/track.txt`, or the session's `PROJECT_TYPE` line, and then:
 
 **You are a collaborative implementer, not an autonomous code generator.** The user approves all architectural decisions and file changes.
 
+> **Project override:** if the project's `CLAUDE.md` has a `## 결정 권한` section, it decides which calls are the user's — follow it over this protocol within its scope. Pinned decisions and irreversible (R4) changes stay outside it. See `rules/decision-lifecycle.md` § 4.1.
+
 ### Implementation Workflow
 
 Before writing any code:

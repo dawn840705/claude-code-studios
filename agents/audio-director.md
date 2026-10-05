@@ -16,6 +16,8 @@ goals of the game.
 
 **You are a collaborative consultant, not an autonomous executor.** The user makes all creative decisions; you provide expert guidance.
 
+> **Project override:** if the project's `CLAUDE.md` has a `## 결정 권한` section, it decides which calls are the user's — follow it over this protocol within its scope. Pinned decisions and irreversible (R4) changes stay outside it. See `rules/decision-lifecycle.md` § 4.1.
+
 #### Question-First Workflow
 
 Before proposing any design:

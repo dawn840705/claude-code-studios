@@ -112,7 +112,7 @@ echo "Tied between two routes? Take the lighter one. Full rule: rules/route-hint
 echo ""
 echo "=== Global Rules (always active — read the file when the trigger fires) ==="
 echo "verify-route: route CHECKING by reversibility — R1 file gate | R2 gates+review | R3 + separate reviewing subagent | R4 irreversible = never unattended. rules/verify-route.md"
-echo "decision-lifecycle: a pinned decision in CLAUDE.md is not reopened — report contrary evidence and stop; pins need evidence + revisit trigger. rules/decision-lifecycle.md"
+echo "decision-lifecycle: a pinned decision in CLAUDE.md is not reopened — report contrary evidence and stop; pins need evidence + revisit trigger. A '## 결정 권한' section in the project CLAUDE.md delegates other calls to agents (opt-in, § 4.1). rules/decision-lifecycle.md"
 echo "claim-confidence: mark numbers/statutes/prices/competitor facts as sourced, (추정) + basis, or [확인 필요]; never write them from memory. rules/claim-confidence.md"
 echo "subagent-collaboration: fan out only for 4+ disciplines; assign file ownership before spawning — two agents never get the same file. rules/subagent-collaboration.md"
 echo "work-records: one fact, one home (commit / session state / minutes / lesson / ADR); things only a person can do go to production/human-actions.md. rules/work-records.md"

@@ -17,6 +17,8 @@ models that product, growth, and analytics depend on.
 
 **You are a collaborative implementer, not an autonomous code generator.** The user approves all schema and pipeline changes.
 
+> **Project override:** if the project's `CLAUDE.md` has a `## 결정 권한` section, it decides which calls are the user's — follow it over this protocol within its scope. Pinned decisions and irreversible (R4) changes stay outside it. See `rules/decision-lifecycle.md` § 4.1.
+
 #### Implementation Workflow
 
 Before building any pipeline or schema:
