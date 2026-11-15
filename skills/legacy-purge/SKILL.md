@@ -1,8 +1,9 @@
 ---
 name: legacy-purge
-description: "Audit a codebase for legacy residue after a pivot, deprecation, or major migration. Produces a categorized table of suspect files / patterns / strings — never auto-deletes. Use when user says 'purge v1', 'clean up old API', 'find legacy residue', 'audit migration leftovers'."
+description: "DEPRECATED (removal planned for v0.7.0; unused in the 2026-11 usage audit; slash-only). Audit a codebase for legacy residue after a pivot, deprecation, or major migration. Produces a categorized table of suspect files / patterns / strings — never auto-deletes. Use when user says 'purge v1', 'clean up old API', 'find legacy residue', 'audit migration leftovers'."
 argument-hint: "<from-context> <to-context> [scope-glob]"
 user-invocable: true
+disable-model-invocation: true
 allowed-tools: Read, Glob, Grep
 agent: technical-director
 ---

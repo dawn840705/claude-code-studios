@@ -89,6 +89,7 @@ Claude Code 플러그인 형태로 패키징된 *완전한* 소프트웨어 스�
 - **공간 감사 (신규)**: `/spatial-audit` — 이미 만들어진 Unity 레벨을 건축 4렌즈(매싱·동선·조망은신·길찾기)로 감사. 읽기 전용, 장르별(`sp`/`pvp`/`open`) 판정
 - **영상 (신규)**: `/video-brief` — 촬영 **전에** 결정한다. 목적·구조·샷 리스트·권리·플랫폼 요건(스토어 트레일러 / 제품 데모 / 숏폼 / 데브로그). 편집은 외부 도구에 위임([docs/video-production-sources.md](docs/video-production-sources.md))
 - **거버넌스 (v0.2.0 신규)**: `/governance-bible-init` (사운드/아트/내러티브 등 도메인 Bible 부트스트랩), `/api-cost-gate` (유료 AI API 호출 전 4건 명시 승인 게이트)
+- **Deprecated (v0.7.0 삭제 예정)**: `/day-one-patch`, `/doc-relink`, `/governance-bible-init`, `/legacy-purge`, `/onboard`, `/soak-test`, `/sot-audit`, `/spatial-audit`. 2026-11 사용량 집계에서 두 기기 모두 한 번도 불리지 않았고, 다른 스킬이 다음 단계로 부르지도 않는다. 슬래시로 직접 부르면 지금도 돌지만, 모델이 알아서 부르지는 않는다.
 - **product 트랙 (앱/웹/서비스)**: `/product-concept` (제품 단위 개념 — 문제·사용자·가치·범위 티어. `/create-prd` 가 이걸 읽고, 없으면 실패한다) → `/create-prd` (기능 단위 PRD) → `/ux-design` → `/gate-check architecture`
 
 ### Hooks

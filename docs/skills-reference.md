@@ -27,7 +27,7 @@ than the command count.
 | `/art-bible` | Guided, section-by-section Art Bible authoring — visual identity spec that gates asset production |
 | `/asset-spec` | Generate per-asset visual specs and AI generation prompts from GDDs/level docs/profiles |
 | `/remove-bg` | Remove image backgrounds via the remove.bg API (single / folder batch / manifest-driven) — cost-gated, exit-code judged, writes results back to the asset manifest |
-| `/governance-bible-init` | Bootstrap a domain-specific governance Bible (Sound, Art, Narrative, etc.) via the Anchor + Bible pattern |
+| `/governance-bible-init` | **Deprecated — removal in v0.7.0.** Bootstrap a domain-specific governance Bible (Sound, Art, Narrative, etc.) via the Anchor + Bible pattern |
 
 ## Product Design (App/Web/Service)
 
@@ -80,10 +80,10 @@ than the command count.
 | `/gate-check` | Validate readiness to advance between development phases (PASS/CONCERNS/FAIL) |
 | `/consistency-check` | Scan all GDDs against the entity registry to detect cross-document inconsistencies (stats, names, rules that contradict each other) |
 | `/self-loop` | Iterate a deliverable until all pass criteria score 8+/10 — evidence-cited scoring, fix lowest first, max 5 iterations, stall detection (see `rules/self-loop.md`) |
-| `/sot-audit` | Audit a Single Source of Truth for cross-witness consistency across design doc, code enum, engine asset, and runtime usage |
-| `/legacy-purge` | Audit a codebase for legacy residue after a pivot/deprecation/migration — produces a categorized suspect table (never auto-deletes) |
-| `/doc-relink` | Documentation reorganization without breaking links — baseline the rot, `git mv`, then `scripts/doc_relink.py` rewrites affected markdown links in two passes; exit code is the gate (new breaks = FAIL) |
-| `/spatial-audit` | Audit a built Unity level against four architectural lenses (massing, circulation, prospect-refuge, wayfinding). Read-only, genre-aware (`sp`/`pvp`/`open`); extracts via `hera-agent-unity` with a sentinel contract, falls back to scene YAML. Judges legibility and fairness, not fun |
+| `/sot-audit` | **Deprecated — removal in v0.7.0.** Audit a Single Source of Truth for cross-witness consistency across design doc, code enum, engine asset, and runtime usage |
+| `/legacy-purge` | **Deprecated — removal in v0.7.0.** Audit a codebase for legacy residue after a pivot/deprecation/migration — produces a categorized suspect table (never auto-deletes) |
+| `/doc-relink` | **Deprecated — removal in v0.7.0.** Documentation reorganization without breaking links — baseline the rot, `git mv`, then `scripts/doc_relink.py` rewrites affected markdown links in two passes; exit code is the gate (new breaks = FAIL) |
+| `/spatial-audit` | **Deprecated — removal in v0.7.0.** Audit a built Unity level against four architectural lenses (massing, circulation, prospect-refuge, wayfinding). Read-only, genre-aware (`sp`/`pvp`/`open`); extracts via `hera-agent-unity` with a sentinel contract, falls back to scene YAML. Judges legibility and fairness, not fun |
 
 ## QA & Testing
 
@@ -91,7 +91,7 @@ than the command count.
 |---------|---------|
 | `/qa-plan` | Generate a QA test plan for a sprint or feature |
 | `/smoke-check` | Run critical path smoke test gate before QA hand-off |
-| `/soak-test` | Generate a soak test protocol for extended play sessions |
+| `/soak-test` | **Deprecated — removal in v0.7.0.** Generate a soak test protocol for extended play sessions |
 | `/regression-suite` | Map test coverage to GDD critical paths, identify fixed bugs without regression tests |
 | `/test-setup` | Scaffold the test framework and CI/CD pipeline for the project's engine |
 | `/test-helpers` | Generate engine-specific test helper libraries for the test suite |
@@ -125,14 +125,14 @@ than the command count.
 | `/changelog` | Auto-generate changelog from git commits and sprint data |
 | `/patch-notes` | Generate player-facing patch notes from git history and internal data |
 | `/hotfix` | Emergency fix workflow with audit trail, bypassing normal sprint process |
-| `/day-one-patch` | Scope, implement, and QA-gate a focused day-one launch patch for known post-gold-master issues |
+| `/day-one-patch` | **Deprecated — removal in v0.7.0.** Scope, implement, and QA-gate a focused day-one launch patch for known post-gold-master issues |
 
 ## Creative & Content
 
 | Command | Purpose |
 |---------|---------|
 | `/prototype` | Rapid throwaway prototype to validate a mechanic (relaxed standards, isolated worktree) |
-| `/onboard` | Generate contextual onboarding document for a new contributor or agent |
+| `/onboard` | **Deprecated — removal in v0.7.0.** Generate contextual onboarding document for a new contributor or agent |
 | `/localize` | Localization workflow: string extraction, validation, translation readiness |
 | `/api-cost-gate` | Pre-flight cost approval gate for any paid AI API call — forces 4-point disclosure before invocation |
 | `/remove-bg` | remove.bg background removal — the 4-point gate already embedded, so call this instead of `/api-cost-gate` for cutout work |

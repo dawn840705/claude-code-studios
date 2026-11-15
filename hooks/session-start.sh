@@ -5,19 +5,7 @@
 # Input schema (SessionStart): No stdin input
 
 echo "=== Claude Code Game Studios — Session Context ==="
-
-# Current branch
-BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
-if [ -n "$BRANCH" ]; then
-    echo "Branch: $BRANCH"
-
-    # Recent commits
-    echo ""
-    echo "Recent commits:"
-    git log --oneline -5 2>/dev/null | while read -r line; do
-        echo "  $line"
-    done
-fi
+# Branch and recent commits are not printed: the host already injects them (gitStatus).
 
 # Current sprint (find most recent sprint file)
 LATEST_SPRINT=$(ls -t production/sprints/sprint-*.md 2>/dev/null | head -1)
@@ -126,7 +114,11 @@ echo "work-records: one fact, one home (commit / session state / minutes / lesso
 if ! grep -qs '"skillListingBudgetFraction"' .claude/settings.json .claude/settings.local.json \
         "$HOME/.claude/settings.json" 2>/dev/null; then
     PLUGIN_SKILLS="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." 2>/dev/null && pwd)/skills"
-    DESC_CHARS=$(awk '/^description:/ { n += length($0) - 13 } END { print n + 0 }' \
+    # disable-model-invocation skills are not listed to the model, so they cost no budget.
+    DESC_CHARS=$(awk 'FNR == 1 { if (f) n += d; d = 0; f = 1 }
+                      /^description:/ { d = length($0) - 13 }
+                      /^disable-model-invocation: *true/ { f = 0 }
+                      END { if (f) n += d; print n + 0 }' \
                      "$PLUGIN_SKILLS"/*/SKILL.md 2>/dev/null)
     echo ""
     echo "=== Skill listing budget ==="

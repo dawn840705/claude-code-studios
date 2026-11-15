@@ -62,7 +62,7 @@ Agents live in four packs. **Membership is in `docs/agent-packs.yaml` (`packs:`)
 |---|---|---|
 | `game` | core + **game** + writing | game agents + core. Do NOT spawn product agents. |
 | `product` / `web` / `mobile` / `service` | core + **product** + writing | product agents + core. Do NOT spawn game agents (level-designer, world-builder, etc.). |
-| `unknown` | all | Ask the user: game, or app/web/service? Then **write the answer to `production/track.txt`** — see below. |
+| `unknown` | all | Ask the user: game, or app/web/service? Then **write the answer to `production/track.txt`** — see below. With no `production/` yet, ask when studio work first begins, not at session start. |
 
 **`production/track.txt` is how the answer is locked.** One line, `game` or `product`.
 Every detection signal is a build artifact of a stack already chosen, so a greenfield
@@ -109,7 +109,7 @@ Two things the catalog does not say:
 
 ## Agent usage rules
 
-1. **Respect the active domain pack.** On a `game` project never spawn product agents; on a `web/mobile/service` project never spawn game agents (no `level-designer`/`world-builder` for a SaaS app). Core agents are always fair game. When `PROJECT_TYPE=unknown`, ask first.
+1. **Respect the active domain pack.** On a `game` project never spawn product agents; on a `web/mobile/service` project never spawn game agents (no `level-designer`/`world-builder` for a SaaS app). Core agents are always fair game. When `PROJECT_TYPE=unknown`, ask before the first studio agent or skill runs.
 2. **Pick the agent that maps to the real-world studio role.** "Who would do this in a real studio?" → that's your agent. For hybrids, use the framing that fits the domain (e.g. `art-director` does an art bible for a game, a web design system for an app).
 3. **Spawn in parallel when independent.** Tasks that don't depend on each other go in one message with multiple tool calls.
 4. **Never spawn off-stage agents.** Don't pull `release-manager` during discovery. Don't pull `growth-engineer`/`live-ops-designer` during definition.
@@ -251,5 +251,5 @@ that is the check that will disagree with you.
 
 Everything else is in `docs/` — list that directory rather than carrying its index
 here. The two you will want by name: **`docs/skills-reference.md`** (all 90 skills;
-some, like `/day-one-patch` and `/soak-test`, are not workflow steps and appear
-nowhere in the catalog) and **`docs/agent-roster.md`** (one line per agent).
+some, like `/hotfix` and `/localize`, are not workflow steps and appear
+nowhere in the catalog; 8 are deprecated and slash-only until v0.7.0) and **`docs/agent-roster.md`** (one line per agent).

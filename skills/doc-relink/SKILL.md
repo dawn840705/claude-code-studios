@@ -1,8 +1,9 @@
 ---
 name: doc-relink
-description: "Documentation reorganization without breaking links — baseline the current rot, `git mv`, then let scripts/doc_relink.py rewrite every affected markdown link deterministically (exit code is the verdict, the model never hand-edits link paths). Use when moving/renaming docs, folders, or consolidating scattered documents; when the user says '문서 옮겨', '폴더 정리', 'move the docs', 'fix broken links', '링크 깨졌어', 'doc refactor'. Born from a 705-doc reorg (2026-08-13) that rewrote 265 links with zero new breaks."
+description: "DEPRECATED (removal planned for v0.7.0; unused in the 2026-11 usage audit; slash-only). Documentation reorganization without breaking links — baseline the current rot, `git mv`, then let scripts/doc_relink.py rewrite every affected markdown link deterministically (exit code is the verdict, the model never hand-edits link paths). Use when moving/renaming docs, folders, or consolidating scattered documents; when the user says '문서 옮겨', '폴더 정리', 'move the docs', 'fix broken links', '링크 깨졌어', 'doc refactor'. Born from a 705-doc reorg (2026-08-13) that rewrote 265 links with zero new breaks."
 argument-hint: "[docs-root] [--extra CLAUDE.md --extra .claude/commands ...]"
 user-invocable: true
+disable-model-invocation: true
 allowed-tools: Read, Glob, Grep, Bash, AskUserQuestion
 ---
 

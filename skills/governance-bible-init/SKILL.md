@@ -1,8 +1,9 @@
 ---
 name: governance-bible-init
-description: "Bootstrap a domain-specific governance Bible (Sound, Art, Narrative, etc.) using the Anchor + Bible pattern. Sets up the folder, README spec template, and decision protocol so a 1-person dev (or small team) can keep AI-generated assets tonally consistent without drift. Use when user says 'set up sound bible', 'art governance', 'establish narrative bible', 'bootstrap design system'."
+description: "DEPRECATED (removal planned for v0.7.0; unused in the 2026-11 usage audit; slash-only). Bootstrap a domain-specific governance Bible (Sound, Art, Narrative, etc.) using the Anchor + Bible pattern. Sets up the folder, README spec template, and decision protocol so a 1-person dev (or small team) can keep AI-generated assets tonally consistent without drift. Use when user says 'set up sound bible', 'art governance', 'establish narrative bible', 'bootstrap design system'."
 argument-hint: "<domain> [chapter-scope]"
 user-invocable: true
+disable-model-invocation: true
 allowed-tools: Read, Write, Glob, Bash
 agent: art-director
 ---

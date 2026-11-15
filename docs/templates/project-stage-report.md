@@ -162,7 +162,6 @@ Based on gaps identified, consider running:
 - `/architecture-decision` — [For which gap]
 - `/sprint-plan` — [If production planning missing]
 - `/milestone-review` — [If approaching deadline]
-- `/onboard [role]` — [If new contributor joining]
 
 ---
 

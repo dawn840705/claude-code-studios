@@ -1,8 +1,9 @@
 ---
 name: spatial-audit
-description: "Audit an existing Unity scene's spatial layout against four architectural lenses — massing, circulation, prospect-refuge, wayfinding. Use when the user says 'this level feels off', 'audit the layout', 'why is this map confusing', 'is this arena balanced', or after a blockout is walkable but before art passes. Read-only: it judges a level that already exists. Do NOT use to author a new layout from nothing (that is /quick-design or /team-level), and not for narrative pacing or encounter tuning."
+description: "DEPRECATED (removal planned for v0.7.0; unused in the 2026-11 usage audit; slash-only). Audit an existing Unity scene's spatial layout against four architectural lenses — massing, circulation, prospect-refuge, wayfinding. Use when the user says 'this level feels off', 'audit the layout', 'why is this map confusing', 'is this arena balanced', or after a blockout is walkable but before art passes. Read-only: it judges a level that already exists. Do NOT use to author a new layout from nothing (that is /quick-design or /team-level), and not for narrative pacing or encounter tuning."
 argument-hint: "<scene-or-path> [--genre sp|pvp|open] [--lens massing|circulation|prospect-refuge|wayfinding|all] [--review full|lean|solo]"
 user-invocable: true
+disable-model-invocation: true
 allowed-tools: Read, Glob, Grep, Bash, Write, Task, AskUserQuestion
 ---
 

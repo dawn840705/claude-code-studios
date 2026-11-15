@@ -1,8 +1,9 @@
 ---
 name: sot-audit
-description: "Audit a Single Source of Truth (SoT) for cross-witness consistency. Use when a system is defined in multiple places (design doc, code enum, engine asset, runtime usage) and you need to detect silent-fail mismatches before they cause runtime bugs. Use when user says 'audit the SoT', 'check FSM consistency', 'find drift in X', 'is X consistent across doc/code/engine'."
+description: "DEPRECATED (removal planned for v0.7.0; unused in the 2026-11 usage audit; slash-only). Audit a Single Source of Truth (SoT) for cross-witness consistency. Use when a system is defined in multiple places (design doc, code enum, engine asset, runtime usage) and you need to detect silent-fail mismatches before they cause runtime bugs. Use when user says 'audit the SoT', 'check FSM consistency', 'find drift in X', 'is X consistent across doc/code/engine'."
 argument-hint: "<sot-name> [witness1=path] [witness2=path] ..."
 user-invocable: true
+disable-model-invocation: true
 allowed-tools: Read, Glob, Grep
 agent: technical-director
 ---

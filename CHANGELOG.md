@@ -21,6 +21,25 @@
 - **`runtime.txt` 의 `codex` 모드.** Codex 가 자기 스튜디오를 따로 돌린다는
   전제였다. 훅은 계속 읽고 `DEPRECATED` 한 줄을 찍는다. 최소 한 마이너 버전 유지한
   뒤 제거한다.
+- **스킬 8개** — `day-one-patch` · `doc-relink` · `governance-bible-init` ·
+  `legacy-purge` · `onboard` · `soak-test` · `sot-audit` · `spatial-audit`. 2026-11 사용량
+  집계(맥북·홈컴퓨터 세션 기록, inbox 2026-11-15)에서 90개 중 불린 스킬은 4개뿐이었다.
+  안 불린 86개 중 워크플로 카탈로그 단계도, 진입점도 아니고, 남는 스킬·훅·규칙·템플릿이
+  다음 단계로 권하지도 않는 것이 이 8개다. `team-*` 는 카탈로그의 `team-feature` 단계가
+  권하고, `skillListingBudgetFraction` 미설정으로 자동 발동이 막혀 있었으므로 0회라는
+  숫자를 믿을 수 없어 남겼다. 8개에는 `disable-model-invocation: true` 를 달아 모델이
+  알아서 부르지 않게 했고, 그만큼 스킬 목록 예산이 줄었다(설명 24,923자 → 22,095자).
+  슬래시로 직접 부르면 그대로 돈다. v0.7.0 에서 삭제한다.
+
+### Changed (세션 시작 안내 줄이기)
+- **`session-start.sh` 가 브랜치·최근 커밋을 찍지 않는다.** 호스트가 `gitStatus` 로
+  이미 넣는다.
+- **`detect-project-type.sh` 가 `production/` 이 없는 프로젝트에서는 세션 시작 때
+  트랙을 묻지 않게 한다.** 사용자 범위 설치라 스튜디오를 안 쓰는 프로젝트(APM 등)에서도
+  매 세션 «게임인지 제품인지 물어라» 가 나갔다. 이제는 스튜디오 작업을 처음 시작할 때
+  (`/start` · `/brainstorm` · `/product-concept` · 스튜디오 에이전트) 묻고
+  `production/track.txt` 에 적으라고 찍는다. `production/` 이 있으면 지금처럼 묻는다.
+- 스킬 목록 예산 경고는 자동 호출을 끈 스킬을 빼고 설명 총량을 잰다.
 
 ### Added
 - **split 분담에 `review:` 줄.** `production/runtime.txt` 분담은 누가 쓰는지만

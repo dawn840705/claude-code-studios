@@ -98,8 +98,13 @@ case "$TYPE" in
   product|web|mobile|service)
     echo "→ Active packs: core + product. Orchestrator: use product agents (product-manager, frontend/backend/mobile/data/growth-engineer, technical-writer). Skip game-pack." ;;
   unknown)
-    echo "→ Could not auto-detect domain. All packs available — ask the user whether this is a game or an app/web/service project."
-    echo "→ Then LOCK it: write the answer (game | product) to production/track.txt. Agents with conditional domain framing read that file; leaving it unwritten leaves them unresolved." ;;
+    if [ -d "production" ]; then
+      echo "→ Could not auto-detect domain. All packs available — ask the user whether this is a game or an app/web/service project."
+      echo "→ Then LOCK it: write the answer (game | product) to production/track.txt. Agents with conditional domain framing read that file; leaving it unwritten leaves them unresolved."
+    else
+      # Most sessions on a user-scope install are in projects that never use the studio; asking at session start is noise.
+      echo "→ No studio artifacts here (no production/). Do not ask at session start. Ask game or app/web/service the first time studio work begins (/start, /brainstorm, /product-concept, or a studio agent), then write it to production/track.txt."
+    fi ;;
 esac
 
 if [ -n "$AI_FLAG" ]; then

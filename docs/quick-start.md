@@ -140,7 +140,7 @@ A selection of the most common commands is below. For the complete list of all
 | `/retrospective` | Runs sprint/milestone retrospective |
 | `/bug-report` | Structured bug report creation |
 | `/playtest-report` | Creates or analyzes playtest feedback |
-| `/onboard` | Generates onboarding docs for a role |
+| `/onboard` | **Deprecated — removal in v0.7.0.** Generates onboarding docs for a role |
 | `/release-checklist` | Validates pre-release checklist |
 | `/launch-checklist` | Complete launch readiness validation |
 | `/changelog` | Generates changelog from git history |
@@ -160,7 +160,7 @@ A selection of the most common commands is below. For the complete list of all
 | `/qa-plan` | Generate a QA test plan for a sprint or feature |
 | `/bug-triage` | Re-prioritize open bugs, assign to sprints, surface systemic trends |
 | `/smoke-check` | Run critical path smoke test gate before QA hand-off (PASS/FAIL) |
-| `/soak-test` | Generate a soak test protocol for extended play sessions |
+| `/soak-test` | **Deprecated — removal in v0.7.0.** Generate a soak test protocol for extended play sessions |
 | `/regression-suite` | Map coverage to GDD critical paths, flag gaps, maintain regression suite |
 | `/test-setup` | Scaffold test framework + CI pipeline for the project's engine (run once) |
 | `/test-helpers` | Generate engine-specific test helper libraries and factory functions |
