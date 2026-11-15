@@ -125,11 +125,12 @@ def test_invalid_never_claims_full_studio(tmp_path):
 # --------------------------------------------------------------------------
 
 def test_split_echoes_the_declared_partition(tmp_path):
-    write_runtime(tmp_path, "split\nclaude: docs/ rules/\ncodex: skills/ scripts/\n")
+    write_runtime(tmp_path, "split\nclaude: docs/ rules/\ncodex: skills/ scripts/\nreview: claude reviews codex\n")
     out = run(tmp_path)
     assert mode_of(out) == "split"
     assert "claude: docs/ rules/" in out
     assert "codex: skills/ scripts/" in out
+    assert "review: claude reviews codex" in out  # rules/runtime-modes.md promises this line is echoed
 
 
 def test_split_without_a_partition_says_so(tmp_path):

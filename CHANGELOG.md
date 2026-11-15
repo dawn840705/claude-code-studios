@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- **split 분담에 `review:` 줄.** `production/runtime.txt` 분담은 누가 쓰는지만
+  적고 누가 검토하는지는 적을 자리가 없었다. 한 런타임의 R3+ 작업을 다른 런타임이
+  검토하면 `review: claude reviews codex` 처럼 적는다. 없으면 지금처럼 같은
+  런타임 안의 별도 서브에이전트와 스크립트 게이트가 검토하고, R4는 사용자에게 간다.
+  StarDiver 발주의 `production/lanes.yaml` 은 만들지 않았다. 나머지 필드는 이미
+  `runtime.txt` 가 다룬다 (inbox 2026-10-07 § 2-b).
+
 ## v0.6.7 — 2026-10-05
 
 인박스(StarDiver 2026-09-19 ~ 10-05) 처리분. 공통점은 하나다 — **있는데 모델에

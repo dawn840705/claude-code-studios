@@ -76,6 +76,14 @@ So in `split` mode, before any work begins:
 Unpartitioned paths are unowned, and unowned means nobody writes them until the
 user assigns them.
 
+**The partition says who writes, not who checks.** If one runtime's R3+ work is
+to be reviewed by the other ([`verify-route.md`](verify-route.md) § 4 — the
+reviewer is not the author), add a `review:` line to the partition, e.g.
+`review: claude reviews codex`. The hook echoes it with the rest of the
+partition. Without that line, review stays inside the authoring runtime — a
+separate subagent plus the script gates — and R4 goes to the user, exactly as in
+single-runtime mode.
+
 ### Memory is a repository file, not a runtime feature
 
 Claude Code's auto memory (`~/.claude/projects/*/memory/`) lives outside the
