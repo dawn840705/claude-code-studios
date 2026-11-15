@@ -8,6 +8,9 @@
   `rules/runtime-modes.md` 맨 앞에 언제(범위가 정해진 구현 · 막힌 진단의 두 번째
   시도 · R3+ 별도 검토) 어떻게(모델 명시 · 쓰지 않을 땐 read-only 명시 · 결과는
   파일과 게이트로 확인) 맡기는지를 적었다. `claude` 모드 세션 시작 안내에 한 줄.
+- **공통 방침의 정본은 이 저장소다.** `codex-code-studios/AGENTS.md` 의 2026-09-07
+  지시(공통 원칙은 그쪽에 반영)에 갱신 메모를 달고(그쪽 19c3e70), `runtime-modes.md`
+  Cross-repo 절에서 «그쪽에도 반영 대기» 보고를 없앴다.
 
 ### Deprecated
 - **`runtime.txt` 의 `codex` · `split` 모드.** Codex 가 자기 스튜디오를 따로 돌린다는

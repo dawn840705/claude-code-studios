@@ -174,15 +174,15 @@ orchestrator when it hands work to Codex, not per project as a path partition.
 
 ## Cross-repo relationship
 
-`codex-code-studios/AGENTS.md` records a user instruction dated 2026-09-07: 확정된
-공통 운영 원칙은 그 저장소에 계속 반영한다 — settled common policy is maintained
-**there**. Two consequences for work done here:
+**Settled studio policy lives here, in `claude-code-studios`** (2026-11-15). The
+earlier instruction in `codex-code-studios/AGENTS.md` (2026-09-07: 확정된 공통
+운영 원칙은 그 저장소에 반영한다) was written when Codex ran its own studio; that
+file now carries a dated note pointing back here (codex-code-studios 19c3e70).
 
-- A change to shared studio policy (rules, gates, workflow catalog) is not
-  finished when it lands in `claude-code-studios`. Report it as landed here and
-  **pending** there; do not silently assume the sibling picked it up.
-- Do not create a second canonical copy of a shared policy. Link across rather
-  than fork — the sibling repo's own rule is 중복 정본을 만들지 않는다.
+- A policy change is finished when it lands here. Do not report it as
+  "pending in the sibling" — the sibling no longer runs any project.
+- Do not port new policy into `codex-code-studios`, and do not create a second
+  canonical copy of anything. Link, do not fork.
 
 Note that `codex-code-studios/CLAUDE.md` is currently a verbatim copy of this
 repo's older guide and advertises 45 agents that do not exist in that tree. Its
