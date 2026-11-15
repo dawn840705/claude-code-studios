@@ -84,6 +84,21 @@ def test_declared_mode_is_reported(tmp_path, declared):
     assert mode_of(run(tmp_path)) == declared
 
 
+@pytest.mark.parametrize("declared", ["codex", "split"])
+def test_peer_runtime_modes_are_flagged_deprecated(tmp_path, declared):
+    """Codex is a subagent now (runtime-modes.md § Codex is a subagent); the old modes still parse but say so."""
+    write_runtime(tmp_path, declared + "\n")
+    out = run(tmp_path)
+    assert mode_of(out) == declared
+    assert "DEPRECATED" in out
+
+
+def test_claude_mode_is_not_flagged_and_points_at_codex_subagent(tmp_path):
+    out = run(tmp_path)
+    assert "DEPRECATED" not in out
+    assert "codex:codex-rescue" in out
+
+
 @pytest.mark.parametrize("declared", ["  codex  ", "CODEX", "Codex\r\n", "﻿codex"])
 def test_mode_survives_whitespace_case_crlf_and_bom(tmp_path, declared):
     """A file edited on Windows or saved by an editor that adds a BOM still parses.

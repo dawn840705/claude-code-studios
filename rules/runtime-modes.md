@@ -1,6 +1,52 @@
-# Runtime Modes — Claude Alone, Codex Alone, or Split
+# Runtime Modes — Codex Is a Subagent (legacy: Codex Alone, Split)
 
 **Global rule. Applies to every project and every domain.**
+
+## Codex is a subagent of this studio (2026-11-15)
+
+> 사장님 원문: *«이 프로젝트 자체는 클로드 코드 스튜디오라서 코덱스는 클로드 코드
+> 스튜디오에서 코덱스 CLI를 통해서 여러 가지 일을 하는 방식으로 지금 여러
+> 프로젝트에서 진행 중이거든. 그 부분만 빼고 코덱스를 직접적으로 뭔가 하는 건
+> 없어.»*
+
+**This is the operating model.** Claude Code runs the studio — orchestration,
+gates, artifacts, the sprint loop. Codex does not run a studio of its own; it is
+called **from here**, through the Codex CLI, as one more worker. So in practice
+every project is mode `claude`, and the `codex` / `split` modes below are
+**deprecated** (§ The three modes).
+
+### How to call it
+
+Through the `codex:codex-rescue` agent (Agent tool) — it forwards one task to the
+Codex CLI and returns its output. A bare `codex exec` in Bash is the fallback when
+that plugin is not installed. Either way:
+
+- **Pick the model for the task, and pass it explicitly** (`--model`, `--effort`).
+  The forwarder leaves both unset unless told, which runs every task on the
+  default. If the user keeps a difficulty→model table (their global
+  `CLAUDE.md`), follow it; if not, leave the default and say so.
+- **The prompt is self-contained and carries file links** — Codex sees none of
+  this conversation, and reads only its own contract file unprompted.
+- **Say "read-only" unless Codex is the one making the change.** The forwarder
+  adds `--write` by default. When Codex does write, it owns those files: nothing else (you, another agent)
+  edits them until it returns — [`subagent-collaboration.md`](subagent-collaboration.md) § 2.1.
+
+### When to hand it work
+
+| Use Codex for | Why |
+|---|---|
+| A bounded implementation task with its files named | Parallel hands, partitioned by path like any subagent |
+| A second diagnosis when the first pass is stuck | A different model does not repeat this context's conclusions |
+| The R3+ separate review ([`verify-route.md`](verify-route.md) § 4), read-only | The reviewer must not be the author — a different model is the strongest "not the author" available |
+
+Not for: anything a few tool calls finish here, R4 actions, or a step whose
+result this turn needs before it can continue.
+
+### What comes back is a subagent's report
+
+Codex output is held to the same rule as any agent's: it describes intent, not
+results. **Read the changed files and run the gates before reporting done.** A
+Codex review returns findings; you decide what to fix.
 
 This studio now ships as two sibling packages:
 
@@ -14,6 +60,14 @@ both at once. **Which of those is happening changes what this plugin should
 do**, and it is not inferable from the code in front of you.
 
 ## The three modes
+
+> **`codex` and `split` are deprecated** (next release after v0.6.7). They describe
+> Codex running `codex-code-studios` as a second, peer runtime, which is no longer
+> how any project is worked. The hook still recognises both and prints a
+> deprecation line; they stay for at least one minor version so a project that
+> still declares one is not misread. A project on either should confirm with the
+> user and set `production/runtime.txt` to `claude` (or delete it). Everything
+> below about them is kept for those projects only.
 
 | Mode | Who works the project | This plugin's job |
 |---|---|---|
@@ -113,15 +167,10 @@ settings file — propose it, do not write it unasked.
 The only thing either side reads without being told is its own contract file;
 "see the decision from last week" points at nothing.
 
-### Which strengths go to which runtime — UNDECIDED
+### Which strengths go to which runtime
 
-The partition above is a mechanism, not a policy. **Who is better at what has
-not been settled for this studio**, and this rule deliberately does not invent
-it. Until the user fixes the split, ask for the partition per project rather
-than assuming one.
-
-When it is settled, it belongs in this section as paths, with the reasoning
-attached — not as a general claim about which tool is smarter.
+Superseded by § Codex is a subagent — the split is now per task, decided by the
+orchestrator when it hands work to Codex, not per project as a path partition.
 
 ## Cross-repo relationship
 

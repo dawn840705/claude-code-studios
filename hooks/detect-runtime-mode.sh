@@ -3,9 +3,9 @@
 # Event: SessionStart
 # Purpose: Report which runtime is working this project, so the orchestrator knows
 #          whether to run the full studio, stand down, or work a partition.
-#          This studio ships twice — claude-code-studios (Claude Code, /skill-name)
-#          and codex-code-studios (Codex, $skill-name) — and a project may be worked
-#          by one alone or by both at once.
+#          Codex is a subagent of this studio (called via the Codex CLI), so the
+#          normal mode is `claude`; `codex` and `split` (Codex as a peer runtime)
+#          are deprecated but still parsed so old projects are not misread.
 # Cross-platform: Windows Git Bash compatible.
 #
 # Output: prints a single RUNTIME_MODE line the orchestrator reads.
@@ -41,7 +41,13 @@ echo "RUNTIME_MODE=${MODE}"
 
 case "$MODE" in
   claude)
-    echo "→ Full studio. Orchestrate agents, run gates, own artifacts — unchanged behaviour." ;;
+    echo "→ Full studio. Orchestrate agents, run gates, own artifacts — unchanged behaviour."
+    echo "→ Codex is a subagent here: hand it work via codex:codex-rescue with an explicit model (rules/runtime-modes.md § Codex is a subagent)." ;;
+  codex|split)
+    echo "→ DEPRECATED mode '${MODE}': Codex now runs as a subagent of this studio, not as a peer runtime. Confirm with the user, then set ${FILE} to claude." ;;
+esac
+
+case "$MODE" in
   codex)
     echo "→ STAND DOWN. codex-code-studios owns this project. Do NOT spawn studio agents, write studio artifacts, or run phase gates."
     echo "→ Still allowed: answering questions, and one-off edits the user explicitly asks for." ;;

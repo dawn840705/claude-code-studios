@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### Changed
+- **Codex 는 하위 에이전트다.** 사장님 결정(2026-11-15): Claude Code 가 스튜디오를
+  돌리고, Codex 는 여기서 Codex CLI(`codex:codex-rescue`)로 부르는 일꾼 하나다.
+  `rules/runtime-modes.md` 맨 앞에 언제(범위가 정해진 구현 · 막힌 진단의 두 번째
+  시도 · R3+ 별도 검토) 어떻게(모델 명시 · 쓰지 않을 땐 read-only 명시 · 결과는
+  파일과 게이트로 확인) 맡기는지를 적었다. `claude` 모드 세션 시작 안내에 한 줄.
+
+### Deprecated
+- **`runtime.txt` 의 `codex` · `split` 모드.** Codex 가 자기 스튜디오를 따로 돌린다는
+  전제였다. 훅은 계속 읽고 `DEPRECATED` 한 줄을 찍는다. 최소 한 마이너 버전 유지한
+  뒤 제거한다. 위 `review:` 줄도 `split` 에 딸린 것이라 같이 간다.
+
 ### Added
 - **split 분담에 `review:` 줄.** `production/runtime.txt` 분담은 누가 쓰는지만
   적고 누가 검토하는지는 적을 자리가 없었다. 한 런타임의 R3+ 작업을 다른 런타임이
