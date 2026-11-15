@@ -94,7 +94,7 @@
 ## 2026-11-15 · 출처: 맥북 세션 «[맥북] 프로젝트 상태 점검» → 홈컴퓨터 요청
 - **무슨 일**: 이 플러그인이 실제로 쓸모가 있는지 맥북 세션 기록(`~/.claude/projects/*/*.jsonl`, 08-27~11-15)으로 집계했다. 스킬 90개 중 모델이 부른 것은 `/lesson-review` 1회, 직접 입력한 스튜디오 슬래시 명령은 0회. 에이전트는 약 175회 호출됐는데 45개 중 22개만 쓰였고, 월별로 9월 148 → 10월 15 → 11월 9회로 줄었다(9월분 대부분이 SRPGS 한 세션 95회). 한 번도 안 쓰인 에이전트 23개에는 프로그래머 계열 전부와 humanize 4종이 들어 있다. humanize 는 `~/.claude/skills`·`~/.claude/agents` 에 원본(`vendor/im-not-ai`) 사본이 따로 있고, 실제로 불린 것은 그 사본뿐이다(에이전트 50·스킬 20회). 플러그인은 사용자 범위로 켜져 있어 APM(24세션)·Develrocket(29세션)·SoloForge(14세션)처럼 한 번도 안 쓰는 프로젝트에도 세션마다 시작 안내 약 5천 자와 스킬 설명 약 2.5만 자가 실린다. `skillListingBudgetFraction` 이 설정돼 있지 않아 스킬 목록 뒤쪽은 설명이 잘린다.
 - **요청 (홈컴퓨터)**: 아래 스크립트를 홈컴퓨터에서 그대로 돌리고, 출력 전체를 이 항목 아래 `- **홈컴퓨터 결과**:` 로 붙여 푸시해 달라. 저장소 안에 파일로 만들지 말고 임시 위치에서 `python -I audit.py` 로 돌린다. 읽기만 하는 스크립트다. 결과를 보고 맥북 쪽에서 (1) 설치 범위를 사용자 → 쓰는 프로젝트로 좁힐지 (2) 안 쓰는 스킬·에이전트를 deprecated 로 표시할지 (3) humanize 를 한 벌로 합칠지 정한다. 지우는 건 홈 데이터를 본 뒤에, 한 마이너 버전 동안 deprecated 로 둔 다음이다.
-- **상태**: 대기 (홈컴퓨터 실행 대기)
+- **상태**: 대기 (홈컴퓨터 결과 붙임 · 맥북 판정 대기)
 
 <details><summary>audit.py — 맥북에서 시험 완료 (2026-11-15)</summary>
 
@@ -131,3 +131,86 @@ print("skillListingBudgetFraction in user settings:", "skillListingBudgetFractio
 ```
 
 </details>
+
+- **홈컴퓨터 결과** (2026-11-15, `python -I audit.py` exit 0 · 저장소 밖 임시 위치에서 실행):
+
+```text
+months [('', 24), ('2026-09', 42), ('2026-10', 42), ('2026-11', 40)]
+used [('agent:game-designer', 17), ('agent:humanize-monolith', 13), ('agent:lead-programmer', 11), ('agent:art-director', 10), ('skill:humanize-korean', 10), ('agent:producer', 9), ('agent:technical-director', 8), ('agent:community-manager', 8), ('agent:technical-artist', 7), ('agent:creative-director', 6), ('agent:product-manager', 5), ('agent:ux-designer', 5), ('skill:lesson-log', 5), ('agent:narrative-director', 4), ('agent:level-designer', 4), ('agent:world-builder', 4), ('agent:humanize-diagnostician', 3), ('agent:systems-designer', 3), ('agent:writer', 3), ('agent:analytics-engineer', 2), ('agent:growth-engineer', 2), ('agent:ui-programmer', 2), ('agent:live-ops-designer', 1), ('agent:humanize-finalizer', 1), ('agent:security-engineer', 1), ('agent:mobile-engineer', 1), ('skill:help', 1), ('agent:performance-analyst', 1), ('agent:audio-director', 1)]
+sessions vs studio calls per project:
+    75 sessions    13 calls  C--Projects-Lectures
+    61 sessions     0 calls  C--Projects-soloforge-web
+    44 sessions     0 calls  D--StarDiver-Captures-Lecture-Insights-1017
+    41 sessions     0 calls  C--StarDiver-wt-hero-recruit-identity-1017
+    31 sessions    52 calls  c--StarDiver
+    19 sessions     0 calls  C--StarDiver-wt-claude-tutorial-card-1017
+     8 sessions     0 calls  C--Projects-StarDiver-wt-relay-prototype-1024
+     8 sessions     0 calls  C--StarDiver-wt-lecture-insights-1017
+     5 sessions     0 calls  C--claude-code-studios
+     5 sessions     0 calls  C--StarDiver-wt-hero-shield-finish-1017
+     4 sessions     1 calls  C--Projects-StarDiver
+     3 sessions     6 calls  C--MartRush
+     3 sessions     0 calls  C--StarDiver-wt-boss-demo-policy-1019
+     2 sessions    17 calls  C--Projects-ReviewSupporter
+     2 sessions     8 calls  C--Projects-ZZZ-Project
+     2 sessions     0 calls  C--StarDiver-wt-card-tail-sortie-input-1018
+     2 sessions     0 calls  C--StarDiver-wt-claude-no-heal-run-1017
+     2 sessions     0 calls  C--StarDiver-wt-final-death-growth-sortie-1019
+     2 sessions     0 calls  C--StarDiver-wt-first-departure-repair-1019
+     2 sessions     0 calls  C--StarDiver-wt-natural-first-card-1019
+     2 sessions     0 calls  D--StarDiver-Captures-Core-Identity-Design-1023
+     2 sessions     0 calls  G------------Develrocket-Students-Manager
+     1 sessions     0 calls  C--Cannon-Kingdom
+     1 sessions     0 calls  C--OpenClaw
+     1 sessions     5 calls  C--Projects-AutoGameMarketing
+     1 sessions    16 calls  C--Projects-Cannon-Kingdom
+     1 sessions     0 calls  C--Projects-claude-code-studios
+     1 sessions    16 calls  C--Projects-Jodalchung
+     1 sessions     0 calls  C--Projects-MartRush
+     1 sessions     0 calls  C--Projects-MartRush--claude-worktrees-inspiring-bhabha-ff1fc5
+     1 sessions     0 calls  C--Projects-MartRush--claude-worktrees-nervous-volhard-1de6a7
+     1 sessions     0 calls  C--Projects-Moro
+     1 sessions     8 calls  C--SnapLock
+     1 sessions     0 calls  C--StarDiver-wt-adopted-supply-logo-link-1018
+     1 sessions     0 calls  C--StarDiver-wt-claude-boss-achievement-1017
+     1 sessions     0 calls  C--StarDiver-wt-claude-full-supply-1017
+     1 sessions     0 calls  C--StarDiver-wt-claude-progression-1017
+     1 sessions     0 calls  C--StarDiver-wt-claude-run-return-1017
+     1 sessions     0 calls  C--StarDiver-wt-claude-run-return-input-1017
+     1 sessions     0 calls  C--StarDiver-wt-demo-save-isolation-1019
+     1 sessions     0 calls  C--StarDiver-wt-lobby-first-outdoor-1019
+     1 sessions     0 calls  C--StarDiver-wt-natural-hero-link-1019
+     1 sessions     0 calls  C--StarDiver-wt-new-slot-entry-input-1018
+     1 sessions     0 calls  C--StarDiver-wt-node-menu-resume-1019
+     1 sessions     0 calls  C--StarDiver-wt-quit-menu-two-lifetimes-1019
+     1 sessions     0 calls  C--StarDiver-wt-quit-save-guard-1018
+     1 sessions     0 calls  C--StarDiver-wt-quit-save-ui-input-1018
+     1 sessions     0 calls  C--StarDiver-wt-support-upgrade-copy-1017
+     1 sessions     0 calls  C--StarDiver-wt-support-upgrade-input-1017
+     1 sessions     6 calls  C--Users-dawn8-AppData-Local-Claude-Data-claude-pzs8sxrjxfjjc-scratch-workspaces-09d8e2d4-7a81-47ec-98fc-9e98e3977ca7-9c6f5be1-eddb-4e98-a0a7-2ab1b2bba9b2-scratch-2026-11-01-9a86c6
+     1 sessions     0 calls  C--Users-dawn8-AppData-Roaming-Claude-scratch-workspaces-09d8e2d4-7a81-47ec-98fc-9e98e3977ca7-9c6f5be1-eddb-4e98-a0a7-2ab1b2bba9b2-scratch-2026-09-21-75a1d1
+     1 sessions     0 calls  C--WhereMyTokens
+     1 sessions     0 calls  D--StarDiver-Captures-Card-Combat-Return-1017
+     1 sessions     0 calls  D--StarDiver-Captures-CLI-Allocation-1017
+     1 sessions     0 calls  D--StarDiver-Captures-CLI-Use-1017
+     1 sessions     0 calls  D--StarDiver-Captures-Core-Direction-1024
+     1 sessions     0 calls  D--StarDiver-Captures-Core-Flow-Gap-1018
+     1 sessions     0 calls  D--StarDiver-Captures-Core-Loop-Council-1023
+     1 sessions     0 calls  D--StarDiver-Captures-Core-Loop-Reconstruction-1023
+     1 sessions     0 calls  D--StarDiver-Captures-Core-Loop-Scenarios-1024
+     1 sessions     0 calls  D--StarDiver-Captures-Fast-Decision-Council-1017
+     1 sessions     0 calls  D--StarDiver-Captures-First-Departure-Rollback-1019
+     1 sessions     0 calls  D--StarDiver-Captures-Hero-First-Link-1017
+     1 sessions     0 calls  D--StarDiver-Captures-Hero-Outdoor-Flow-1017
+     1 sessions     0 calls  D--StarDiver-Captures-Hold-Cleanup-File-1017
+     1 sessions     0 calls  D--StarDiver-Captures-Hold-Rules-1017
+     1 sessions     0 calls  D--StarDiver-Captures-Hopper-Contact-Clearance-1017-tail-analysis
+     1 sessions     0 calls  D--StarDiver-Captures-Hopper-Grounding-Followup-1017
+     1 sessions     0 calls  D--StarDiver-Captures-PM-Next-Boundary-1018
+     1 sessions     0 calls  D--StarDiver-Captures-PM-R02-Demo-Build-Readiness-1019
+     1 sessions     0 calls  D--StarDiver-Captures-Tutorial-Input-Focus-1017
+install claude-code-studios@game-studios user 0.6.7 None True
+install claude-code-studios@game-studios project 0.6.7 C:\StarDiver True
+install claude-code-studios@game-studios project 0.6.7 C:\Projects\StarDiver True
+skillListingBudgetFraction in user settings: False
+```
