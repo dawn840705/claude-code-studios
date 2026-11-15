@@ -90,3 +90,44 @@
 - **무슨 일**: 같은 발주 § 2-b 는 «모드 스위치 한 파일» `production/lanes.yaml` (`mode: dual|solo` · implementer · planner · reviewer · gates · boards) 을 두고, 훅·계약서·조감도가 그 파일을 읽어 `solo` 일 때 리뷰 대기 대신 «스크립트 게이트 + 사용자» 로 라우팅하는지 드라이런으로 보이라는 것이었다. 10-07 실측: 이 저장소에는 이미 `rules/runtime-modes.md` + `production/runtime.txt` (`claude|codex|split` · split 이면 분담 pathspec) 와 `detect-runtime-mode.sh` 가 있다 — 축은 다르지만(«누가 짓나» vs «리뷰를 누가 하나») 같은 문제를 푼다. StarDiver 도 지금 `runtime.txt` 의 `split` 으로 운영한다.
 - **제안**: `lanes.yaml` 을 새로 만들지 말고 `runtime.txt` 로 충분한지 대조한다. 빠진 것이 «리뷰·수용 게이트를 누가 쥐나(구현 손과 다른 손)» 뿐이면 `runtime.txt` split 분담 절에 그 한 줄을 더하고 이 항목은 반려(중복). 원 발주 = `Order-20260826-Plugin-Two-Mode-M1.md` § 2-b. (§ 2-c 보드 3종 저장소 이전은 StarDiver 쪽 일이고 8-28 보드 Codex 이관 때 state JSON 이 저장소에 커밋돼 이미 소멸 — 여기 몫 아님)
 - **상태**: 반려 (`lanes.yaml` 은 중복 — `runtime.txt` 로 충분) · 빠진 한 칸만 반영됨 (8915087). 대조 결과: `mode` 는 `claude|codex|split` 이 다루고(solo = claude 또는 codex, dual = split), implementer·planner 는 split 경로 분담이 다루고, gates 는 런타임과 무관한 스크립트다. 빈 칸은 reviewer 뿐이라 `rules/runtime-modes.md` 분담 절에 `review:` 줄을 더했다. 그 줄이 없으면 같은 런타임 안의 별도 서브에이전트(`verify-route.md` § 4)와 게이트가 검토하고 R4 는 사용자 몫이다. 발주가 바란 «solo 이면 리뷰 대기 대신 게이트 + 사용자» 는 이 기본값과 같다. 남은 일: 공통 정책이라 `codex-code-studios/rules/runtime-modes.md` 에도 같은 줄이 들어가야 한다 — 그쪽은 미반영
+
+## 2026-11-15 · 출처: 맥북 세션 «[맥북] 프로젝트 상태 점검» → 홈컴퓨터 요청
+- **무슨 일**: 이 플러그인이 실제로 쓸모가 있는지 맥북 세션 기록(`~/.claude/projects/*/*.jsonl`, 08-27~11-15)으로 집계했다. 스킬 90개 중 모델이 부른 것은 `/lesson-review` 1회, 직접 입력한 스튜디오 슬래시 명령은 0회. 에이전트는 약 175회 호출됐는데 45개 중 22개만 쓰였고, 월별로 9월 148 → 10월 15 → 11월 9회로 줄었다(9월분 대부분이 SRPGS 한 세션 95회). 한 번도 안 쓰인 에이전트 23개에는 프로그래머 계열 전부와 humanize 4종이 들어 있다. humanize 는 `~/.claude/skills`·`~/.claude/agents` 에 원본(`vendor/im-not-ai`) 사본이 따로 있고, 실제로 불린 것은 그 사본뿐이다(에이전트 50·스킬 20회). 플러그인은 사용자 범위로 켜져 있어 APM(24세션)·Develrocket(29세션)·SoloForge(14세션)처럼 한 번도 안 쓰는 프로젝트에도 세션마다 시작 안내 약 5천 자와 스킬 설명 약 2.5만 자가 실린다. `skillListingBudgetFraction` 이 설정돼 있지 않아 스킬 목록 뒤쪽은 설명이 잘린다.
+- **요청 (홈컴퓨터)**: 아래 스크립트를 홈컴퓨터에서 그대로 돌리고, 출력 전체를 이 항목 아래 `- **홈컴퓨터 결과**:` 로 붙여 푸시해 달라. 저장소 안에 파일로 만들지 말고 임시 위치에서 `python -I audit.py` 로 돌린다. 읽기만 하는 스크립트다. 결과를 보고 맥북 쪽에서 (1) 설치 범위를 사용자 → 쓰는 프로젝트로 좁힐지 (2) 안 쓰는 스킬·에이전트를 deprecated 로 표시할지 (3) humanize 를 한 벌로 합칠지 정한다. 지우는 건 홈 데이터를 본 뒤에, 한 마이너 버전 동안 deprecated 로 둔 다음이다.
+- **상태**: 대기 (홈컴퓨터 실행 대기)
+
+<details><summary>audit.py — 맥북에서 시험 완료 (2026-11-15)</summary>
+
+```python
+import json, pathlib, collections, re
+home = pathlib.Path.home() / ".claude"
+P, cmd = "claude-code-studios:", re.compile(r"<command-name>/?(claude-code-studios:[^<]+)</command-name>")
+use, month, proj_n, sess = collections.Counter(), collections.Counter(), collections.defaultdict(collections.Counter), collections.Counter()
+for f in (home / "projects").glob("*/*.jsonl"):
+    p = f.parent.name; sess[p] += 1
+    for line in f.open(encoding="utf-8", errors="replace"):
+        if P not in line: continue
+        try: o = json.loads(line)
+        except ValueError: continue
+        hits = cmd.findall(line) if o.get("type") == "user" else []
+        for c in (o.get("message") or {}).get("content") or []:
+            if isinstance(c, dict) and c.get("type") == "tool_use":
+                i = c.get("input") or {}
+                s = str(i.get("skill") or i.get("subagent_type") or "")
+                if s.startswith(P): hits.append(("skill:" if c.get("name") == "Skill" else "agent:") + s[len(P):])
+        for h in hits:
+            h = h if h.startswith(("skill:", "agent:")) else "slash:" + h[len(P):]
+            use[h] += 1; month[o.get("timestamp", "")[:7]] += 1; proj_n[p][h] += 1
+print("months", sorted(month.items()))
+print("used", use.most_common())
+print("sessions vs studio calls per project:")
+for p, n in sess.most_common(): print(f"  {n:4d} sessions  {sum(proj_n[p].values()):4d} calls  {p}")
+reg = json.load(open(home / "plugins/installed_plugins.json"))["plugins"]
+for k, v in reg.items():
+    if "studios" in k:
+        for e in v: print("install", k, e.get("scope"), e.get("version"), e.get("projectPath"), pathlib.Path(e.get("installPath", "")).exists())
+s = home / "settings.json"
+print("skillListingBudgetFraction in user settings:", "skillListingBudgetFraction" in (s.read_text(encoding="utf-8") if s.exists() else ""))
+```
+
+</details>
