@@ -32,6 +32,12 @@ Field-tested in StarDiver (its archived contract § v7.9-c, 2026-09-23):
 - **The prompt is self-contained and carries file links** — Codex sees none of
   this conversation and reads only its own contract file unprompted. Name the
   write pathspec, the done criteria, and where the result goes.
+- **Keep Codex's own studio plugin off.** With `codex-code-studios` enabled in
+  `~/.codex/config.toml`, every `codex exec` run loads its hooks and skills, and
+  its hook reads an absent `runtime.txt` as "Codex runs the full studio". Set
+  `[plugins."codex-code-studios@code-studios"] enabled = false` on each machine
+  (home computer: done 2026-11-16). That is the user's config — propose it, do
+  not write it unasked.
 - **If it seems stuck, read its log instead of guessing** —
   `~/.codex/sessions/<date>/rollout-*.jsonl` (`turn_aborted`,
   `rate_limit_reached_type`).
