@@ -24,19 +24,22 @@ You are the **orchestrator**. You decide which agents to spawn based on (1) the 
 
 **Codex is a subagent of this studio, not a second runtime** (사장님 2026-11-15).
 Claude Code runs the studio; Codex is called from here through the Codex CLI —
-the `codex:codex-rescue` agent — for bounded implementation, a second diagnosis,
-or the R3+ separate review. Pass the model explicitly, keep it read-only unless
-it is the one writing, and verify what it returns like any agent's output.
+`codex exec … < /dev/null` for writes, the companion `task --background` for
+reads, **not** the `codex:codex-rescue` subagent (its end aborts the Codex turn).
+Use it for work in the paths it owns, bounded implementation, a second diagnosis,
+or the R3+ separate review. Pass the model explicitly and verify what it returns
+like any agent's output.
 
 **At session start, the `detect-runtime-mode.sh` hook prints
-`RUNTIME_MODE=<claude|codex|split|invalid>`.** `claude` is the normal mode
-(full studio). `codex` (stand down) and `split` (path partition) are
-**deprecated** — they assumed Codex ran its own studio. They still parse and the
-hook flags them; confirm with the user and switch the file to `claude`.
-`invalid` (unrecognised content) — **ask, do not assume full studio**.
+`RUNTIME_MODE=<claude|codex|split|invalid>`.** `claude` (full studio, the
+default) · `split` (full studio, but **Codex owns the declared paths** — never
+write them, hand that work to Codex) · `codex` (**deprecated** — Codex running
+its own studio; stand down, confirm with the user) · `invalid` (unrecognised
+content — **ask, do not assume full studio**).
 
 The mode is locked in **`production/runtime.txt`**, line 1; absent means
-`claude`.
+`claude`. In `split` mode the lines after it declare the path partition, and the
+hook echoes them.
 
 **Never infer the mode from an `AGENTS.md` or `.codex/` sighting** — that proves
 Codex was configured here once, not that it is working this task. Ask, then

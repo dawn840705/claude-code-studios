@@ -84,19 +84,22 @@ def test_declared_mode_is_reported(tmp_path, declared):
     assert mode_of(run(tmp_path)) == declared
 
 
-@pytest.mark.parametrize("declared", ["codex", "split"])
-def test_peer_runtime_modes_are_flagged_deprecated(tmp_path, declared):
-    """Codex is a subagent now (runtime-modes.md § Codex is a subagent); the old modes still parse but say so."""
-    write_runtime(tmp_path, declared + "\n")
+def test_codex_mode_is_flagged_deprecated(tmp_path):
+    """Codex no longer runs its own studio (runtime-modes.md § Codex is a subagent); the mode still parses but says so."""
+    write_runtime(tmp_path, "codex\n")
     out = run(tmp_path)
-    assert mode_of(out) == declared
+    assert mode_of(out) == "codex"
     assert "DEPRECATED" in out
 
 
-def test_claude_mode_is_not_flagged_and_points_at_codex_subagent(tmp_path):
+@pytest.mark.parametrize("declared", ["", "split\nCodex: Assets/**\n"])
+def test_claude_and_split_are_live_and_point_at_codex_exec(tmp_path, declared):
+    """split is Codex's write boundary (StarDiver 11-01), not a legacy mode."""
+    if declared:
+        write_runtime(tmp_path, declared)
     out = run(tmp_path)
     assert "DEPRECATED" not in out
-    assert "codex:codex-rescue" in out
+    assert "codex exec" in out
 
 
 @pytest.mark.parametrize("declared", ["  codex  ", "CODEX", "Codex\r\n", "﻿codex"])

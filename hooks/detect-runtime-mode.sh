@@ -3,9 +3,9 @@
 # Event: SessionStart
 # Purpose: Report which runtime is working this project, so the orchestrator knows
 #          whether to run the full studio, stand down, or work a partition.
-#          Codex is a subagent of this studio (called via the Codex CLI), so the
-#          normal mode is `claude`; `codex` and `split` (Codex as a peer runtime)
-#          are deprecated but still parsed so old projects are not misread.
+#          Codex is a subagent of this studio (called via the Codex CLI). `split`
+#          declares which paths Codex owns; `codex` (Codex running its own studio)
+#          is deprecated but still parsed so old projects are not misread.
 # Cross-platform: Windows Git Bash compatible.
 #
 # Output: prints a single RUNTIME_MODE line the orchestrator reads.
@@ -42,9 +42,9 @@ echo "RUNTIME_MODE=${MODE}"
 case "$MODE" in
   claude)
     echo "→ Full studio. Orchestrate agents, run gates, own artifacts — unchanged behaviour."
-    echo "→ Codex is a subagent here: hand it work via codex:codex-rescue with an explicit model (rules/runtime-modes.md § Codex is a subagent)." ;;
-  codex|split)
-    echo "→ DEPRECATED mode '${MODE}': Codex now runs as a subagent of this studio, not as a peer runtime. Confirm with the user, then set ${FILE} to claude." ;;
+    echo "→ Codex is a subagent here: codex exec with an explicit model and stdin closed, not codex:codex-rescue (rules/runtime-modes.md § How to call it)." ;;
+  codex)
+    echo "→ DEPRECATED mode 'codex': Codex now runs as a subagent of this studio, not its own studio. Confirm with the user, then set ${FILE} to claude or split." ;;
 esac
 
 case "$MODE" in
@@ -52,7 +52,7 @@ case "$MODE" in
     echo "→ STAND DOWN. codex-code-studios owns this project. Do NOT spawn studio agents, write studio artifacts, or run phase gates."
     echo "→ Still allowed: answering questions, and one-off edits the user explicitly asks for." ;;
   split)
-    echo "→ PARTITIONED. Work only the paths this runtime owns; never write a path the other runtime owns."
+    echo "→ PARTITIONED. Never write a path Codex owns — hand that work to Codex via codex exec (rules/runtime-modes.md § How to call it)."
     echo "→ Re-read every file before editing — the other runtime shares no session, context or tool log, so an overwrite is invisible to both."
     echo "→ Keep anything worth remembering in repository files — auto memory is invisible to the other runtime (rules/runtime-modes.md § Memory)."
     PARTITION="$(tail -n +2 "$FILE" 2>/dev/null | sed '/^[[:space:]]*$/d')"

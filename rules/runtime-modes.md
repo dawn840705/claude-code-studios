@@ -1,4 +1,4 @@
-# Runtime Modes — Codex Is a Subagent (legacy: Codex Alone, Split)
+# Runtime Modes — Codex Is a Subagent; Split Is Its Write Boundary
 
 **Global rule. Applies to every project and every domain.**
 
@@ -11,30 +11,36 @@
 
 **This is the operating model.** Claude Code runs the studio — orchestration,
 gates, artifacts, the sprint loop. Codex does not run a studio of its own; it is
-called **from here**, through the Codex CLI, as one more worker. So in practice
-every project is mode `claude`, and the `codex` / `split` modes below are
-**deprecated** (§ The three modes).
+called **from here**, through the Codex CLI, as one more worker. StarDiver has
+worked this way since 2026-11-01 (Claude = 총괄·기획·검토, Codex = 개발·디자인 via
+`codex exec`).
 
 ### How to call it
 
-Through the `codex:codex-rescue` agent (Agent tool) — it forwards one task to the
-Codex CLI and returns its output. A bare `codex exec` in Bash is the fallback when
-that plugin is not installed. Either way:
+Field-tested in StarDiver (its archived contract § v7.9-c, 2026-09-23):
 
-- **Pick the model for the task, and pass it explicitly** (`--model`, `--effort`).
-  The forwarder leaves both unset unless told, which runs every task on the
-  default. If the user keeps a difficulty→model table (their global
-  `CLAUDE.md`), follow it; if not, leave the default and say so.
+| Work | Call |
+|---|---|
+| Write — implementation, scenes, assets | `codex exec -C <project> -m <model> "<prompt>" < /dev/null`, as a background Bash job. **Close stdin** — left open, Codex waits for input and stalls (15 minutes lost on 9-23). |
+| Read — review, cross-check, research | The codex plugin's companion: `codex-companion.mjs task --background "<prompt>"`, then `status` / `result`; or `review` / `adversarial-review`. |
+
+- **Do not call it through the `codex:codex-rescue` subagent.** When that
+  subagent ends, the Codex turn ends with it (`turn_aborted`, 9-23 incident).
+- **Pick the model for the task and pass it explicitly.** Left unset, every task
+  runs on the default. If the user keeps a difficulty→model table (their global
+  `CLAUDE.md`), follow it; if not, use the default and say so.
 - **The prompt is self-contained and carries file links** — Codex sees none of
-  this conversation, and reads only its own contract file unprompted.
-- **Say "read-only" unless Codex is the one making the change.** The forwarder
-  adds `--write` by default. When Codex does write, it owns those files: nothing else (you, another agent)
-  edits them until it returns — [`subagent-collaboration.md`](subagent-collaboration.md) § 2.1.
+  this conversation and reads only its own contract file unprompted. Name the
+  write pathspec, the done criteria, and where the result goes.
+- **If it seems stuck, read its log instead of guessing** —
+  `~/.codex/sessions/<date>/rollout-*.jsonl` (`turn_aborted`,
+  `rate_limit_reached_type`).
 
 ### When to hand it work
 
 | Use Codex for | Why |
 |---|---|
+| Implementation inside the paths it owns (§ Split mode) | The project's write boundary says who touches product code |
 | A bounded implementation task with its files named | Parallel hands, partitioned by path like any subagent |
 | A second diagnosis when the first pass is stuck | A different model does not repeat this context's conclusions |
 | The R3+ separate review ([`verify-route.md`](verify-route.md) § 4), read-only | The reviewer must not be the author — a different model is the strongest "not the author" available |
@@ -45,35 +51,17 @@ result this turn needs before it can continue.
 ### What comes back is a subagent's report
 
 Codex output is held to the same rule as any agent's: it describes intent, not
-results. **Read the changed files and run the gates before reporting done.** A
-Codex review returns findings; you decide what to fix.
-
-This studio now ships as two sibling packages:
-
-| Package | Runtime | Invocation | Roles live in |
-|---|---|---|---|
-| `claude-code-studios` | Claude Code | `/skill-name` | `agents/*.md` (45 installed agents) |
-| `codex-code-studios` | Codex | `$skill-name` | `skills/studio-orchestrator/references/roles/*.md` (loaded references) |
-
-Same studio, two runtimes. A project can be worked by either one alone, or by
-both at once. **Which of those is happening changes what this plugin should
-do**, and it is not inferable from the code in front of you.
+results. **Read the returned diff and run the gates before reporting done.** A
+Codex review returns findings; you decide what to fix. While Codex is writing,
+nothing else edits its files ([`subagent-collaboration.md`](subagent-collaboration.md) § 2.1).
 
 ## The three modes
 
-> **`codex` and `split` are deprecated** (next release after v0.6.7). They describe
-> Codex running `codex-code-studios` as a second, peer runtime, which is no longer
-> how any project is worked. The hook still recognises both and prints a
-> deprecation line; they stay for at least one minor version so a project that
-> still declares one is not misread. A project on either should confirm with the
-> user and set `production/runtime.txt` to `claude` (or delete it). Everything
-> below about them is kept for those projects only.
-
-| Mode | Who works the project | This plugin's job |
+| Mode | What it means now | This plugin's job |
 |---|---|---|
-| `claude` | Claude Code only, every line | **Full studio.** Unchanged from v0.6.4 — orchestrate all 45 agents, run every gate, own every artifact. This is the default. |
-| `codex` | Codex only, every line | **Stand down.** `codex-code-studios` owns the work. Do not spawn studio agents, do not write studio artifacts, do not run phase gates. Answer questions and do explicitly requested one-off edits. |
-| `split` | Both, divided by strength | **Partial studio, partitioned.** Work only the lines this runtime owns (§ Split mode), and never write a file the other runtime owns. |
+| `claude` | Claude Code runs the studio; Codex, if used, takes tasks case by case | **Full studio.** Orchestrate the agents, run every gate, own every artifact. This is the default. |
+| `split` | Claude Code runs the studio, and **Codex owns a declared set of paths** (typically product code and assets) | **Full studio, but never write a path Codex owns** — hand that work to Codex (§ How to call it) and review what comes back. § Split mode. |
+| `codex` | Codex runs a studio of its own (`codex-code-studios`) | **Deprecated** (next release after v0.6.7) — no project is worked this way any more. The hook still parses it and flags it; it stays for at least one minor version. **Stand down**: answer questions and do explicitly requested one-off edits only. Confirm with the user and change the file. |
 
 ## How a session knows which mode it is in
 
@@ -123,7 +111,8 @@ So in `split` mode, before any work begins:
    which paths each runtime owns. Paths, not topics; a topic is not something a
    file-write can be checked against.
 2. **Touch nothing outside your partition.** Not "ask first" — do not write it.
-   If work requires a file the other runtime owns, report that and stop.
+   If work needs a path Codex owns, hand it to Codex with that pathspec
+   (§ How to call it); a path neither side owns, report and stop.
 3. **Re-read before you edit**, every time. The file may have moved since this
    session started, and no hook will tell you.
 
@@ -169,8 +158,10 @@ The only thing either side reads without being told is its own contract file;
 
 ### Which strengths go to which runtime
 
-Superseded by § Codex is a subagent — the split is now per task, decided by the
-orchestrator when it hands work to Codex, not per project as a path partition.
+Per project, written as paths in `runtime.txt`. The one settled example:
+StarDiver (2026-11-01) gives Codex `Assets/**`, `ProjectSettings/**`,
+`Packages/**` and most of `Tools/**`, and keeps `Documents/**` and `.claude/**`
+for Claude — Claude plans, orders and reviews; it does not edit product code.
 
 ## Cross-repo relationship
 

@@ -6,16 +6,21 @@
 - **Codex 는 하위 에이전트다.** 사장님 결정(2026-11-15): Claude Code 가 스튜디오를
   돌리고, Codex 는 여기서 Codex CLI(`codex:codex-rescue`)로 부르는 일꾼 하나다.
   `rules/runtime-modes.md` 맨 앞에 언제(범위가 정해진 구현 · 막힌 진단의 두 번째
-  시도 · R3+ 별도 검토) 어떻게(모델 명시 · 쓰지 않을 땐 read-only 명시 · 결과는
-  파일과 게이트로 확인) 맡기는지를 적었다. `claude` 모드 세션 시작 안내에 한 줄.
+  시도 · R3+ 별도 검토) 어떻게 맡기는지를 적었다. 부르는 법은 StarDiver 실측을
+  따른다 — 쓰기는 `codex exec … < /dev/null`(stdin 을 닫지 않으면 멈춘다), 읽기는
+  companion `task --background`. `codex:codex-rescue` 서브에이전트는 쓰지 않는다
+  (서브에이전트가 끝나면 Codex 턴도 `turn_aborted`, StarDiver 9-23 사고).
+- **`split` 은 Codex 의 쓰기 경계다.** Claude 가 총괄하고 Codex 가 선언된 경로
+  (제품 코드·에셋)를 맡는 프로젝트(StarDiver 11-01~)가 이 모드를 쓴다. 세션 시작
+  안내가 «Codex 경로는 쓰지 말고 `codex exec` 로 넘겨라» 로 바뀌었다.
 - **공통 방침의 정본은 이 저장소다.** `codex-code-studios/AGENTS.md` 의 2026-09-07
   지시(공통 원칙은 그쪽에 반영)에 갱신 메모를 달고(그쪽 19c3e70), `runtime-modes.md`
   Cross-repo 절에서 «그쪽에도 반영 대기» 보고를 없앴다.
 
 ### Deprecated
-- **`runtime.txt` 의 `codex` · `split` 모드.** Codex 가 자기 스튜디오를 따로 돌린다는
+- **`runtime.txt` 의 `codex` 모드.** Codex 가 자기 스튜디오를 따로 돌린다는
   전제였다. 훅은 계속 읽고 `DEPRECATED` 한 줄을 찍는다. 최소 한 마이너 버전 유지한
-  뒤 제거한다. 위 `review:` 줄도 `split` 에 딸린 것이라 같이 간다.
+  뒤 제거한다.
 
 ### Added
 - **split 분담에 `review:` 줄.** `production/runtime.txt` 분담은 누가 쓰는지만
