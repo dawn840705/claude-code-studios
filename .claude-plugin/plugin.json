@@ -1,7 +1,7 @@
 {
   "name": "claude-code-studios",
-  "version": "0.6.7",
-  "description": "Full software studio for Claude Code: 45 specialist agents across game AND app/web/service development, 90 workflow skills, and production hooks covering pre-production through live-ops. v0.6.7 fixes what was installed but never reached the model: PostToolUse advisories now arrive as additionalContext instead of stderr the model never sees (hooks/lib/emit-context.sh), five global rules documented as always active are finally printed at session start, and a missing skillListingBudgetFraction is flagged because at the default budget the team-*, start, sprint-* and story-* skills lost their descriptions and stopped auto-triggering. Projects can also opt in to delegated decision authority with a '## 결정 권한' section in their CLAUDE.md (rules/decision-lifecycle.md § 4.1); without it the user still makes the final call. (v0.6.6 added the install-registry gate; v0.6.5 gave the runtime split an actual reader.)",
+  "version": "0.6.8",
+  "description": "Full software studio for Claude Code: 45 specialist agents across game AND app/web/service development, 90 workflow skills, and production hooks covering pre-production through live-ops. v0.6.8 makes Codex a subagent of this studio: Claude Code orchestrates and calls Codex through the Codex CLI (codex exec with stdin closed, not the codex-rescue subagent), runtime.txt split now means 'Codex owns these paths', and the codex mode is deprecated. A usage audit across two machines deprecated 8 rarely-reachable skills (removal in v0.7.0) and trimmed session-start noise. (v0.6.7 delivered hook advisories to the model and added opt-in decision authority; v0.6.6 added the install-registry gate.)",
   "author": {
     "name": "Cannon Kingdom Dev"
   },

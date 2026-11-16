@@ -1,10 +1,13 @@
 # Changelog
 
-## Unreleased
+## v0.6.8 — 2026-11-16
+
+Codex 를 하위 에이전트로 다시 자리매김한 릴리스다. 사용량 집계로 안 닿는 스킬 8개를
+deprecated 로 돌리고 세션 시작 안내를 줄였다.
 
 ### Changed
 - **Codex 는 하위 에이전트다.** 사장님 결정(2026-11-15): Claude Code 가 스튜디오를
-  돌리고, Codex 는 여기서 Codex CLI(`codex:codex-rescue`)로 부르는 일꾼 하나다.
+  돌리고, Codex 는 여기서 Codex CLI 로 부르는 일꾼 하나다.
   `rules/runtime-modes.md` 맨 앞에 언제(범위가 정해진 구현 · 막힌 진단의 두 번째
   시도 · R3+ 별도 검토) 어떻게 맡기는지를 적었다. 부르는 법은 StarDiver 실측을
   따른다 — 쓰기는 `codex exec … < /dev/null`(stdin 을 닫지 않으면 멈춘다), 읽기는
@@ -16,6 +19,9 @@
 - **공통 방침의 정본은 이 저장소다.** `codex-code-studios/AGENTS.md` 의 2026-09-07
   지시(공통 원칙은 그쪽에 반영)에 갱신 메모를 달고(그쪽 19c3e70), `runtime-modes.md`
   Cross-repo 절에서 «그쪽에도 반영 대기» 보고를 없앴다.
+- **Codex 쪽 `codex-code-studios` 플러그인은 끈다.** 켜 두면 `codex exec` 마다 그 훅·스킬이
+  실리고, 그 훅은 `runtime.txt` 가 없으면 «Codex 가 전체 스튜디오» 로 읽는다.
+  `~/.codex/config.toml` 에서 기기마다 끈다(사용자 설정이라 제안만 한다).
 
 ### Deprecated
 - **`runtime.txt` 의 `codex` 모드.** Codex 가 자기 스튜디오를 따로 돌린다는
