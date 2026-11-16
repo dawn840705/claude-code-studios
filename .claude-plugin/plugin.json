@@ -28,22 +28,22 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh\"",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/detect-gaps.sh",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/detect-gaps.sh\"",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/detect-project-type.sh",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/detect-project-type.sh\"",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/detect-runtime-mode.sh",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/detect-runtime-mode.sh\"",
             "timeout": 10
           }
         ]
@@ -55,12 +55,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/validate-commit.sh",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/validate-commit.sh\"",
             "timeout": 15
           },
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/validate-push.sh",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/validate-push.sh\"",
             "timeout": 10
           }
         ]
@@ -72,22 +72,22 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/validate-assets.sh",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/validate-assets.sh\"",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/validate-skill-change.sh",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/validate-skill-change.sh\"",
             "timeout": 5
           },
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/unity-meta-check.sh",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/unity-meta-check.sh\"",
             "timeout": 5
           },
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/unity-animator-string-lint.sh",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/unity-animator-string-lint.sh\"",
             "timeout": 5
           }
         ]
@@ -99,7 +99,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/notify.sh",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/notify.sh\"",
             "timeout": 10
           }
         ]
@@ -111,7 +111,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/pre-compact.sh",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/pre-compact.sh\"",
             "timeout": 10
           }
         ]
@@ -123,7 +123,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/post-compact.sh",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/post-compact.sh\"",
             "timeout": 10
           }
         ]
@@ -135,7 +135,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/session-stop.sh",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/session-stop.sh\"",
             "timeout": 10
           }
         ]
@@ -147,7 +147,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/log-agent.sh",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/log-agent.sh\"",
             "timeout": 5
           }
         ]
@@ -159,7 +159,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/log-agent-stop.sh",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/log-agent-stop.sh\"",
             "timeout": 5
           }
         ]
